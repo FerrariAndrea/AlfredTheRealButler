@@ -1,0 +1,1 @@
+https://tutorials-raspberrypi.com/raspberry-pi-sensors-overview-50-important-components/
