@@ -27,6 +27,7 @@ public class Main {
 		MyDistanceMonitor ultrasonic_3 = new MyDistanceMonitor(RaspiPin.GPIO_25,RaspiPin.GPIO_24);
 		MyDistanceMonitor ultrasonic_4 = new MyDistanceMonitor(RaspiPin.GPIO_23,RaspiPin.GPIO_22);
 		pir.addObserver(mdl);
+		MotorDevice md = new MotorDevice(RaspiPin.GPIO_03,RaspiPin.GPIO_02);
 		boolean stay =true; 
 		while(stay) {
 			System.out.println("Lista comandi:");
@@ -38,6 +39,9 @@ public class Main {
 			System.out.println("8-->sonic sensor 2");
 			System.out.println("9-->sonic sensor 3");
 			System.out.println("10-->sonic sensor 4");
+			System.out.println("11-->Motore avanti");
+			System.out.println("12-->Motore indietro");
+			System.out.println("13-->Motore stop");
 			System.out.println("Inserisci il comando:");
 			switch(scanner.nextInt()) {
 			case 0:	  	   
@@ -100,6 +104,15 @@ public class Main {
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
+			break;
+			case 11:				
+				md.forward();
+			break;
+			case 12:				
+				md.backward();
+			break;
+			case 13:				
+				md.stop();
 			break;
 			default:
 				
