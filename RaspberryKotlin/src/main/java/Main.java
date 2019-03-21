@@ -1,9 +1,7 @@
 import java.io.IOException;
 import java.util.Scanner;
 
-import com.pi4j.io.*;
-
-
+import com.pi4j.io.gpio.*;
 import gipo.devices.*;
 import myDevice.*;
 
@@ -152,14 +150,14 @@ public class Main {
 				try {
 					for(int x = 0;x<20;x++) {
 						
-							ml.draw(0,MyMatrixLed.ImgFactory(IMG.SMILE));
+							ml.draw(0,MyMatrixLed.ImgFactory(MyMatrixLed.IMG.SMILE));
 							Thread.sleep(50);
-							ml.draw(0,MyMatrixLed.ImgFactory(IMG.WINK));
+							ml.draw(0,MyMatrixLed.ImgFactory(MyMatrixLed.IMG.WINK));
 							Thread.sleep(110);
-							ml.draw(0,MyMatrixLed.ImgFactory(IMG.SMILE));
+							ml.draw(0,MyMatrixLed.ImgFactory(MyMatrixLed.IMG.SMILE));
 						Thread.sleep(500);
 					}
-					ml.draw(0,MyMatrixLed.ImgFactory(IMG.SMILE));
+					ml.draw(0,MyMatrixLed.ImgFactory(MyMatrixLed.IMG.SMILE));
 				} catch (Exception e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
