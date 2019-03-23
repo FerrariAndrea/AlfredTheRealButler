@@ -2,10 +2,12 @@ import java.io.IOException;
 import java.util.Scanner;
 
 import com.pi4j.io.*;
-
+import com.pi4j.io.gpio.GpioFactory;
+import com.pi4j.io.gpio.RaspiPin;
 
 import gipo.devices.*;
 import myDevice.*;
+import myDevice.MyMatrixLed.IMG;
 
 public class Main {
 	public static void main(String[] args)  
@@ -30,7 +32,8 @@ public class Main {
 		MotoDetectionMatrixLed mdml = new MotoDetectionMatrixLed(ml);
 		pir.addObserver(mdl);
 		pir.addObserver(mdml);
-		MotorDevice md = new MotorDevice(RaspiPin.GPIO_03,RaspiPin.GPIO_02);
+		MotorDevice md0 = new MotorDevice(RaspiPin.GPIO_03,RaspiPin.GPIO_02);
+		MotorDevice md1 = new MotorDevice(RaspiPin.GPIO_07,RaspiPin.GPIO_05);
 		
 		boolean stay =true; 
 		while(stay) {
@@ -112,13 +115,16 @@ public class Main {
 				}
 			break;
 			case 11:				
-				md.forward();
+				md0.forward();
+				md1.forward();
 			break;
 			case 12:				
-				md.backward();
+				md0.backward();
+				md1.backward();
 			break;
 			case 13:				
-				md.stop();
+				md0.stop();
+				md1.stop();
 			break;
 			case 14:				
 				
