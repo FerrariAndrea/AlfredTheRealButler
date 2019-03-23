@@ -15,6 +15,8 @@ class App {
 fun main(args: Array<String>) {
     println(App().greeting)
     val ml = MyMatrixLed(1.toShort())
+    ml.open()
+    ml.brightness(15.toByte())
     ml.orientation(0)
 
     try {

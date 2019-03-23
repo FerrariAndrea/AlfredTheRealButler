@@ -148,7 +148,7 @@ public class Main {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
 				}
-				ml.showMessage("THIS IS A REAL FUKING HELLO WORLD");
+				ml.showMessage("THIS IS A REAL HELLO WORLD");
 			break;
 			case 15:				
 				
