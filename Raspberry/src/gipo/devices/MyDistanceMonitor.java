@@ -1,8 +1,6 @@
-package myDevice;
+package gipo.devices;
 
 import com.pi4j.io.gpio.Pin;
-
-import gipo.devices.DistanceMonitor;
 
 public class MyDistanceMonitor extends DistanceMonitor{
 

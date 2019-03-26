@@ -1,4 +1,4 @@
-package myDevice;
+package gipo.devices;
 
 public enum DeviceArg  {
 	Error,

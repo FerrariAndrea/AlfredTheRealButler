@@ -1,11 +1,9 @@
-package myDevice;
+package gipo.devices;
 
 
 
 import com.pi4j.io.gpio.GpioPinDigitalOutput;
 import com.pi4j.io.gpio.Pin;
-
-import gipo.devices.Headlights;
 
 
 public class MyHeadligths extends Headlights{

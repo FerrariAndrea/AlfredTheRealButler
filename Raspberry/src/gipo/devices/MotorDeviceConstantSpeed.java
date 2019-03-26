@@ -7,16 +7,16 @@ import com.pi4j.io.gpio.PinState;
 
 import gipo.interfaces.IMotor;
 
-public class MotorDevice implements IMotor {
+public class MotorDeviceConstantSpeed implements IMotor {
 
 
 	private GpioPinDigitalOutput pinForward;
 	private GpioPinDigitalOutput pinBackward;
 	private MotorState state;
+	private int speed;
 	
 	
-	
-	public MotorDevice(GpioPinDigitalOutput pinForward, GpioPinDigitalOutput pinBackward) {
+	public MotorDeviceConstantSpeed(GpioPinDigitalOutput pinForward, GpioPinDigitalOutput pinBackward) {
 		this.pinForward = pinForward;
 		this.pinBackward = pinBackward;
 		this.pinBackward.setState(PinState.LOW);
@@ -24,13 +24,15 @@ public class MotorDevice implements IMotor {
 		//this.pinForward.setShutdownOptions(true,PinState.LOW,PinPullResistance.PULL_DOWN);
 		this.pinForward.setState(PinState.LOW);
 		this.state= MotorState.Stop;
+		this.speed =1;
 	}
-	public MotorDevice(Pin pinForward, Pin pinBackward) {
+	public MotorDeviceConstantSpeed(Pin pinForward, Pin pinBackward) {
 		this.pinForward = GpioFactory.getInstance().provisionDigitalOutputPin(pinForward, "pinForward", PinState.LOW);;
 		this.pinBackward = GpioFactory.getInstance().provisionDigitalOutputPin(pinBackward, "pinBackward", PinState.LOW);
 		//this.pinBackward.setShutdownOptions(true,PinState.LOW,PinPullResistance.PULL_DOWN);
 		//this.pinForward.setShutdownOptions(true,PinState.LOW,PinPullResistance.PULL_DOWN);
 		this.state= MotorState.Stop;
+		this.speed =1;
 	}
 	@Override
 	public void forward() {
@@ -62,19 +64,23 @@ public class MotorDevice implements IMotor {
 	public void setPinBackward(GpioPinDigitalOutput pinBackward) {
 		this.pinBackward = pinBackward;
 	}
-	public MotorState getState() {
+
+	
+	@Override
+	public void setSpeed(int speed) {
+		this.speed =1;
+		
+	}
+	@Override
+	public int getSpeed() {
+		// TODO Auto-generated method stub
+		return this.speed;
+	}
+	@Override
+	public MotorState getStatus() {
+		// TODO Auto-generated method stub
 		return state;
 	}
-	
-
-
-	
-	
-	public enum MotorState {
-		Forward,
-		Back,
-		Stop
-		}
 	
 }
 

@@ -1,11 +1,9 @@
-package myDevice;
+package gipo.devices;
 
 import java.util.Observable;
 import java.util.Observer;
-import gipo.devices.PirSensorDigital;
-import myDevice.MyMatrixLed.IMG;
-import gipo.devices.DistanceMonitor;
-import gipo.devices.Headlights;
+
+import gipo.devices.MyMatrixLed.IMG;
 
 public class MotoDetectionMatrixLed implements Observer {
 

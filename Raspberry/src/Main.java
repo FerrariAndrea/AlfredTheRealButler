@@ -6,8 +6,9 @@ import com.pi4j.io.gpio.GpioFactory;
 import com.pi4j.io.gpio.RaspiPin;
 
 import gipo.devices.*;
-import myDevice.*;
-import myDevice.MyMatrixLed.IMG;
+import gipo.devices.MyMatrixLed.IMG;
+import gipo.interfaces.IMotor;
+
 
 public class Main {
 	public static void main(String[] args)  
@@ -32,9 +33,9 @@ public class Main {
 		MotoDetectionMatrixLed mdml = new MotoDetectionMatrixLed(ml);
 		pir.addObserver(mdl);
 		pir.addObserver(mdml);
-		MotorDevice md0 = new MotorDevice(RaspiPin.GPIO_03,RaspiPin.GPIO_02);
-		MotorDevice md1 = new MotorDevice(RaspiPin.GPIO_07,RaspiPin.GPIO_05);
-		
+		IMotor md0 = new MotorDeviceConstantSpeed(RaspiPin.GPIO_03,RaspiPin.GPIO_02);
+		IMotor md1 = new MotorDeviceConstantSpeed(RaspiPin.GPIO_07,RaspiPin.GPIO_05);
+		TankMotor tm = new TankMotor(md0,md1,1000);
 		boolean stay =true; 
 		while(stay) {
 			System.out.println("Lista comandi:");
@@ -49,7 +50,9 @@ public class Main {
 			System.out.println("11-->Motore avanti");
 			System.out.println("12-->Motore indietro");
 			System.out.println("13-->Motore stop");
-			System.out.println("14-->Test matrixled");
+			System.out.println("14-->Test matrixled_1");
+			System.out.println("15-->Test matrixled_2");
+			System.out.println("16-->TankMotor");
 			System.out.println("Inserisci il comando:");
 			switch(scanner.nextInt()) {
 			case 0:	  	   
@@ -183,10 +186,59 @@ public class Main {
 				//DEMO3
 				
 			break;
+			case 16:				
+				
+				try {
+					TankMotorControll(tm);
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+					e.printStackTrace();
+				}
+				
+				
+			break;
 			default:
 				
 			}
 		}
 		
 	}
+	
+	private static void TankMotorControll(TankMotor tm) throws IOException {
+		System.out.println("Lista comandi: WASD->muovi P->esci ZX->velocità QE->ruota F->ferma");
+		boolean stay =true; 
+		while(stay) {
+			switch((char) System.in.read()) {
+			case 'p':
+				tm.stop();
+				stay =false; 
+			case 'w':	
+				tm.forward();
+			case 's':	
+				tm.backward();
+			case 'a':	
+				tm.left(2);
+			case 'd':	
+				tm.right(2);
+			case 'z':	
+				tm.setSpeed(tm.getSpeed()-10);
+			case 'x':	
+				tm.setSpeed(tm.getSpeed()+10);
+			case 'q':	
+				tm.rotate(true);
+			case 'e':	
+				tm.rotate(false);
+			break;
+			case 'f':	
+				tm.stop();
+			break;
+			default:
+				
+			}
+		}
+	
+	}
 }
+
+
+

@@ -1,10 +1,6 @@
-package myDevice;
+package gipo.devices;
 
 import java.io.IOException;
-
-import gipo.devices.MatrixLed;
-import gipo.devices.MatrixLed.Constants;
-import gipo.devices.MatrixLed.Font;
 
 public class MyMatrixLed extends MatrixLed{
 
