@@ -26,8 +26,8 @@ public class Main {
 		MyDistanceMonitor ultrasonic_4 = new MyDistanceMonitor(RaspiPin.GPIO_23,RaspiPin.GPIO_22);
 		MyMatrixLed ml = new MyMatrixLed((short)1);		
 		ml.open();
-		ml.brightness((byte) 15);
-		
+		ml.brightness((byte) 15);		
+		ml.orientation(180);
 		PirSensorDigital pir = new PirSensorDigital(RaspiPin.GPIO_00);
 		MotoDetectionLed mdl = new MotoDetectionLed(led);
 		MotoDetectionMatrixLed mdml = new MotoDetectionMatrixLed(ml);
@@ -40,13 +40,9 @@ public class Main {
 		while(stay) {
 			System.out.println("Lista comandi:");
 			System.out.println("3-->exit");
-			System.out.println("0->ledOff,1-->LedOn,2;22-->blink");
+			System.out.println("0->ledOff;1-->LedOn;2,22-->blink");
 			System.out.println("4->motioON,5-->motioOff");
-			System.out.println("6-->sonic sensor 0");
-			System.out.println("7-->sonic sensor 1");
-			System.out.println("8-->sonic sensor 2");
-			System.out.println("9-->sonic sensor 3");
-			System.out.println("10-->sonic sensor 4");
+			System.out.println("[6,7,8,9,10]-->sonic sensor [0,1,2,3,4]");
 			System.out.println("11-->Motore avanti");
 			System.out.println("12-->Motore indietro");
 			System.out.println("13-->Motore stop");
@@ -132,7 +128,7 @@ public class Main {
 			case 14:				
 				
 				
-				ml.orientation(45);
+				ml.orientation(90);
 
 				//DEMO1
 				//ml.letter((short)0, (short)'Y');
@@ -156,7 +152,7 @@ public class Main {
 			case 15:				
 				
 				
-				ml.orientation(0);
+				ml.orientation(180);
 			
 				try {
 					for(int x = 0;x<20;x++) {
@@ -189,7 +185,7 @@ public class Main {
 			case 16:				
 				
 				try {
-					TankMotorControll(tm);
+					TankMotorControll(tm,scanner);
 				} catch (IOException e) {
 					// TODO Auto-generated catch block
 					e.printStackTrace();
@@ -204,11 +200,11 @@ public class Main {
 		
 	}
 	
-	private static void TankMotorControll(TankMotor tm) throws IOException {
+	private static void TankMotorControll(TankMotor tm, Scanner scanner ) throws IOException {
 		System.out.println("Lista comandi: WASD->muovi P->esci ZX->velocità QE->ruota F->ferma");
 		boolean stay =true; 
 		while(stay) {
-			switch((char) System.in.read()) {
+			switch( scanner.next().charAt(0)) {
 			case 'p':
 				tm.stop();
 				stay =false; 
@@ -221,9 +217,9 @@ public class Main {
 			case 'd':	
 				tm.right(2);
 			case 'z':	
-				tm.setSpeed(tm.getSpeed()-10);
+				tm.setSpeed(tm.getSpeed()-100);
 			case 'x':	
-				tm.setSpeed(tm.getSpeed()+10);
+				tm.setSpeed(tm.getSpeed()+100);
 			case 'q':	
 				tm.rotate(true);
 			case 'e':	

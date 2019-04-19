@@ -19,6 +19,7 @@ public class TankMotor extends Observable implements ITankMotor {
 		super();
 		this.leftMotor = leftMotor;
 		this.rightMotor = rightMotor;
+		this.speed=speed;
 	}
 
 	public IMotor getLeftMotor() {
@@ -42,8 +43,8 @@ public class TankMotor extends Observable implements ITankMotor {
 		
 		this.leftMotor.forward();
 		this.rightMotor.forward();
-		this.rightMotor.setSpeed(speed);
 		this.leftMotor.setSpeed(speed);
+		this.rightMotor.setSpeed(speed);
 		this.notifyObservers();
 	}
 

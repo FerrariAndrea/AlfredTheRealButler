@@ -27,7 +27,7 @@ public class MotorDeviceConstantSpeed implements IMotor {
 		this.speed =1;
 	}
 	public MotorDeviceConstantSpeed(Pin pinForward, Pin pinBackward) {
-		this.pinForward = GpioFactory.getInstance().provisionDigitalOutputPin(pinForward, "pinForward", PinState.LOW);;
+		this.pinForward = GpioFactory.getInstance().provisionDigitalOutputPin(pinForward, "pinForward", PinState.LOW);
 		this.pinBackward = GpioFactory.getInstance().provisionDigitalOutputPin(pinBackward, "pinBackward", PinState.LOW);
 		//this.pinBackward.setShutdownOptions(true,PinState.LOW,PinPullResistance.PULL_DOWN);
 		//this.pinForward.setShutdownOptions(true,PinState.LOW,PinPullResistance.PULL_DOWN);
