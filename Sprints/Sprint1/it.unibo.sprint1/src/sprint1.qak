@@ -20,19 +20,23 @@ Dispatch modelUpdate  : modelUpdate( TARGET, VALUE )  //sent by the mind
  
 Dispatch askPlan  : askPlan(X,Y) 
   
- 
+Event  envCond        : envCond( CONDTYPE )        //from the environment 
+Event  sonarRobot     : sonar( DISTANCE )	     //from  sonar on robot 
+Event  sonar          : sonar(SONAR, DISTANCE)	 //from sonar in the robot environment          
+Event  polar          : p( Distance, Angle ) 
 Event  sonarRobot     : sonar( DISTANCE )	     //from  sonar on robot 
 Event  obstacle       : obstacle( DISTANCE )	     //from  sonar handler
 
 Event  local_modelChanged   : modelChanged( TARGET, VALUE )
 
 Context ctxMindSprint1   ip [host="localhost" port=8038]    -mqtt 
-
+//Context ctxRobotMind     ip [host="localhost" port=8035]    -mqtt
 
 /*
  * resourcemodel viene modificato e di conseguenza BasicRobot
  */
-//ExternalQActor resourcemodel context ctxMindSprint1
+ExternalQActor resourcemodel context ctxMindSprint1
+
 QActor butler context ctxMindSprint1{
 	["
 		var BackTime   = 500L		
@@ -54,8 +58,8 @@ QActor butler context ctxMindSprint1{
 	}
 	Goto testPlan0
 	
-	State testPlan0{ 
-		
+	State testPlan0{ 	
+		delay 2000	
 		forward butlerstep -m onestep : onestep( $StepTime )
  	}
 	
@@ -161,80 +165,4 @@ var IterCounter = 0
  
 }	
 
- 
 
-QActor resourcemodel context ctxMindSprint1{
-["var dobackstep = false"]
-	State s0 initial {		
-		solve( consult("sysRules.pl")	 )       
-		solve( consult("resourceModel.pl")	 )
-		solve( showResourceModel ) 		
-		run itunibo.coap.modelResourceCoap.create( myself, "resourcemodel" ) //CoAP access
-	} 
-	Goto waitModelChange
-	 
-	State waitModelChange{ }
-	Transition t0 whenMsg modelChange -> changeModel
-	              whenMsg modelUpdate -> updateModel
-
-	State updateModel{  
-		onMsg( modelUpdate : modelUpdate(robot,V ) ) {
-			run itunibo.robot.resourceModelSupport.updateRobotModel( myself, payloadArg(1) )
-		}
-		onMsg( modelUpdate : modelUpdate(sonarRobot,V ) ) {
-			run itunibo.robot.resourceModelSupport.updateSonarRobotModel( myself, payloadArg(1) )
-		}
-	} 
-    Goto  waitModelChange
-    
-	State changeModel{  
-		printCurrentMessage 
-		//ROBOT MOVE
-		onMsg( modelChange : modelChange( robot,V ) ) { // V= w | ...
-			run itunibo.robot.resourceModelSupport.updateRobotModel( myself, payloadArg(1) )
-			emit local_modelChanged : modelChanged(  robot,  $payloadArg(1))  //for the robotmind
-		} 
-		//SONAR DATA  
-		onMsg( modelChange : modelChange( sonarRobot,V ) ) { // V= w | ...
-			run itunibo.robot.resourceModelSupport.updateSonarRobotModel( myself, payloadArg(1) )
-		}
-	}  
-	Goto  waitModelChange
-} 
- 
- /*
-  * --------------------------------------------------------
-  * Basic robot: just an actuator of move commands
-  * --------------------------------------------------------
-  */
-  QActor basicrobot context ctxMindSprint1 {	
-	State s0 initial {  
-  		solve( consult("basicRobotConfig.pl") )   
- 		solve( robot(R, PORT) )  //R = virtual | realmbot | realnano
-  		ifSolved {println( "USING ROBOT : ${getCurSol(\"R\")},  port= ${getCurSol(\"PORT\")} " )
-  		} else {println("no robot")}
-   		ifSolved {run itunibo.robot.robotSupport.create(myself, @R, @PORT )}
-   		run itunibo.robot.robotSupport.move( "msg(a)" )
-   		delay 700
-   		run itunibo.robot.robotSupport.move( "msg(h)" )	//per non far slittare il robot
-   		delay 150										//per non far slittare il robot
-   		run itunibo.robot.robotSupport.move( "msg(d)" )
-   		delay 700
-   		run itunibo.robot.robotSupport.move( "msg(h)" )
- 	}  
-	Goto waitCmd   
- 	 
-	State waitCmd{  } //robotCmd comes from a console OUTSIDE this (sub)system
-	Transition t0  whenMsg   robotCmd  -> handleRobotCmd
-	
-	State handleRobotCmd{ //does not handle alarms 
-		//printCurrentMessage 
-		onMsg( robotCmd : robotCmd( MOVE ) ) { //MOVE = w | a | s | d | h
-			run itunibo.robot.robotSupport.move( "msg(${payloadArg(0)})" ) 
-		}	
- 	}  
-	Goto waitCmd 
-	
-} 
-
-  

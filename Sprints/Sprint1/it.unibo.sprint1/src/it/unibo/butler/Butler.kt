@@ -39,6 +39,7 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				}	 
 				state("testPlan0") { //this:State
 					action { //it:State
+						delay(2000) 
 						forward("onestep", "onestep($StepTime)" ,"butlerstep" ) 
 					}
 				}	 
