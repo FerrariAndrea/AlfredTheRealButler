@@ -21,7 +21,7 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				var RotateTime = 300L	//for virtual
 				var PauseTime  = 100L 
 				var dest_x =7;
-				var dest_y =9;
+				var dest_y =0;
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -35,11 +35,16 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				state("exploreTheRoom") { //this:State
 					action { //it:State
 					}
-					 transition( edgeName="goto",targetState="testPlan1", cond=doswitch() )
+					 transition( edgeName="goto",targetState="testPlan0", cond=doswitch() )
+				}	 
+				state("testPlan0") { //this:State
+					action { //it:State
+						forward("onestep", "onestep($StepTime)" ,"butlerstep" ) 
+					}
 				}	 
 				state("testPlan1") { //this:State
 					action { //it:State
-						forward("askPlan", "askPlan($dest_x,$dest_y)" ,"planner" ) 
+						forward("askPlan", "askPlan(7,0)" ,"planner" ) 
 					}
 				}	 
 			}

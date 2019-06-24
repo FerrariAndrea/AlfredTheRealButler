@@ -46,7 +46,11 @@ dependencies {
 //JSON
     // https://mvnrepository.com/artifact/org.json/json
     compile group: 'org.json', name: 'json', version: '20160810'
-
+//COAP
+	// https://mvnrepository.com/artifact/org.eclipse.californium/californium-core
+	compile group: 'org.eclipse.californium', name: 'californium-core', version: '2.0.0-M12'
+	// https://mvnrepository.com/artifact/org.eclipse.californium/californium-proxy
+	compile group: 'org.eclipse.californium', name: 'californium-proxy', version: '2.0.0-M12'
 //CUSTOM
     compile name: 'uniboInterfaces'
     compile name: '2p301'
@@ -69,6 +73,9 @@ dependencies {
     compile name: 'it.unibo.planner' 
  	// https://mvnrepository.com/artifact/com.googlecode.aima-java/aima-core
 	compile group: 'com.googlecode.aima-java', name: 'aima-core', version: '3.0.0'
+	
+	compile name: 'labbaseRobotSam' 
+
 }
 
 compileKotlin {

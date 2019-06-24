@@ -46,35 +46,23 @@ class Planner ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sco
 						solve("retract(move(M))","") //set resVar	
 						if(currentSolution.isSuccess()) { Curmove = getCurSol("M").toString()
 						itunibo.planner.moveUtils.doPlannedMove(myself ,Curmove )
+						itunibo.planner.plannerUtil.executeMoves(  )
+						itunibo.planner.plannerUtil.showMap(  )
 						 }
 						else
 						{ Curmove="nomove" 
 						 }
 					}
 					 transition( edgeName="goto",targetState="executePlannedActions", cond=doswitchGuarded({(Curmove != "nomove")}) )
-					transition( edgeName="goto",targetState="nextStep", cond=doswitchGuarded({! (Curmove != "nomove")}) )
+					transition( edgeName="goto",targetState="goBack", cond=doswitchGuarded({! (Curmove != "nomove")}) )
 				}	 
-				state("nextStep") { //this:State
-					action { //it:State
-						println("MAP after step $IterCounter")
-						itunibo.planner.plannerUtil.showMap(  )
-						IterCounter++
-					}
-					 transition( edgeName="goto",targetState="endOfJob", cond=doswitchGuarded({(IterCounter==2)}) )
-					transition( edgeName="goto",targetState="donextStep", cond=doswitchGuarded({! (IterCounter==2)}) )
-				}	 
-				state("donextStep") { //this:State
+				state("goBack") { //this:State
 					action { //it:State
 						itunibo.planner.plannerUtil.setGoal( "0", "0"  )
 						itunibo.planner.moveUtils.doPlan(myself)
-					}
-					 transition( edgeName="goto",targetState="executePlannedActions", cond=doswitch() )
-				}	 
-				state("endOfJob") { //this:State
-					action { //it:State
-						println("FINAL MAP")
+						itunibo.planner.plannerUtil.executeMoves(  )
 						itunibo.planner.plannerUtil.showMap(  )
-						println("&&&  planex0 ENDS")
+						println("------------------>    ENDS")
 					}
 				}	 
 			}

@@ -7,7 +7,9 @@
 System sprint1
 mqttBroker "localhost" : 1883  
 
+
 Dispatch modelChange  : modelChange( TARGET, VALUE )   
+Dispatch robotCmd     : robotCmd( CMD )				  //sent by the mind to the basicrobot
 
 Dispatch onestep       : onestep(DURATION)
 Dispatch stepOk        : stepOk(V)		//TODO eliminate  V
@@ -30,7 +32,7 @@ Context ctxMindSprint1   ip [host="localhost" port=8038]    -mqtt
 /*
  * resourcemodel viene modificato e di conseguenza BasicRobot
  */
-ExternalQActor resourcemodel context ctxMindSprint1
+//ExternalQActor resourcemodel context ctxMindSprint1
 QActor butler context ctxMindSprint1{
 	["
 		var BackTime   = 500L		
@@ -38,7 +40,7 @@ QActor butler context ctxMindSprint1{
 		var RotateTime = 300L	//for virtual
 		var PauseTime  = 100L 
 		var dest_x =7;
-		var dest_y =9;
+		var dest_y =0;
 	"]	
 		State s0 initial {	
 		println("&&&  butler STARTED")
@@ -50,11 +52,18 @@ QActor butler context ctxMindSprint1{
 	State exploreTheRoom{
 		
 	}
-	Goto testPlan1
+	Goto testPlan0
 	
+	State testPlan0{ 
+		
+		forward butlerstep -m onestep : onestep( $StepTime )
+ 	}
 	
 	State testPlan1{ 
-		forward planner -m askPlan : askPlan( "$dest_x" ,"$dest_y")
+		//questo lo chiediamo al prof, c'è un errore nei qak:
+		//forward planner -m askPlan : askPlan("$dest_x" ,"$dest_y")
+		//per ora facciamo così
+		forward planner -m askPlan : askPlan(7,0)
 		
  	}
 	//Transition t0   whenMsg stepOk   -> hadleStepOk
@@ -132,34 +141,28 @@ var IterCounter = 0
 		ifSolved {   
 			["Curmove = getCurSol(\"M\").toString()"]  
 			run itunibo.planner.moveUtils.doPlannedMove(myself, Curmove)
+			//muovo il robot verso il frigo
+			run itunibo.planner.plannerUtil.executeMoves()			
+ 			run itunibo.planner.plannerUtil.showMap() 
 		} else { ["Curmove=\"nomove\" "] 		} 
  
   	}  
-	Goto executePlannedActions  if "(Curmove != \"nomove\")" else nextStep
+	Goto executePlannedActions  if "(Curmove != \"nomove\")" else goBack
  
- 	State nextStep{
- 		println("MAP after step $IterCounter")  
- 		run itunibo.planner.plannerUtil.showMap() 
-  		["IterCounter++"]
- 	}
- 	Goto endOfJob if "(IterCounter==2)" else donextStep 
  	
-  	State donextStep{
+  	State goBack{
+  		//torno indietro
   		run itunibo.planner.plannerUtil.setGoal("0","0")    
   		run itunibo.planner.moveUtils.doPlan( myself ) 
-  	}
- 	Goto executePlannedActions 
-   	
-	State endOfJob{
-		println("FINAL MAP")  
+  		run itunibo.planner.plannerUtil.executeMoves()			
  		run itunibo.planner.plannerUtil.showMap() 
-		println("&&&  planex0 ENDS")
- 	}
+ 		println("------------------>    ENDS")
+  	}
+ 
 }	
 
  
 
-/*
 QActor resourcemodel context ctxMindSprint1{
 ["var dobackstep = false"]
 	State s0 initial {		
@@ -198,4 +201,40 @@ QActor resourcemodel context ctxMindSprint1{
 	}  
 	Goto  waitModelChange
 } 
-*/
+ 
+ /*
+  * --------------------------------------------------------
+  * Basic robot: just an actuator of move commands
+  * --------------------------------------------------------
+  */
+  QActor basicrobot context ctxMindSprint1 {	
+	State s0 initial {  
+  		solve( consult("basicRobotConfig.pl") )   
+ 		solve( robot(R, PORT) )  //R = virtual | realmbot | realnano
+  		ifSolved {println( "USING ROBOT : ${getCurSol(\"R\")},  port= ${getCurSol(\"PORT\")} " )
+  		} else {println("no robot")}
+   		ifSolved {run itunibo.robot.robotSupport.create(myself, @R, @PORT )}
+   		run itunibo.robot.robotSupport.move( "msg(a)" )
+   		delay 700
+   		run itunibo.robot.robotSupport.move( "msg(h)" )	//per non far slittare il robot
+   		delay 150										//per non far slittare il robot
+   		run itunibo.robot.robotSupport.move( "msg(d)" )
+   		delay 700
+   		run itunibo.robot.robotSupport.move( "msg(h)" )
+ 	}  
+	Goto waitCmd   
+ 	 
+	State waitCmd{  } //robotCmd comes from a console OUTSIDE this (sub)system
+	Transition t0  whenMsg   robotCmd  -> handleRobotCmd
+	
+	State handleRobotCmd{ //does not handle alarms 
+		//printCurrentMessage 
+		onMsg( robotCmd : robotCmd( MOVE ) ) { //MOVE = w | a | s | d | h
+			run itunibo.robot.robotSupport.move( "msg(${payloadArg(0)})" ) 
+		}	
+ 	}  
+	Goto waitCmd 
+	
+} 
+
+  
