@@ -1,0 +1,350 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+    <!--
+<link rel="stylesheet" type="text/css" href="../css/issStyle1.css">
+<script type="text/javascript" src="../css/issStyle.js"></script>
+-->
+<style type="text/css">
+<!--
+
+body
+{
+    margin-left:  30px;
+    margin-right: 30px;
+};
+
+P
+{
+    font-family: Tahoma;
+    font-size: 10pt;
+};
+
+a, a:visited, a:active, a:link, a:hover {
+    text-decoration: underline;
+    color: #545454;
+    background-color: transparent;
+}
+
+a:hover {
+    background-color: #cccccc;
+}
+
+
+hr {
+    clear: both;
+    height: 1px;
+    color: #242424;
+    background-color: transparent;
+}
+
+h1, h2, h3 {
+    color: #242424;
+    clear: left;
+    font: 100% Tahoma, Helvetica, Arial, sans-serif;
+    margin: 10;
+    margin-right: 15px;
+    margin-bottom: 0.5em;
+    padding-top: 0.5em;
+    border-bottom: 1px solid #242424;
+}
+
+h1 {
+    font-size: 150%;
+    background-color: #b2c0ff;
+}
+
+h2 {
+    background-color: #d9fbff;
+    font-size: 110%;
+}
+
+h3 {
+	background-color: #e6ccff;
+    font-size: 80%;
+}
+h4 {
+    background-color: #99ffcc;
+    font-size: 100%;
+}
+#i {
+    color: #ff1010;
+}
+tt{
+	font-family: "Arial";
+    font-size: 80%;
+	color: #006600;
+}
+em{
+	font-family: "Arial";
+    font-size: 80%;
+	font-weight: bold;
+	border-style:solid;
+	border-color: #ccffff;
+    color: #0033cc;
+}
+bc{
+	font-family: "Arial";
+	font-size: 80%;
+	font-weight: bold;
+    color: #990000;
+	background-color: #fcf8c7;
+}
+k{
+	font-family: "Arial";
+	font-weight: bold;
+    color: #990000;
+	 
+}
+ks{
+	font-family: "Arial";
+	font-weight: bold;
+    color: #0000CD	;
+	 
+}
+kc{
+	font-family: "Arial";
+	font-weight: bold;
+    color: #008000	;
+	 
+}
+pre{
+	font-family: "Helvetica";
+	font-size: 70%;
+	background-color: #fcf8c7; 
+}
+m{
+	font-family: "Helvetica";
+	line-height: 100%;
+ 	font-size: 75%;
+}
+div.body{
+	width: 800px;
+    font-size: 18px;
+}    
+div.req{
+	background-color: #d9ffb3;
+    font-size: 18px;
+	width: 700px;
+    border: 3px solid green;
+    padding: 15px;
+    margin: 10px;
+}    
+div.remark{
+	background-color: #FFFC33;     
+    border: 3px solid green;
+    padding: 15px;
+    margin: 10px;
+}  
+table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+
+  -->
+</style>
+    
+<head>
+   
+<title>Lab16ISS</title></head>
+    
+<body>
+
+<div class="body"> 
+
+<h1>72939 - LAB16 | Exploiting Planning Tools</h1> 
+<a href="http://htmlpreview.github.com/?https://github.com/anatali/iss2019Lab/blob/master/LectureBologna1819.html" target="isslm">
+LabISS-lectures site</a></font> 
+ 
+ <h2>Overview</h2>
+ In many ddr-robot applications, there is the need to discovery the topology of the floor and to define test plans to check
+ that the robot covers all the free-areas of the floor.
+ 
+ In these applications, the robot control software could logically operate in two phases (<em>plan-first/schedule later</em>, 
+ sez. <tt>11.1</tt> of <a href="#AIBook">AIBook</a>):
+ <ol>
+ <li>first, the robot <ks>detects</ks> (by using a planner) a proper sequence of moves according its current position 
+ and the current state of the world  (the room in which it is working. This phase col</li>
+ <li>next, the robot <ks>actuates</ks> the move sequence, with the caution the the execution of a <em>basicStep</em> 
+ can works also as a <i>'discovery action'</i> that could lead to the interruption of the sequence for the presence of a (fixed or mobile) obstacle.</li>
+</ol>
+
+To promote the development of plan-based applications, it is wise to encapsulate the planning activity into a specialized component, 
+named, from now on, 'the <bc>planner</bc>'. At this level of analysis, the details of the behavior of the planner can be ignored. 
+In fact, we will exploit a set of available supports built upon the <a href="https://github.com/aimacode/aima-java" target="web">AIMA3e-Java</a>
+library:  	
+<br/><br/>
+
+  	<center><table style="width:98%">
+	<tbody>	
+	<tr>
+	<td style="width:40%">
+	<h3>AIMA library</h3>
+    <a href="https://github.com/aimacode/aima-java" target="web">AIMA3e-Java</a> <br/> <br/>
+	<m>
+	In particular, the Best-first search algorithm (sez. <tt>3.5.2</tt> of the book) as a support for search-based problem-solving agents:<br/>
+	<a href="https://github.com/aimacode/aima-java/blob/AIMA3e/aima-core/src/main/java/aima/core/search/informed/AStarSearch.java" 
+	target="web">AStarSearch</a>
+	</m>
+	</td> 
+	<td>
+ 	Java implementation of algorithms from: <br/>
+	<h4 id="AIBook">AIBook</h4>
+	Russell and Norvig: Artificial Intelligence - A Modern Approach 3rd Edition.
+	<center><img src="AIBookRusselNorvig.png" alt="AIBookRusselNorvig" width="45%" height="45%"/></center><br/>  
+ 	</td>
+	</tr>
+ 	</table>
+	</center> 	 
+	
+ <h2>The application supports for planning</h2>
+In the project <bc>it.unibo.eclipse.qak.planning19</bc>, we introduce two main supports for planning the actions of a robot
+working in logical space (a <kc>map</kc>) composed of a set of square cells, each large as the robot:<br/><br/>	
+	
+  	<center><table style="width:98%">
+	<tbody>	
+	<tr>
+ 	<td style="width:25%">
+	<h3>The logical move-space</h3>
+	<m>The robot is supposed to be a square device, large as a cell.</m>
+ 	</td> 
+	
+	<td>
+    <center><img src="./plant0.png" alt="plant0" width="25%" height="32%"/></center>
+	<m>
+    </m>
+ 	</td>
+	</tr>
+	<tr>
+ 	<td>
+    <a href="../resources/itunibo/planner/plannerUtil.kt" target="code">plannerUtil.kt</a><br/>
+	<m>Example:<a href="../src/mindwithplanner.qak" target="code">mindwithplanner.qak</a><br/>
+	
+	<center><img src="./spiralmove0.png" alt="spiralmove0" width="45%" height="32%"/></center>
+	<pre>setGoal 2,2
+plannerUtil doPlan actions=[a, w, w, a, w, w]
+MAP AFTER EXPLORE STEP
+| 1, 1, 
+| 1, 1, 
+| 1, 1, r, </pre>
+	</m>
+	</td> 
+	<td>
+ 	<h3>plannerUtil</h3>
+	<m>The singleton object named <k>plannerUtil</k> provides a set of static methods, including:
+	<ul>
+	<li><ks>initAI( )</ks>: initializes the planner with a <i>BreadthFirstSearch</i> algorithm, assuming a robot in position
+	<k>cell(0,0,1)</k>, <kc>direction=sud</kc> (see the picture above). 
+	The possible robot directions are: <kc>sud | east | north | west</kc>. <br/><br/>
+	</li>
+	<li><ks>setGoal( x: String, y: String )</ks>: sets <k>cell(x,y,_)</k> as the goal to reach.<br/><br/></li>
+	<li><ks>doPlan(): List<Action>?</ks>: returns the list of actions to reach the goal-cell. 
+	The possible robot directions are: <kc>w | a | s | d</kc> (however, <kc>s</kc> is never selected by the planner).
+	<br/><br/></li>
+	<li><ks>doMove( move : String)</ks>: modifies the state of the <kc>map</kc> according to the given move.<br/><br/></li>
+	<li><ks>showMap(( )</ks>: prints the current state of the <kc>map</kc><br/><br/></li>
+	</ul>
+    </m>
+ 	</td>
+	</tr>
+	<tr>
+ 	<td>
+    <a href="../resources/itunibo/planner/moveUtils.kt" target="code">moveUtils.kt</a>.
+	<br/>
+	<m>Example:<a href="../src/mindexplore.qak" target="code">mindexplore.qak</a> (the same strategy of the example above)<br/><br/>
+	 Example:<a href="../src/mindbutler.qak" target="code">mindbutler.qak</a><br/>
+	<center><img src="./butlermove0.png" alt="butlermove0.png" width="45%" height="32%"/></center><br/>
+	The robot attempts to delimit its working area bay finding the (position of the) walls.
+	</m>
+	</td> 
+	<td>
+ 	<h3>moveUtils</h3>
+	<m>The singleton object named <k>moveUtils</k> acts as an adapter for a ActorBasic actor, by providing a set of static methods, including:
+  	<ul>
+	<li><ks>doPlan(actor : ActorBasic )</ks>:  calls <kc>plannerUtil.doPlan()</kc> and stores the resulting moves in the kb of the
+	given actor in the form <k>move( M )</k> with <kc>M = a | w | d</kc>. <br/><br/>
+	</li>
+	
+	<li><ks>setPosition(actor : ActorBasic)</ks>:   
+	sets in the kb of the given actor its current position in the form <k>curPos(X,Y )</k>.<br/><br/>
+	</li>
+ 
+	<li><ks>setDirection(actor : ActorBasic)</ks>:   
+	sets in the kb of the given actor its current directiuon in the form <k>direction( D )</k><br/><br/>
+	</li>
+	
+	<li><ks>doPlannedMove(actor : ActorBasic, move: String)</ks>:  calls <kc>plannerUtil.doMove( move )</kc> and 
+	sets in the kb of the given actor its current direction in the form <k>direction( D )</k>.<br/><br/>
+	</li>
+
+  </m>
+ 	</td>
+	</tr>
+	 </table>
+	</center> 	
+
+<h3>An example</h3>
+The application designer usually works by exploiting the utility 
+<a href="../resources/itunibo/planner/moveUtils.kt" target="code">moveUtils.kt</a>. For example:
+
+
+   	<center><table style="width:98%">
+	<tbody>	
+	<tr>
+ 	<td style="width:70%">	 
+	<center><img src="./explan0_1.png" alt="explan0_1" width="100%" height="32%"/></center>
+ 	</td> 
+	<td>
+	Model: <a href="../src/planex0.qak" target="code">planex0.qak</a><br/><br/>
+	<m>This model can be executed without any robot</m>
+	
+	<pre>
+setGoal 2,2
+plannerUtil doPlan actions=[w, w, a, w, w]
+	</pre
+	
+	</td>
+	</tr> 
+	<tr> 
+	<td>
+	<center><img src="./explan0_2.png" alt="explan0_2" width="100%" height="32%"/></center>
+	</td>
+ 	<td>
+	<pre>
+MAP after step 0
+|1, 
+|1, 
+|1, 1, r, 
+	</pre>	
+<h3>Going to (1,1) from (2,2)</h3>
+	<pre>
+setGoal 1,1
+plannerUtil doPlan actions=[a, w, a, w]
+MAP after step 1
+|1, 
+|1, r, 1, 
+|1, 1, 1, 
+
+FINAL MAP
+|1, 
+|1, r, 1, 
+|1, 1, 1, 
+	
+	</pre>
+	</td>
+	</tr>
+	</table>
+	</center> 	
+	
+ 
+<br/>  	<br/>  	
+	
+	
+	
+	<!-- planBookLaValle.png -->
+	
+</div>
+<div style="background-color:rgba(86, 56, 253, 0.9); width:100%;text-align:center;font-size:small;color:white">
+By AN Unibo-DISI    
+</div> 
+</body>
+</html>
