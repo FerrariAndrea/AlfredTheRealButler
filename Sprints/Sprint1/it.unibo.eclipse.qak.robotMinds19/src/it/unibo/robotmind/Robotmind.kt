@@ -56,7 +56,7 @@ class Robotmind ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 						println("$name in ${currentState.stateName} | $currentMsg")
 						if( checkMsgContent( Term.createTerm("sonar(DISTANCE)"), Term.createTerm("sonar(DISTANCE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								obstacle = Integer.parseInt( payloadArg(0) ) < 20 
+								obstacle = Integer.parseInt( payloadArg(0) ) < 10 
 						}
 					}
 					 transition( edgeName="goto",targetState="handeObstacle", cond=doswitchGuarded({obstacle}) )

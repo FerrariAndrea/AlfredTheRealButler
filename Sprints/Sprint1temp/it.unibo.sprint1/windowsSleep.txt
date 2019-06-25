@@ -1,0 +1,20 @@
+Instructions
+
+1. search device manager and open it
+2. expand display driver
+3. right click on it.
+4. uninstall
+5. you will be prompted "warning: you are about to uninstall this device from this system" 
+6. MAKE SURE NOT TO "delete driver software from this device" By leaving the check box blank.
+7. click uninstall (don't worry)
+8. if not prompted already, do a "RESTART" immediately. (do not do a "shut down" and then power back on. Click on "restart.")
+9. upon rebooting windows reinstalls the driver automatically
+10. after first reboot you will likely need to do another restart after windows has reinstalled the driver.
+
+Once this was done my problem was solved. the display driver thing sounds silly but it sounds 
+like integrated graphics problem which could have something to do with the way windows manages 
+the memory of the integrated GPU and CPU causing some sort of Driver conflict. 
+Almost sounds like it's something Intel needs to do some work on.
+ I am curious if anyone is having these issues with dedicated graphics or an AMD CPU.
+
+ 

@@ -7,6 +7,7 @@
 		<nature>org.eclipse.jdt.core.javanature</nature>
 		<nature>org.eclipse.xtext.ui.shared.xtextNature</nature>
 		<nature>org.jetbrains.kotlin.core.kotlinNature</nature>
+		<nature>org.eclipse.buildship.core.gradleprojectnature</nature>
 	</natures>
 	<buildSpec>
 		<buildCommand>
@@ -14,11 +15,15 @@
 			<arguments/>
 		</buildCommand>
 		<buildCommand>
-			<name>org.eclipse.xtext.ui.shared.xtextBuilder</name>
+			<name>org.eclipse.buildship.core.gradleprojectbuilder</name>
 			<arguments/>
 		</buildCommand>
 		<buildCommand>
 			<name>org.eclipse.jdt.core.javabuilder</name>
+			<arguments/>
+		</buildCommand>
+		<buildCommand>
+			<name>org.eclipse.xtext.ui.shared.xtextBuilder</name>
 			<arguments/>
 		</buildCommand>
 	</buildSpec>
@@ -26,7 +31,7 @@
 		<link>
 			<name>kotlin_bin</name>
 			<type>2</type>
-			<locationURI>org.jetbrains.kotlin.core.filesystem:/it.unibo.eclipse.qak.robotMinds19/kotlin_bin</locationURI>
+			<locationURI>org.jetbrains.kotlin.core.filesystem:/it.unibo.robotmind/kotlin_bin</locationURI>
 		</link>
 	</linkedResources>
 	<filteredResources/>

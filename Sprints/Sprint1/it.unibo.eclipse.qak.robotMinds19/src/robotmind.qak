@@ -1,6 +1,6 @@
 System robotmind
  
-mqttBroker "localhost" : 1883    //192.168.137.1
+mqttBroker "localhost" : 1883    //192.168.1.18  192.168.43.229
 
 //Event  userCmd        : userCmd(X)	//from GUI X = w | a | s | d | h 
 Event  envCond        : envCond( CONDTYPE )        //from the environment 
@@ -20,10 +20,8 @@ Dispatch modelUpdate  : modelUpdate( TARGET, VALUE )  //sent by the mind
 Dispatch stopAppl      : stopAppl( CMD )
 Dispatch startAppl     : startAppl( CMD )
 
-  //192.168.137.220
+  
 Context ctxRobotMind     ip [host="localhost" port=8035]      -mqtt
-
-
 
 QActor resourcemodel context ctxRobotMind{
 ["var dobackstep = false"]
@@ -100,7 +98,7 @@ QActor robotmind context ctxRobotMind{
  	State handleSonarRobot{
  		printCurrentMessage
  		onMsg ( sonarRobot : sonar( DISTANCE ) ){
-			["obstacle = Integer.parseInt( payloadArg(0) ) < 20 "]
+			["obstacle = Integer.parseInt( payloadArg(0) ) < 10 "]
  		}//onMsg 	 
  	} 
 	Goto handeObstacle if "obstacle" else waitCmd 
@@ -155,19 +153,17 @@ QActor sonarhandler context ctxRobotMind{
 	State s0 initial {  
   		solve( consult("basicRobotConfig.pl") )   
  		solve( robot(R, PORT) )  //R = virtual | realmbot | realnano
-  		ifSolved {println( "USING ROBOT : ${getCurSol(\"R\")},  port= ${getCurSol(\"PORT\")} " )
-  		} else {println("no robot")}
+  		ifSolved {println( "USING ROBOT : ${getCurSol(\"R\")},  port= ${getCurSol(\"PORT\")} " )}
+  		 else {println("no robot")}
    		ifSolved {run itunibo.robot.robotSupport.create(myself, @R, @PORT )}
    		run itunibo.robot.robotSupport.move( "msg(a)" )
    		delay 700
-   		run itunibo.robot.robotSupport.move( "msg(h)" )	//per non far slittare il robot
-   		delay 150										//per non far slittare il robot
    		run itunibo.robot.robotSupport.move( "msg(d)" )
    		delay 700
    		run itunibo.robot.robotSupport.move( "msg(h)" )
- 	}  
-	Goto waitCmd   
- 	 
+ 	} 
+ 	Goto waitCmd   
+ 	
 	State waitCmd{  } //robotCmd comes from a console OUTSIDE this (sub)system
 	Transition t0  whenMsg   robotCmd  -> handleRobotCmd
 	

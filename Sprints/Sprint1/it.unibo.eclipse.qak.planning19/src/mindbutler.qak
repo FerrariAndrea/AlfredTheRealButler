@@ -1,0 +1,221 @@
+
+/*
+ * 0) Activate mosquitto on the PC (192.168.43.5)
+ * 1) Prepare the real execution room and place the real robot (mbot/nano) in cell(0,0)
+ * 2) Activate it.unibo.ctxRobotMind.MainCtxRobotMindKt on the real robot
+ * 3) Launch ctxMindButler on the PC to make application-debugging easier
+ * 
+ * These actors can be viewed as an EXTENSION of the 'mind' 
+ * that implements the application logic
+ * 
+ * =====================================================================
+ * This version does not use the planner
+ * =====================================================================
+ */
+
+System mindbutler
+mqttBroker "localhost" : 1883  
+
+Dispatch robotCmd     : robotCmd( CMD )				  //sent by the mind to the basicrobot
+
+Dispatch modelChange  : modelChange( TARGET, VALUE )   
+Dispatch modelUpdate  : modelUpdate( TARGET, VALUE )   
+
+
+Dispatch onestep       : onestep(DURATION)
+Dispatch stepOk        : stepOk(V)		//TODO eliminate  V
+Dispatch stepFail      : stepFail(R,T) //R=ok | obstacle, T = time
+
+Event  sonarRobot     : sonar( DISTANCE )	     //from  sonar on robot 
+Event  obstacle       : obstacle( DISTANCE )	     //from  sonar handler
+
+Context ctxMindButler    ip [host="localhost" port=8038]    -mqtt 
+Context ctxDummyForMind   ip [host="otherresourcelocalhost" port=8035]   -mqtt 
+
+ExternalQActor resourcemodel context ctxDummyForMind
+ExternalQActor basicrobot    context ctxDummyForMind 
+
+/*
+ * 
+ */ 
+QActor butler context ctxMindButler{     
+["
+//var MaxDimY = \"6\"
+//var MaxDimX = \"8\"
+//var Curmove = \"\"
+//var curmoveIsForward = false
+//var Direction = \"\" 
+
+//var StepTime   = 1000L	//long		//for real
+//var RotateTime = 560L	//long		//for real 
+//var PauseTime  = 1000L 
+var RotateStep = 255L	//long		//for real 
+var BackTime   = 500L
+
+var StepTime   = 330L	//for virtual
+var RotateTime = 300L	//for virtual
+var PauseTime  = 100L 
+var RobotDirection = \"\"
+
+
+"]	
+	State s0 initial{	
+		println("&&&  butler STARTED")
+		solve( consult("sysRules.pl")	 )       
+		solve( consult("floorMap.pl")	 )
+		solve( showMap	 )
+ 	}
+	
+	Goto exploreTheRoom
+	
+	State exploreTheRoom {
+	}
+	
+	Goto moveAhead
+ 	State moveAhead{
+ 		forward butlerstep -m onestep : onestep( $StepTime )
+ 	}
+ 	
+	Transition t0   whenMsg stepOk   -> hadleStepOk
+					whenMsg stepFail -> hadleStepKo 
+
+	State hadleStepOk{
+		//println("&&& moveAhead ok")	
+		solve( updateMapAfterStep )
+		solve( showMap	 )
+		delayVar PauseTime 
+	}
+	Goto moveAhead 
+	
+	State hadleStepKo{
+		["var Tback = 0L"]
+		printCurrentMessage		
+		println("&&& moveAhead failed")
+		onMsg( stepFail:stepFail(R,D) ) {
+			["Tback=payloadArg(1).toString().toLong() 
+			"]
+			println(" ..................................  BACK TIME= $Tback")
+		}
+		//solve( dialog(F) )
+		["if( Tback > StepTime * 2 /3 ) Tback = 0 else Tback = Tback / 3 "]			  
+		
+		if "Tback>0" {  
+		  forward resourcemodel -m modelChange : modelChange(robot,s)  
+ 		  delayVar Tback 
+  		  forward resourcemodel -m modelChange : modelChange(robot,h)     
+  		}
+  		else{  
+  			solve( updateMapAfterStep )  //almost completed ...
+  		}
+		solve( showMap	 )
+		delayVar PauseTime
+		
+		forward resourcemodel -m modelChange : modelChange(robot,a)
+		solve( changeDirection )  //updates robotdirection/1
+		solve( robotdirection(D) )
+		
+				["RobotDirection = getCurSol(\"D\").toString()"]
+		println("RobotDirection= ${RobotDirection}")
+		
+
+	}
+    Goto endOfExploration  if "(getCurSol(\"D\").toString() == \"sud\")" else tuning   
+	
+   	State tuning{
+		delayVar RotateTime
+		//println(" ---- TUNING --- ")
+		//solve( dialog(F) )	//to tune at hand
+	} 
+	Goto moveAhead
+	
+	State endOfExploration{
+		println("EXPLORATION ENDS")
+		run itunibo.planner.plannerUtil.getDuration()
+	}
+	Goto findTheTable
+	
+	State findTheTable{
+		println("findTheTable STARTS")
+		["
+val map = itunibo.planner.plannerUtil.getMap() 
+println(map)
+		"] 
+	}
+	
+	  
+}	
+
+
+ 
+/*
+ * 1) Waits for the message 'onestep' from the application layer
+ * 2) Performs a single-step-ahead with the given time
+ * 3) If all ok, sends the 'answer'  stepOk
+ * 4) If finds an obstacle, sends the 'answer' stepFail(T) with T=time elapsed before obstacle
+ */
+ 
+QActor butlerstep context ctxMindButler {
+[" var foundObstacle = false; var StepTime = 0L"]  
+	State s0 initial {	   
+		["foundObstacle = false "]
+	} 
+	Transition t0 whenMsg onestep -> doMoveForward
+	
+	State doMoveForward{		  
+		onMsg( onestep : onestep( TIME ) ) { 
+			["StepTime = payloadArg(0).toLong(); println(StepTime)"]
+			forward resourcemodel -m modelChange : modelChange(robot,w)
+			run itunibo.planner.plannerUtil.startTimer()
+		}
+	} 
+	Transition t0 whenTimeVar  StepTime   -> endDoMoveForward		
+ 		          whenEvent     obstacle  -> stepFail
+		  
+	State endDoMoveForward{
+		forward resourcemodel -m modelChange : modelChange(robot,h)
+		forward butler -m stepOk : stepOk(ok)  //answer
+	}
+	Goto s0
+		
+	State stepFail{
+		run itunibo.planner.moveUtils.setDuration(myself)  //assert wduration/1
+		println("&&& butlerstep stepfail ")
+		solve( wduration( TIME ) )
+		forward butler -m stepFail : stepFail(obstacle,#TIME)  	
+	}
+	Goto s0
+
+}    
+ 
+
+//The mind already emits obstacle when the robot is going forward
+QActor sonarhandlerbutler context ctxMindButler{  
+["
+var LastDistance = 0
+"]
+ 	State init initial{
+		println("sonarhandlerbutler STARTS ... ")
+	}         
+	Goto waitForEvents 
+	   
+	State waitForEvents{  }      
+   	Transition t0  whenEvent sonarRobot ->  handleSonar
+   	               
+ 	State handleSonar{                      
+		//println("==================================")
+ 		//printCurrentMessage                                        
+  		onMsg ( sonarRobot : sonar( DISTANCE ) ){     
+			["val Distance = Integer.parseInt( payloadArg(0) ); 
+			  if( Math.abs( Distance - LastDistance ) > 1 ){println(Distance) ; LastDistance = Distance}
+              val foundObstacle = (Distance<13) "]  
+            if "foundObstacle" {emit obstacle :  obstacle(10)}  
+   		}
+ 		//println("==================================")
+  	} 
+ 	Goto waitForEvents
+}
+
+
+/*
+
+ */

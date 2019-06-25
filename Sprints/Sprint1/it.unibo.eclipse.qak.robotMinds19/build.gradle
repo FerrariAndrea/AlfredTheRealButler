@@ -54,23 +54,23 @@ dependencies {
 	compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.8.2'
 
 //CUSTOM
-    compile fileTree(dir: 'C:/MyData/Magistrale/Ing.del.soft/GeneralLibs', include: 'uniboInterfaces.jar')
-    compile fileTree(dir: 'C:/MyData/Magistrale/Ing.del.soft/GeneralLibs', include: '2p301.jar')
-    compile fileTree(dir: 'C:/MyData/Magistrale/Ing.del.soft/GeneralLibs', include: 'it.unibo.qakactor-1.0.jar')
+    compile fileTree(dir: 'C:/Didattica2018Work/iss2019Lab/libs', include: 'uniboInterfaces.jar')
+    compile fileTree(dir: 'C:/Didattica2018Work/iss2019Lab/libs', include: '2p301.jar')
+    compile fileTree(dir: 'C:/Didattica2018Work/iss2019Lab/libs', include: 'it.unibo.qakactor-1.0.jar')
  
     //For p2p two-way connections (TCP, UDP, BTH, Serial ...)
-    compile fileTree(dir: 'C:/MyData/Magistrale/Ing.del.soft/GeneralLibs', include: 'unibonoawtsupports.jar')
+    compile fileTree(dir: 'C:/Didattica2018Work/iss2019Lab/libs', include: 'unibonoawtsupports.jar')
 
 	//BLS
-	compile fileTree(dir: 'C:/MyData/Magistrale/Ing.del.soft/GeneralLibs', include: 'it.unibo.bls19Local-1.0.jar')
+	compile fileTree(dir: 'C:/Didattica2018Work/iss2019Lab/libs', include: 'it.unibo.bls19Local-1.0.jar')
 	//RADAR
-	compile fileTree(dir: 'C:/MyData/Magistrale/Ing.del.soft/GeneralLibs', include: 'radarPojo.jar')
+	compile fileTree(dir: 'C:/Didattica2018Work/iss2019Lab/libs', include: 'radarPojo.jar')
 	//RADAR GUI
 	// https://mvnrepository.com/artifact/org.pushingpixels/trident
 	compile group: 'org.pushingpixels', name: 'trident', version: '1.3'
 	//ROBOT nano (SAM)
-    compile fileTree(dir: 'C:/MyData/Magistrale/Ing.del.soft/GeneralLibs',  include: 'labbaseRobotSam.jar')
-	compile fileTree(dir: 'C:/MyData/Magistrale/Ing.del.soft/GeneralLibs',  include: 'pi4j-core.jar') //2-12 SNAPSHOT non in gradle
+    compile fileTree(dir: 'C:/Didattica2018Work/iss2019Lab/libs',  include: 'labbaseRobotSam.jar')
+	compile fileTree(dir: 'C:/Didattica2018Work/iss2019Lab/libs',  include: 'pi4j-core.jar') //2-12 SNAPSHOT non in gradle
 }
 
 compileKotlin {

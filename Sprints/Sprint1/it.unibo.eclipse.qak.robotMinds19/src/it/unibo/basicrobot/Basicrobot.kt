@@ -29,8 +29,6 @@ class Basicrobot ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 						 }
 						itunibo.robot.robotSupport.move( "msg(a)"  )
 						delay(700) 
-						itunibo.robot.robotSupport.move( "msg(h)"  )
-						delay(150) 
 						itunibo.robot.robotSupport.move( "msg(d)"  )
 						delay(700) 
 						itunibo.robot.robotSupport.move( "msg(h)"  )

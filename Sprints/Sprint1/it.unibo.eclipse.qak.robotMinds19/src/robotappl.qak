@@ -19,9 +19,7 @@ Dispatch stepFail      : stepFail(R,T) //R=ok | obstacle, T = time
 Context ctxRobotAppl      ip [host="localhost" port=8038]    	     -mqtt 
 Context ctxDummyForMind   ip [host="otherresourcelocalhost" port=8035]   -mqtt 
 
-
-ExternalQActor basicrobot    context ctxDummyForMind
- 
+ExternalQActor basicrobot    context ctxDummyForMind 
 ExternalQActor resourcemodel context ctxDummyForMind
  
 /* 

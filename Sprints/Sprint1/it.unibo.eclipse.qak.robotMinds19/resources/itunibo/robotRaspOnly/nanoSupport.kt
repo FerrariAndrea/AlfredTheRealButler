@@ -34,8 +34,8 @@ object nanoSupport {
 		when( cmd ){
 			"msg(w)" -> command = BaseRobotForward( SPEED_HIGH )
 			"msg(s)" -> command = BaseRobotBackward(SPEED_HIGH )
-			"msg(a)" -> command = BaseRobotLeft(SPEED_HIGH )//SPEED_MEDIUM
-			"msg(d)" -> command = BaseRobotRight(SPEED_HIGH )//SPEED_MEDIUM
+			"msg(a)" -> command = BaseRobotLeft(SPEED_MEDIUM )
+			"msg(d)" -> command = BaseRobotRight(SPEED_MEDIUM )
 			"msg(h)" -> command = BaseRobotStop(SPEED_LOW )
 		}
 		robot.execute(command)
