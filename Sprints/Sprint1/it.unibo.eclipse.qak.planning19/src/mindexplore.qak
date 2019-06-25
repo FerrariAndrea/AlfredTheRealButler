@@ -33,7 +33,7 @@ var curmoveIsForward = false
 ////var RotateTime = 610L	//long		//300L	//for virtual
 //var PauseTime  = 500L 
 
-var StepTime   = 330L	//for virtual
+var StepTime   = 350L	//for virtual
 var RotateTime = 300L	//for virtual
 var PauseTime  = 250L 
 
@@ -257,6 +257,7 @@ println(map)
 	
 	State endOfJob{
 		println("EXPLRATION ENDS")
+		delayVar RotateTime
 		//si dovrebbe mettere verso sud, non ruotare a sinistra.
 		forward resourcemodel -m modelChange : modelChange(robot,a)
 		//run itunibo.planner.plannerUtil.getDuration()
