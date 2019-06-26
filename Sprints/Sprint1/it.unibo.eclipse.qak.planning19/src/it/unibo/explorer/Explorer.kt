@@ -32,6 +32,8 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 		var PauseTime  = 250L 
 		
 		var Direction = "" 
+		
+		var needInit =1
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -41,10 +43,11 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						println("INITIAL MAP")
 						itunibo.planner.plannerUtil.showMap(  )
 					}
-					 transition( edgeName="goto",targetState="doExploreStep", cond=doswitch() )
+					 transition( edgeName="goto",targetState="seeSud", cond=doswitch() )
 				}	 
 				state("doExploreStep") { //this:State
 					action { //it:State
+						needInit = 0
 						stepCounter = stepCounter + 1
 						println("MAP BEFORE EXPLORE STEP $stepCounter")
 						solve("direction(D)","") //set resVar	
@@ -189,7 +192,7 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						if(Direction == "leftDir" || Direction == "upDir" ){ forward("modelChange", "modelChange(robot,w)" ,"resourcemodel" ) 
 						 }
 					}
-					 transition( edgeName="goto",targetState="endOfJob", cond=doswitch() )
+					 transition( edgeName="goto",targetState="seeSud", cond=doswitch() )
 				}	 
 				state("tuning") { //this:State
 					action { //it:State
@@ -216,11 +219,34 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 					}
 					 transition( edgeName="goto",targetState="doExploreStep", cond=doswitch() )
 				}	 
+				state("seeSud") { //this:State
+					action { //it:State
+						Curmove="a"
+						forward("modelChange", "modelChange(robot,$Curmove)" ,"resourcemodel" ) 
+						itunibo.planner.moveUtils.doPlannedMove(myself ,"$Curmove" )
+						if(Curmove == "w" ){ delay(StepTime)
+						 }
+						else
+						 { delay(RotateTime)
+						  }
+						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
+						solve("direction(D)","") //set resVar	
+						Direction = getCurSol("D").toString() 
+						println(getCurSol("D").toString())
+					}
+					 transition( edgeName="goto",targetState="seeSud", cond=doswitchGuarded({(Direction!="downDir")}) )
+					transition( edgeName="goto",targetState="needInit", cond=doswitchGuarded({! (Direction!="downDir")}) )
+				}	 
+				state("needInit") { //this:State
+					action { //it:State
+						println("seeSud end")
+					}
+					 transition( edgeName="goto",targetState="doExploreStep", cond=doswitchGuarded({(needInit == 1)}) )
+					transition( edgeName="goto",targetState="endOfJob", cond=doswitchGuarded({! (needInit == 1)}) )
+				}	 
 				state("endOfJob") { //this:State
 					action { //it:State
-						println("EXPLRATION ENDS")
-						delay(RotateTime)
-						forward("modelChange", "modelChange(robot,a)" ,"resourcemodel" ) 
+						println("END")
 					}
 				}	 
 			}

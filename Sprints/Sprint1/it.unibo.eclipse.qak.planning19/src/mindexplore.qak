@@ -38,6 +38,8 @@ var RotateTime = 300L	//for virtual
 var PauseTime  = 250L 
 
 var Direction = \"\" 
+
+var needInit =1
 "]	
 	State s0 initial {	
 		println("&&&  explorer STARTED")
@@ -45,13 +47,15 @@ var Direction = \"\"
 		run itunibo.planner.plannerUtil.initAI()
 		println("INITIAL MAP")
  		run itunibo.planner.plannerUtil.showMap()
+ 		
  	}
-	Goto  doExploreStep 
+	Goto  seeSud 
 	
 	/*
 	 * 1) Exploration phase: from (0,0) to (stepCounter,stepCounter)
 	 */
 	State doExploreStep{
+		["needInit = 0"]
 	["stepCounter = stepCounter + 1"]
  		println("MAP BEFORE EXPLORE STEP $stepCounter")
  		solve( direction(D) )   
@@ -227,7 +231,7 @@ println(map)
    			forward resourcemodel -m modelChange : modelChange(robot,w)   	}	
 	}
 	//Transition t0 whenEvent sonarRobot -> tuning  //TODO now the mind emits sonarData
-	Goto endOfJob
+	Goto seeSud
 	
 	State tuning{	
 		println(" ---- AT HOME END TUNING --- ")
@@ -254,14 +258,36 @@ println(map)
 	Goto doExploreStep
 
 
+
 	
-	State endOfJob{
-		println("EXPLRATION ENDS")
+	State seeSud{
+		/*
 		delayVar RotateTime
 		//si dovrebbe mettere verso sud, non ruotare a sinistra.
 		forward resourcemodel -m modelChange : modelChange(robot,a)
-		//run itunibo.planner.plannerUtil.getDuration()
+		//run itunibo.planner.plannerUtil.getDuration()		
+		
+		*/
+		["Curmove=\"a\""]
+		forward resourcemodel -m modelChange : modelChange(robot,$Curmove)
+		run itunibo.planner.moveUtils.doPlannedMove(myself, "$Curmove")
+		if "Curmove == \"w\" " {  delayVar StepTime } else { delayVar RotateTime }
+			forward resourcemodel -m modelChange : modelChange(robot,h)
+		solve( direction(D) )
+		["Direction = getCurSol(\"D\").toString() "]
+		println(@D)
 	}
+	Goto seeSud  if "(Direction!=\"downDir\")" else needInit
+	
+	State needInit{
+		println("seeSud end")
+	}Goto doExploreStep if "(needInit == 1)" else endOfJob
+	
+	State endOfJob{
+		println("END")
+	}
+	
+	
 }	
 
  
