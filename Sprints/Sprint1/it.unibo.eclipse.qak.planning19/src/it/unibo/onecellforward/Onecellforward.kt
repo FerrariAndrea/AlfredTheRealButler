@@ -40,7 +40,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				state("endDoMoveForward") { //this:State
 					action { //it:State
 						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
-						forward("stepOk", "stepOk(ok)" ,"roomexplorer" ) 
+						forward("stepOk", "stepOk(ok)" ,"planex1" ) 
 					}
 					 transition( edgeName="goto",targetState="s0", cond=doswitch() )
 				}	 
@@ -61,7 +61,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 					action { //it:State
 						println("&&& onecellforward stepfail ")
 						solve("wduration(TIME)","") //set resVar	
-						forward("stepFail", "stepFail(obstacle,${getCurSol("TIME").toString()})" ,"roomexplorer" ) 
+						forward("stepFail", "stepFail(obstacle,${getCurSol("TIME").toString()})" ,"planex1" ) 
 					}
 					 transition( edgeName="goto",targetState="s0", cond=doswitch() )
 				}	 
