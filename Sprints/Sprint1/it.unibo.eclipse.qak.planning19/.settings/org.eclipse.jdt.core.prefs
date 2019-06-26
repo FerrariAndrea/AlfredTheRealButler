@@ -1,9 +1,9 @@
 #
-#Wed Jun 26 10:37:19 CEST 2019
-org.eclipse.jdt.core.compiler.problem.enumIdentifier=error
+#Fri Jun 21 15:13:12 CEST 2019
+org.eclipse.jdt.core.compiler.problem.assertIdentifier=error
 org.eclipse.jdt.core.compiler.codegen.targetPlatform=1.8
+org.eclipse.jdt.core.compiler.source=1.8
 eclipse.preferences.version=1
 org.eclipse.jdt.core.builder.resourceCopyExclusionFilter=*.kt
-org.eclipse.jdt.core.compiler.source=1.8
-org.eclipse.jdt.core.compiler.problem.assertIdentifier=error
+org.eclipse.jdt.core.compiler.problem.enumIdentifier=error
 org.eclipse.jdt.core.compiler.compliance=1.8

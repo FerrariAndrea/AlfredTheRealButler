@@ -2,7 +2,6 @@ System mindwithplanner
 
 Context ctxMindWithPlan  ip [host="localhost" port=8038]   //-mqtt 
 
-
 QActor plantester context ctxMindWithPlan{     
 ["var stepCounter = 0"]	
 	State s0 initial {	    
