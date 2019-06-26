@@ -28,7 +28,7 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 		var RotateStep = 255L	//long		//for real 
 		var BackTime   = 500L
 		
-		var StepTime   = 330L	//for virtual
+		var StepTime   = 350L	//for virtual
 		var RotateTime = 300L	//for virtual
 		var PauseTime  = 100L 
 		var RobotDirection = ""

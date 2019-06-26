@@ -27,7 +27,7 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 		////var RotateTime = 610L	//long		//300L	//for virtual
 		//var PauseTime  = 500L 
 		
-		var StepTime   = 330L	//for virtual
+		var StepTime   = 350L	//for virtual
 		var RotateTime = 300L	//for virtual
 		var PauseTime  = 250L 
 		
@@ -219,6 +219,7 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				state("endOfJob") { //this:State
 					action { //it:State
 						println("EXPLRATION ENDS")
+						delay(RotateTime)
 						forward("modelChange", "modelChange(robot,a)" ,"resourcemodel" ) 
 					}
 				}	 
