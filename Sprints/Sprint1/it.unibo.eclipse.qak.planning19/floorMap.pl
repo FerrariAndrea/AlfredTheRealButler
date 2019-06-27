@@ -17,10 +17,15 @@ changeDirection( east  ):- foundDishwasher, replaceRule( robotdirection( east ),
 changeDirection( north ):- foundFridge,     replaceRule( robotdirection( north ), robotdirection( west ) ).
 changeDirection( west  ):- replaceRule( robotdirection( west ), robotdirection( sud ) ).
 
-foundPantry.
-foundDishwasher.
-foundFridge :- output("FRIGO TROVATO :)))").
 
+
+%%%%%%%%%%%%%%%%%%%%%%%%% hashmap position of objects-map %%%%%%%%%%%%%
+%%get(OBJECT,X,Y):-output(X),output(Y).
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+foundPantry:-getVal(y,Y),getVal(x,X),asserta(get(pantry,X,Y)).
+foundDishwasher:-getVal(y,Y),getVal(x,X),asserta(get(dishwasher,X,Y)).
+foundFridge :-getVal(y,Y),getVal(x,X),asserta(get(fridge,X,Y)).
 	
 updateMapAfterStep :-
 	robotdirection( D ),

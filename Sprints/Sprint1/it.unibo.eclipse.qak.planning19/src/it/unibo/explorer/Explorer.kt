@@ -33,7 +33,7 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 		
 		var Direction = "" 
 		
-		var needInit =1
+		//var needInit =1
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -43,11 +43,10 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						println("INITIAL MAP")
 						itunibo.planner.plannerUtil.showMap(  )
 					}
-					 transition( edgeName="goto",targetState="seeSud", cond=doswitch() )
+					 transition( edgeName="goto",targetState="doExploreStep", cond=doswitch() )
 				}	 
 				state("doExploreStep") { //this:State
 					action { //it:State
-						needInit = 0
 						stepCounter = stepCounter + 1
 						println("MAP BEFORE EXPLORE STEP $stepCounter")
 						solve("direction(D)","") //set resVar	
@@ -197,9 +196,9 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				state("tuning") { //this:State
 					action { //it:State
 						println(" ---- AT HOME END TUNING --- ")
-						if(Direction == "leftDir"  ){ Curmove="r"
+						if(Direction == "leftDir"  ){ Curmove="d"
 						 }
-						if(Direction == "upDir"    ){ Curmove="l"
+						if(Direction == "upDir"    ){ Curmove="a"
 						 }
 						forward("modelChange", "modelChange(robot,$Curmove)" ,"resourcemodel" ) 
 						itunibo.planner.moveUtils.doPlannedMove(myself ,Curmove )
@@ -222,27 +221,17 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				state("seeSud") { //this:State
 					action { //it:State
 						Curmove="a"
+						delay(StepTime)
 						forward("modelChange", "modelChange(robot,$Curmove)" ,"resourcemodel" ) 
-						itunibo.planner.moveUtils.doPlannedMove(myself ,"$Curmove" )
-						if(Curmove == "w" ){ delay(StepTime)
-						 }
-						else
-						 { delay(RotateTime)
-						  }
+						itunibo.planner.moveUtils.doPlannedMove(myself ,Curmove )
+						delay(RotateTime)
 						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
 						solve("direction(D)","") //set resVar	
 						Direction = getCurSol("D").toString() 
-						println(getCurSol("D").toString())
+						println("--->$Direction")
 					}
 					 transition( edgeName="goto",targetState="seeSud", cond=doswitchGuarded({(Direction!="downDir")}) )
-					transition( edgeName="goto",targetState="needInit", cond=doswitchGuarded({! (Direction!="downDir")}) )
-				}	 
-				state("needInit") { //this:State
-					action { //it:State
-						println("seeSud end")
-					}
-					 transition( edgeName="goto",targetState="doExploreStep", cond=doswitchGuarded({(needInit == 1)}) )
-					transition( edgeName="goto",targetState="endOfJob", cond=doswitchGuarded({! (needInit == 1)}) )
+					transition( edgeName="goto",targetState="endOfJob", cond=doswitchGuarded({! (Direction!="downDir")}) )
 				}	 
 				state("endOfJob") { //this:State
 					action { //it:State

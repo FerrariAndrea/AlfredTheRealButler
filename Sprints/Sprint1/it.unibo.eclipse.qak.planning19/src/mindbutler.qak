@@ -132,14 +132,21 @@ var RobotDirection = \"\"
 		println("EXPLORATION ENDS")
 		run itunibo.planner.plannerUtil.getDuration()
 	}
-	Goto findTheTable
+	Goto gotToDishwasher
 	
-	State findTheTable{
-		println("findTheTable STARTS")
-		["
-val map = itunibo.planner.plannerUtil.getMap() 
-println(map)
-		"] 
+	State gotToDishwasher{
+	
+		//stampa oggetti trovati
+		["var x=\"0\""]
+		["var y=\"0\""]
+		solve( get(dishwasher,X,Y) )
+		["x= getCurSol(\"X\").toString()
+		  y= getCurSol(\"Y\").toString()"]
+		println("--->x=$x, y=$y")
+		println("&&&  explorer STARTED")
+	    solve( consult("moves.pl")	 )
+		run itunibo.planner.plannerUtil.initAI()
+		
 	}
 	
 	  
