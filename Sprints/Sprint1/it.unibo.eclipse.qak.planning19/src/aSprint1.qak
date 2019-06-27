@@ -1,27 +1,57 @@
+
 /*
- * ===========================================================
- * !!!!  WARNIG: work in progress !!!! 
- * ===========================================================
- * ASSUMPTION: the room is empty
+ * 0) Activate mosquitto on the PC (192.168.43.5)
+ * 1) Prepare the real execution room and place the real robot (mbot/nano) in cell(0,0)
+ * 2) Activate it.unibo.ctxRobotMind.MainCtxRobotMindKt on the real robot
+ * 3) Launch ctxMindButler on the PC to make application-debugging easier
+ * 
+ * These actors can be viewed as an EXTENSION of the 'mind' 
+ * that implements the application logic
+ * 
+ * =====================================================================
+ * This version does not use the planner
+ * =====================================================================
  */
-System mindexplore
+
+System mindbutler
 mqttBroker "localhost" : 1883  
 
+Dispatch robotCmd     : robotCmd( CMD )				  //sent by the mind to the basicrobot
+
 Dispatch modelChange  : modelChange( TARGET, VALUE )   
+Dispatch modelUpdate  : modelUpdate( TARGET, VALUE )   
+
 
 Dispatch onestep       : onestep(DURATION)
 Dispatch stepOk        : stepOk(V)		//TODO eliminate  V
 Dispatch stepFail      : stepFail(R,T) //R=ok | obstacle, T = time
 
 Event  sonarRobot     : sonar( DISTANCE )	     //from  sonar on robot 
+Event  obstacle       : obstacle( DISTANCE )	     //from  sonar handler
 
-Context ctxMindExplore    ip [host="localhost" port=8038]    -mqtt 
+Context ctxSprint1  ip [host="localhost" port=8038]    -mqtt 
 Context ctxDummyForMind   ip [host="otherresourcelocalhost" port=8035]   -mqtt 
 
 ExternalQActor resourcemodel context ctxDummyForMind
+ExternalQActor basicrobot    context ctxDummyForMind 
 
-QActor explorer context ctxMindExplore{     
+/*
+ * 
+ */ 
+QActor butler context ctxSprint1{     
 ["
+
+//var StepTime   = 1000L	//long		//for real
+//var RotateTime = 560L	//long		//for real 
+//var PauseTime  = 1000L 
+var RotateStep = 255L	//long		//for real 
+var BackTime   = 500L
+
+var StepTime   = 350L	//for virtual
+var RotateTime = 300L	//for virtual
+var PauseTime  = 100L 
+var RobotDirection = \"\"
+
 var goingHome  = false 
  
 var Tback      = 0L
@@ -29,52 +59,148 @@ var Tback      = 0L
 var stepCounter = 0 
 var Curmove = \"\"
 var curmoveIsForward = false
-//var StepTime   = 1000L	//long		/ 
-////var RotateTime = 610L	//long		//300L	//for virtual
-//var PauseTime  = 500L 
-
-var StepTime   = 350L	//for virtual
-var RotateTime = 300L	//for virtual
-var PauseTime  = 250L 
 
 var Direction = \"\" 
 
 //var needInit =1
+
 "]	
-	State s0 initial {	
+	State s0 initial{	
+		println("&&&  butler STARTED")
+		solve( consult("sysRules.pl")	 )       
+		solve( consult("floorMap.pl")	 )
+		solve( showMap	 )
+ 	}
+	
+	Goto exploreTheRoom
+	
+	State exploreTheRoom {
+	}
+	
+	Goto moveAhead
+ 	State moveAhead{
+ 		forward butlerstep -m onestep : onestep( $StepTime )
+ 	}
+ 	
+	Transition t0   whenMsg stepOk   -> hadleStepOk
+					whenMsg stepFail -> hadleStepKo 
+
+	State hadleStepOk{
+		//println("&&& moveAhead ok")	
+		solve( updateMapAfterStep )
+		solve( showMap	 )
+		delayVar PauseTime 
+	}
+	Goto moveAhead 
+	
+	State hadleStepKo{
+		["var Tback = 0L"]
+		printCurrentMessage		
+		println("&&& moveAhead failed")
+		onMsg( stepFail:stepFail(R,D) ) {
+			["Tback=payloadArg(1).toString().toLong() 
+			"]
+			println(" ..................................  BACK TIME= $Tback")
+		}
+		//solve( dialog(F) )
+		["if( Tback > StepTime * 2 /3 ) Tback = 0 else Tback = Tback / 3 "]			  
+		
+		if "Tback>0" {  
+		  forward resourcemodel -m modelChange : modelChange(robot,s)  
+ 		  delayVar Tback 
+  		  forward resourcemodel -m modelChange : modelChange(robot,h)     
+  		}
+  		else{  
+  			solve( updateMapAfterStep )  //almost completed ...
+  		}
+		solve( showMap	 )
+		delayVar PauseTime
+		
+		forward resourcemodel -m modelChange : modelChange(robot,a)
+		solve( changeDirection )  //updates robotdirection/1
+		solve( robotdirection(D) )
+		
+				["RobotDirection = getCurSol(\"D\").toString()"]
+		println("RobotDirection= ${RobotDirection}")
+		
+
+	}
+    Goto endOfExploration  if "(getCurSol(\"D\").toString() == \"sud\")" else tuning   
+	
+   	State tuning{
+		delayVar RotateTime
+		//println(" ---- TUNING --- ")
+		//solve( dialog(F) )	//to tune at hand
+	} 
+	Goto moveAhead
+	
+	State endOfExploration{
+		println("EXPLORATION ENDS")
+		run itunibo.planner.plannerUtil.getDuration()
+		delayVar PauseTime			
+		run itunibo.planner.plannerUtil.initAI()
+	}
+	Goto seeSudCopy
+	
+	State gotToFridge{
+	
+		//stampa oggetti trovati
+		["var x=\"0\""]
+		["var y=\"0\""]
+		solve( get(fridge,X,Y) )
+		["x= getCurSol(\"X\").toString()
+		  y= getCurSol(\"Y\").toString()"]
+		println("--->x=$x, y=$y")
 		println("&&&  explorer STARTED")
 	    solve( consult("moves.pl")	 )
-		run itunibo.planner.plannerUtil.initAI()
-		println("INITIAL MAP")
- 		run itunibo.planner.plannerUtil.showMap()
- 		
- 	}
-	Goto  doExploreStep 
-	//Goto  seeSud 
-	
-	/*
-	 * 1) Exploration phase: from (0,0) to (stepCounter,stepCounter)
-	 */
-	State doExploreStep{
-		//["needInit = 0"]
-	["stepCounter = stepCounter + 1"]
- 		println("MAP BEFORE EXPLORE STEP $stepCounter")
- 		solve( direction(D) )   
-   		println("direction at start: ${getCurSol(\"D\").toString()}")
-		run itunibo.planner.plannerUtil.showMap()		
-		run itunibo.planner.plannerUtil.setGoal(6,0)//6,0	
-		["goingHome=false"]	
-		//solve( dialog(F) )
+		run itunibo.planner.plannerUtil.setGoal(x,y)
 		run itunibo.planner.moveUtils.doPlan( myself )
- 	} 	
-	Goto executePlannedActions if "itunibo.planner.moveUtils.existPlan()"  
+	}Goto executePlannedActions if "itunibo.planner.moveUtils.existPlan()"  
 	     else endOfJob //if "(stepCounter < 4)" else endOfJob
+	
+	//DA MODIFICARE QUI
+	State goalOk{		  
+ 		println("ON THE TARGET CELL !!!")
+// 		solve( curPos(X,Y) )
+// 		println("curPos ${get}")
+ 	}
+ 	//Goto doExploreStep if "goingHome" else backToHome
+ 	Goto atHome if "goingHome" else backToHome
+ 	
+ 	//Execute the move if it is a rotation or halt
+	State checkAndDoAction{	 }
+	Goto doForwardMove if "curmoveIsForward" else doTheMove
+	State executePlannedActions{ 
+		//solve( showMoves ) 
+		solve( retract( move(M) ) ) 
+		ifSolved {  
+			["Curmove = getCurSol(\"M\").toString() 
+              curmoveIsForward=(Curmove == \"w\")
+	        "]
+		} else { ["Curmove = \"\"; curmoveIsForward=false"]  }  
+		//println("executePlannedActions doing $Curmove")
+ 	}
+	Goto checkAndDoAction  if "(Curmove.length>0) " else goalOk 
+ 	
+	  State doTheMove{
+//		if "Curmove==\"a\"" { forward resourcemodel -m modelChange : modelChange(robot,l) }
+//		if "Curmove==\"d\"" { forward resourcemodel -m modelChange : modelChange(robot,r) }
+//		run itunibo.planner.moveUtils.doPlannedMove(myself, Curmove)
+  		forward resourcemodel -m modelChange : modelChange(robot,$Curmove) 
+		delayVar RotateTime //rotate 
+		forward resourcemodel -m modelChange : modelChange(robot,h) //stop
+		run itunibo.planner.moveUtils.doPlannedMove(myself, Curmove)
+ 		delayVar PauseTime		
+		//println("doTheMove DONE $Curmove")
+ 		//solve( dialog(F) )	//to CALIBRATE rotation time
+	}
+	Goto executePlannedActions
+
 	
 	/*
 	 * 2) Execute the planned action, with attention to w
 	 * the actions are stored in the actpr-kb as a sequence of facts: move(M)
 	 */
-	
 	
 	State executePlannedActions{ 
 		//solve( showMoves ) 
@@ -234,42 +360,28 @@ println(map)
 	//Transition t0 whenEvent sonarRobot -> tuning  //TODO now the mind emits sonarData
 	Goto seeSud
 	
-	State tuning{	
-		println(" ---- AT HOME END TUNING --- ")
-		if "Direction == \"leftDir\"  " { ["Curmove=\"d\""] }	//rotateRight90 
-		if "Direction == \"upDir\"    " { ["Curmove=\"a\""] }
-   		forward resourcemodel -m modelChange : modelChange(robot,$Curmove) //
-   		run itunibo.planner.moveUtils.doPlannedMove(myself, Curmove)	
-   		//delayVar RotateTime
-   		println(" ---- AT HOME END TUNING ROTATION DONE $Curmove--- ")
-    	forward resourcemodel -m modelChange : modelChange(robot,w)   	
-   		//run itunibo.planner.moveUtils.doPlannedMove(myself, Curmove)	
-   		println(" ---- AT HOME forward --- ")
-	} 
-	Transition t1 whenEvent  sonarRobot -> tuned
-
-	State tuned{	
-		println(" ---- AT HOME TUNED --- ")
-		printCurrentMessage
- 		solve( direction(D) )
- 		["Direction = getCurSol(\"D\").toString() "]
-		println( @D ) 
-   		//solve( dialog(F) )			//to facilitate testing
-	}           
-	Goto doExploreStep
+	
 
 
+	State seeSudCopy{
 
+		
+		["Curmove=\"a\""]
+		delayVar StepTime
+		forward resourcemodel -m modelChange : modelChange(robot,$Curmove) //
+   		//run itunibo.planner.moveUtils.doPlannedMove(myself, Curmove)
+   		delayVar RotateTime
+		
+		forward resourcemodel -m modelChange : modelChange(robot,h)			
+		solve( direction(D) )
+		["Direction = getCurSol(\"D\").toString() "]
+		println("--->$Direction")
+	}
+	//Goto seeSud  if "(Direction!=\"downDir\")" else needInit
+	Goto seeSudCopy  if "(Direction!=\"downDir\")" else gotToFridge
 	
 	State seeSud{
-		/*
-		delayVar RotateTime
-		//si dovrebbe mettere verso sud, non ruotare a sinistra.
-		forward resourcemodel -m modelChange : modelChange(robot,a)
-		//run itunibo.planner.plannerUtil.getDuration()		
-		
-		*/
-		
+			
 		["Curmove=\"a\""]
 		delayVar StepTime
 		forward resourcemodel -m modelChange : modelChange(robot,$Curmove) //
@@ -297,11 +409,81 @@ println(map)
 	
 }	
 
- 
 
  
+/*
+ * 1) Waits for the message 'onestep' from the application layer
+ * 2) Performs a single-step-ahead with the given time
+ * 3) If all ok, sends the 'answer'  stepOk
+ * 4) If finds an obstacle, sends the 'answer' stepFail(T) with T=time elapsed before obstacle
+ */
+ 
+QActor butlerstep context ctxSprint1 {
+[" var foundObstacle = false; var StepTime = 0L"]  
+	State s0 initial {	   
+		["foundObstacle = false "]
+	} 
+	Transition t0 whenMsg onestep -> doMoveForward
+	
+	State doMoveForward{		  
+		onMsg( onestep : onestep( TIME ) ) { 
+			["StepTime = payloadArg(0).toLong(); println(StepTime)"]
+			forward resourcemodel -m modelChange : modelChange(robot,w)
+			run itunibo.planner.plannerUtil.startTimer()
+		}
+	} 
+	Transition t0 whenTimeVar  StepTime   -> endDoMoveForward		
+ 		          whenEvent     obstacle  -> stepFail
+		  
+	State endDoMoveForward{
+		forward resourcemodel -m modelChange : modelChange(robot,h)
+		forward butler -m stepOk : stepOk(ok)  //answer
+	}
+	Goto s0
+		
+	State stepFail{
+		run itunibo.planner.moveUtils.setDuration(myself)  //assert wduration/1
+		println("&&& butlerstep stepfail ")
+		solve( wduration( TIME ) )
+		forward butler -m stepFail : stepFail(obstacle,#TIME)  	
+	}
+	Goto s0
+
+}    
+ 
+
+//The mind already emits obstacle when the robot is going forward
+QActor sonarhandlerbutler context ctxSprint1{  
+["
+var LastDistance = 0
+"]
+ 	State init initial{
+		println("sonarhandlerbutler STARTS ... ")
+	}         
+	Goto waitForEvents 
+	   
+	State waitForEvents{  }      
+   	Transition t0  whenEvent sonarRobot ->  handleSonar
+   	               
+ 	State handleSonar{                      
+		//println("==================================")
+ 		//printCurrentMessage                                        
+  		onMsg ( sonarRobot : sonar( DISTANCE ) ){     
+			["val Distance = Integer.parseInt( payloadArg(0) ); 
+			  if( Math.abs( Distance - LastDistance ) > 1 ){println(Distance) ; LastDistance = Distance}
+              val foundObstacle = (Distance<13) "]  
+            if "foundObstacle" {emit obstacle :  obstacle(10)}  
+   		}
+ 		//println("==================================")
+  	} 
+ 	Goto waitForEvents
+}
+
+
+
+
 //Application move step
-QActor onecellforward context ctxMindExplore {
+QActor onecellforward context ctxSprint1 {
 [" var foundObstacle = false; var StepTime = 0L"]  
 	State s0 initial {	   
 		["foundObstacle = false "]
@@ -320,7 +502,7 @@ QActor onecellforward context ctxMindExplore {
 		  
 	State endDoMoveForward{
 		forward resourcemodel -m modelChange : modelChange(robot,h)
-		forward explorer -m stepOk : stepOk(ok)  //answer
+		forward butler -m stepOk : stepOk(ok)  //answer
 	}
 	Goto s0
 	
@@ -338,32 +520,13 @@ QActor onecellforward context ctxMindExplore {
 	State stepFail{
 		println("&&& onecellforward stepfail ")
 		solve( wduration( TIME ) )
-		forward explorer -m stepFail : stepFail(obstacle,#TIME)  	
+		forward butler -m stepFail : stepFail(obstacle,#TIME)  	
 	}
 	Goto s0
 
 
 
 }    
-
-
-QActor sonarhandler context ctxMindExplore{  
- 	State init initial{
-		println("sonarhandler STARTS ... ")
-	}         
-	Goto waitForEvents 
-	   
-	State waitForEvents{  }      
-   	Transition t0  whenEvent sonarRobot ->  handleSonar
-   	               
- 	State handleSonar{                      
-		println("==================================")
- 		printCurrentMessage                                        
- 		println("==================================")
-  	} 
- 	Goto waitForEvents
-}
-
 
 /*
 

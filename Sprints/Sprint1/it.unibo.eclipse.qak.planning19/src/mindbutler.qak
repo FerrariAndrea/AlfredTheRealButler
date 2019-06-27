@@ -21,7 +21,6 @@ Dispatch robotCmd     : robotCmd( CMD )				  //sent by the mind to the basicrobo
 Dispatch modelChange  : modelChange( TARGET, VALUE )   
 Dispatch modelUpdate  : modelUpdate( TARGET, VALUE )   
 
-
 Dispatch onestep       : onestep(DURATION)
 Dispatch stepOk        : stepOk(V)		//TODO eliminate  V
 Dispatch stepFail      : stepFail(R,T) //R=ok | obstacle, T = time
@@ -132,24 +131,8 @@ var RobotDirection = \"\"
 		println("EXPLORATION ENDS")
 		run itunibo.planner.plannerUtil.getDuration()
 	}
-	Goto gotToDishwasher
 	
-	State gotToDishwasher{
 	
-		//stampa oggetti trovati
-		["var x=\"0\""]
-		["var y=\"0\""]
-		solve( get(dishwasher,X,Y) )
-		["x= getCurSol(\"X\").toString()
-		  y= getCurSol(\"Y\").toString()"]
-		println("--->x=$x, y=$y")
-		println("&&&  explorer STARTED")
-	    solve( consult("moves.pl")	 )
-		run itunibo.planner.plannerUtil.initAI()
-		
-	}
-	
-	  
 }	
 
 

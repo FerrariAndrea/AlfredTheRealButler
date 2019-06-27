@@ -104,20 +104,6 @@ class Butler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						println("EXPLORATION ENDS")
 						itunibo.planner.plannerUtil.getDuration(  )
 					}
-					 transition( edgeName="goto",targetState="gotToDishwasher", cond=doswitch() )
-				}	 
-				state("gotToDishwasher") { //this:State
-					action { //it:State
-						var x="0"
-						var y="0"
-						solve("get(dishwasher,X,Y)","") //set resVar	
-						x= getCurSol("X").toString()
-								  y= getCurSol("Y").toString()
-						println("--->x=$x, y=$y")
-						println("&&&  explorer STARTED")
-						solve("consult('moves.pl')","") //set resVar	
-						itunibo.planner.plannerUtil.initAI(  )
-					}
 				}	 
 			}
 		}
