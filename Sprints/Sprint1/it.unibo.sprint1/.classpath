@@ -13,6 +13,7 @@
 			<attribute name="gradle_used_by_scope" value="main,test"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="src" path="srcTest"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.8/"/>
 	<classpathentry kind="lib" path="C:/Users/Luca/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core/1.1.0/20274ba816d8938fdb4d7a3806719691db60fa1e/kotlinx-coroutines-core-1.1.0.jar" sourcepath="C:/Users/Luca/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core/1.1.0/b6075fa835ecd2fa92742c5049d3aac4e14bd01e/kotlinx-coroutines-core-1.1.0-sources.jar">
 		<attributes>
