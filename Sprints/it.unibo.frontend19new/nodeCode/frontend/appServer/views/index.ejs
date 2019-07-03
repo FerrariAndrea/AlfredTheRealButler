@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>ResourceAccess</title>
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+<script>
+       var socket  = io.connect();
+       socket.on('connect', function(){ console.log("socket connected");});
+       socket.on('message', function(v){ 
+       			if( v.indexOf("robot") >= 0 ){document.getElementById('robotDisplay').innerHTML=v; }
+       			if( v.indexOf("sonarRobot") >= 0 ){document.getElementById('sonarRobotDisplay').innerHTML=v; }
+       			}
+       	);
+</script>
+<!-- <script type="text/javascript" src="QActorWebUI.js"></script> -->
+</head>
+
+<body style="background-color: #37464f">
+ 
+<div style="background-color: #37464f">
+	<center>
+<h2 style="color:white;background-color: black;padding: 10px;">Maître de salle Console</h2>
+</center>
+
+</div>
+<div style="background-color: rgb(131, 255, 148)">
+	<div>
+ 		<b>ROBOT STATE</b>: <span id="robotDisplay"></span>
+  	</div>
+	<div>
+  		<b>SONAR STATE</b>: <span id="sonarRobotDisplay"></span>
+	</div>
+</div>
+
+<br></br>
+<center>
+			<table>
+					<tr>
+						<td></td>
+						<td align="center">
+							<form action="/w" method="post">
+							  	<input type="submit" style="font-size:30px;" value="PREPARE" >
+							</form>
+						</td>
+
+					</tr>
+					<tr><td align="center"><span style="opacity:0;">This sentence is invisible</span></td>
+					</tr>
+						<td align="center">
+							<form action="/a" method="post">
+							  	<input type="submit" style="font-size:25px;margin: 10px"  value="ADD CRESCENTINA" >
+							</form>
+						</td>
+						<td align="center">
+							<form action="/a" method="post">
+							  	<input type="submit" style="font-size:25px;margin: 10px"  value="ADD PIZZA" >
+							</form>
+						</td>
+						<td align="center">
+							<form action="/a" method="post">
+							  	<input type="submit" style="font-size:25px;margin: 10px"  value="ADD MOZZARELLA" >
+							</form>
+						</td>
+						<td></td>
+					</tr>
+					<tr><td align="center"><span style="opacity:0;">This sentence is invisible</span></td>
+
+					<tr>
+							<td></td>
+
+						<td align="center">
+							<form action="/d" method="post">
+							  	<input type="submit" style="font-size:30px;" value="CLEAR"  >
+							</form>
+						</td>
+					</tr>
+					<tr><td align="center"><span style="opacity:0;">This sentence is invisible</span></td>
+
+					<tr>
+							<td></td>
+
+						<td align="center">
+							<form action="/h" method="post">
+								<font size="3" color="red">
+							  		<input type="submit" style="font-size:40px;"  value="STOP"  >
+							  	</font>
+							</form>
+						</td>
+						<td></td>
+
+					</tr>
+					
+				</table>
+</center>
+</div>
+
+<br><br>
+
+<div style="background-color: #FAF19C">
+	<div style = "background-color: rgb(240, 225, 95)"">
+		<b style="font-weight: bold;">CAPABILITIES</b>:
+	</div>	
+	<div>
+		 <b>Fridge</b>: 
+		 <ul>
+			<li>Crescentine: K1</li>
+			<li>Pizze: K2</li>
+			<li>Mozzarelle: K3</li>
+		 </ul>
+  	</div>
+	<div>
+  		<b>Dishwasher</b>: <span id="sonarRobotDisplay"></span> # dishes
+	</div>
+	<div>
+		<b>Pantry</b>: <span id="sonarRobotDisplay"></span> # dishes
+	</div>
+</div>
+
+</body>
+</html>
