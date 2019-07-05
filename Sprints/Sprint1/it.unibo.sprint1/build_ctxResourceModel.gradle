@@ -88,7 +88,7 @@ compileTestKotlin {
 
 sourceSets {
     main.java.srcDirs += 'src'
-    main.java.srcDirs += 'resources'
+    //main.java.srcDirs += 'resources'
 }
 /*
 mainClassName = 'it.unibo.TODOKt'

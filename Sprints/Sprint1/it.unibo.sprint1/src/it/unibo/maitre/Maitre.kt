@@ -18,7 +18,7 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
-						println("Start butler")
+						println("Start maitre")
 						delay(1000) 
 						forward("modelChange", "modelChange(robot,w)" ,"resourcemodel" ) 
 					}

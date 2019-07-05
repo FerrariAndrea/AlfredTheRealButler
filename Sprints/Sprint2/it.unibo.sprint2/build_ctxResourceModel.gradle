@@ -1,16 +1,16 @@
 /*
 ================================================================================
-build_ctxTest.gradle
+build_ctxResourceModel.gradle
 GENERATED ONLY ONCE
 USAGE:	 
 	gradle build eclipse		//to set the dependency on the library
-	gradle   -b build_ctxTest.gradle distZip //for executable jar and distribution
+	gradle   -b build_ctxResourceModel.gradle distZip //for executable jar and distribution
 	
-	gradle   -b build_ctxTest.gradle qawrapper
-	gradlew  -b build_ctxTest.gradle eclipse		//to set the dependency on the library
-	gradlew  -b build_ctxTest.gradle build
-	gradlew  -b build_ctxTest.gradle -q tasks --all
-	gradlew  -b build_ctxTest.gradle cleanDistDir	//to clean the src directory
+	gradle   -b build_ctxResourceModel.gradle qawrapper
+	gradlew  -b build_ctxResourceModel.gradle eclipse		//to set the dependency on the library
+	gradlew  -b build_ctxResourceModel.gradle build
+	gradlew  -b build_ctxResourceModel.gradle -q tasks --all
+	gradlew  -b build_ctxResourceModel.gradle cleanDistDir	//to clean the src directory
 ================================================================================
 */
 plugins {

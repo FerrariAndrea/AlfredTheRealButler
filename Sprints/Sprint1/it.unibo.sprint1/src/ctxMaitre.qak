@@ -1,0 +1,18 @@
+System system1a
+mqttBroker "localhost" : 1883
+
+Dispatch modelChange  : modelChange( TARGET, VALUE )  //force a resource-model change
+
+Context ctxMaitre ip[host="localhost" port=8035] -mqtt
+Context ctxDummy ip[host="dummyhost" port=9999] -mqtt //as resourceModel
+
+ExternalQActor resourcemodel context ctxDummy
+
+QActor maitre context ctxMaitre {
+		State s0 initial {
+		println("Start maitre")		
+		delay 1000
+		//TEST ROBOT MOVEMENT
+		forward resourcemodel -m  modelChange :  modelChange(robot, w)
+	}
+}
