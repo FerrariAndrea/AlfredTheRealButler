@@ -8,6 +8,11 @@ Context ctxDummy ip[host="dummyhost" port=9999] -mqtt //as resourceModel
 
 ExternalQActor resourcemodel context ctxDummy
 
+/*
+ *  So far, Maitre just stends a moveForward command. 
+ *  In the future we'll use a web-app to send commands to the resource model.
+ */
+
 QActor maitre context ctxMaitre {
 		State s0 initial {
 		println("Start maitre")		

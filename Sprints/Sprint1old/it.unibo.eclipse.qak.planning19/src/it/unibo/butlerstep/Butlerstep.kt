@@ -21,7 +21,7 @@ class Butlerstep ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 					action { //it:State
 						foundObstacle = false 
 					}
-					 transition(edgeName="t02",targetState="doMoveForward",cond=whenDispatch("onestep"))
+					 transition(edgeName="t04",targetState="doMoveForward",cond=whenDispatch("onestep"))
 				}	 
 				state("doMoveForward") { //this:State
 					action { //it:State
@@ -34,8 +34,8 @@ class Butlerstep ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 						stateTimer = TimerActor("timer_doMoveForward", 
 							scope, context!!, "local_tout_butlerstep_doMoveForward", StepTime )
 					}
-					 transition(edgeName="t03",targetState="endDoMoveForward",cond=whenTimeout("local_tout_butlerstep_doMoveForward"))   
-					transition(edgeName="t04",targetState="stepFail",cond=whenEvent("obstacle"))
+					 transition(edgeName="t05",targetState="endDoMoveForward",cond=whenTimeout("local_tout_butlerstep_doMoveForward"))   
+					transition(edgeName="t06",targetState="stepFail",cond=whenEvent("obstacle"))
 				}	 
 				state("endDoMoveForward") { //this:State
 					action { //it:State

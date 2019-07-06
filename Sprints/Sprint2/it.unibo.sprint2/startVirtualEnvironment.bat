@@ -1,3 +1,5 @@
+cd ..
+cd ..
 cd it.unibo.robots19
 cd node
 cd WEnv
