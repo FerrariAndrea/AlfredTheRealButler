@@ -246,6 +246,7 @@ QActor onecellforward context ctxExplorer {
 	}
 	Goto s0
 	
+	
 	//Substitute with an ad-hoc actor for a real robot
 	State handleSonarRobot{  //before than the step time
 		run itunibo.planner.moveUtils.setDuration(myself)
