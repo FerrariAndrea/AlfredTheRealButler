@@ -54,6 +54,7 @@ class Mindrobot ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 				}	 
 				state("handleModelChanged") { //this:State
 					action { //it:State
+						obstacle=false
 						println("$name in ${currentState.stateName} | $currentMsg")
 						if( checkMsgContent( Term.createTerm("modelChanged(TARGET,VALUE)"), Term.createTerm("modelChanged(robot,CMD)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList

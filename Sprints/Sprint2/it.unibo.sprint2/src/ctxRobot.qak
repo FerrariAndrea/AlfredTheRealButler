@@ -12,6 +12,7 @@ Dispatch robotCmd     : robotCmd( CMD )				  //sent by the mind to the basicrobo
 Dispatch modelChange  : modelChange( TARGET, VALUE )  //force a resource-model change
 Dispatch modelUpdate  : modelUpdate( TARGET, VALUE )  //sent by the mind
 
+
 Context ctxRobot ip[host="localhost" port=8038] -mqtt
 Context ctxDummy ip[host="dummyhost" port=9999] -mqtt //as ctdResourceModel and ctxMaitre
 
@@ -53,9 +54,11 @@ QActor mindrobot context ctxRobot{
 	Goto waitCmd
 	
 	State handleModelChanged {
+		["obstacle=false"]
 		printCurrentMessage
 		onMsg ( local_modelChanged : modelChanged(robot,CMD) ){ 
 			forward basicrobot -m robotCmd : robotCmd( $payloadArg(1) )
+			
 		}	
 	}
 	
@@ -64,6 +67,7 @@ QActor mindrobot context ctxRobot{
 	State handleObstacle{		
 		forward basicrobot -m robotCmd : robotCmd( h )	//First do ...
 		forward resourcemodel -m modelUpdate : modelUpdate(robot,h) //... then update the model
+		
 	}
 	Goto waitCmd
 }

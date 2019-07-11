@@ -21,7 +21,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 					action { //it:State
 						foundObstacle = false 
 					}
-					 transition(edgeName="t03",targetState="doMoveForward",cond=whenDispatch("onestep"))
+					 transition(edgeName="t02",targetState="doMoveForward",cond=whenDispatch("onestep"))
 				}	 
 				state("doMoveForward") { //this:State
 					action { //it:State
@@ -34,8 +34,8 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						stateTimer = TimerActor("timer_doMoveForward", 
 							scope, context!!, "local_tout_onecellforward_doMoveForward", StepTime )
 					}
-					 transition(edgeName="t04",targetState="endDoMoveForward",cond=whenTimeout("local_tout_onecellforward_doMoveForward"))   
-					transition(edgeName="t05",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
+					 transition(edgeName="t03",targetState="endDoMoveForward",cond=whenTimeout("local_tout_onecellforward_doMoveForward"))   
+					transition(edgeName="t04",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
 				}	 
 				state("endDoMoveForward") { //this:State
 					action { //it:State
