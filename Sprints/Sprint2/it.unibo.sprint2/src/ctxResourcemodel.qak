@@ -30,6 +30,7 @@ QActor resourcemodel context ctxResourceModel {
 	Transition t0 whenMsg modelChange -> changeModel
 	              whenMsg modelUpdate -> updateModel
 		
+		
 	State updateModel  {
 		onMsg(  modelUpdate:  modelUpdate( TARGET, VALUE ) ) { 
 			["

@@ -62,6 +62,7 @@ QActor mindrobot context ctxRobot{
 		}	
 	}
 	
+	
 	Goto handleObstacle if "obstacle" else waitCmd 
 	
 	State handleObstacle{		
