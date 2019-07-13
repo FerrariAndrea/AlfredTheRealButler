@@ -1,16 +1,16 @@
 /*
 ================================================================================
-build_ctxprint2.gradle
+build_buttactx.gradle
 GENERATED ONLY ONCE
 USAGE:	 
 	gradle build eclipse		//to set the dependency on the library
-	gradle   -b build_ctxprint2.gradle distZip //for executable jar and distribution
+	gradle   -b build_buttactx.gradle distZip //for executable jar and distribution
 	
-	gradle   -b build_ctxprint2.gradle qawrapper
-	gradlew  -b build_ctxprint2.gradle eclipse		//to set the dependency on the library
-	gradlew  -b build_ctxprint2.gradle build
-	gradlew  -b build_ctxprint2.gradle -q tasks --all
-	gradlew  -b build_ctxprint2.gradle cleanDistDir	//to clean the src directory
+	gradle   -b build_buttactx.gradle qawrapper
+	gradlew  -b build_buttactx.gradle eclipse		//to set the dependency on the library
+	gradlew  -b build_buttactx.gradle build
+	gradlew  -b build_buttactx.gradle -q tasks --all
+	gradlew  -b build_buttactx.gradle cleanDistDir	//to clean the src directory
 ================================================================================
 */
 plugins {

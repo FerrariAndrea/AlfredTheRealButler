@@ -1,16 +1,16 @@
 /*
 ================================================================================
-build_ctxprint2.gradle
+build_ctxDummy.gradle
 GENERATED ONLY ONCE
 USAGE:	 
 	gradle build eclipse		//to set the dependency on the library
-	gradle   -b build_ctxprint2.gradle distZip //for executable jar and distribution
+	gradle   -b build_ctxDummy.gradle distZip //for executable jar and distribution
 	
-	gradle   -b build_ctxprint2.gradle qawrapper
-	gradlew  -b build_ctxprint2.gradle eclipse		//to set the dependency on the library
-	gradlew  -b build_ctxprint2.gradle build
-	gradlew  -b build_ctxprint2.gradle -q tasks --all
-	gradlew  -b build_ctxprint2.gradle cleanDistDir	//to clean the src directory
+	gradle   -b build_ctxDummy.gradle qawrapper
+	gradlew  -b build_ctxDummy.gradle eclipse		//to set the dependency on the library
+	gradlew  -b build_ctxDummy.gradle build
+	gradlew  -b build_ctxDummy.gradle -q tasks --all
+	gradlew  -b build_ctxDummy.gradle cleanDistDir	//to clean the src directory
 ================================================================================
 */
 plugins {
@@ -71,10 +71,10 @@ dependencies {
 	// https://mvnrepository.com/artifact/org.pushingpixels/trident
 	compile group: 'org.pushingpixels', name: 'trident', version: '1.3'
 	//ROBOT nano (SAM)
-    compile name: 'labbaseRobotSam'
+    //compile name: 'labbaseRobotSam'
 	//compile mame: 'pi4j-core' //2-12 SNAPSHOT non in gradle
  	//PLANNER
-    compile name: 'it.unibo.planner'
+    //compile name: 'it.unibo.planner'
  	// https://mvnrepository.com/artifact/com.googlecode.aima-java/aima-core
 	compile group: 'com.googlecode.aima-java', name: 'aima-core', version: '3.0.0'
 }
