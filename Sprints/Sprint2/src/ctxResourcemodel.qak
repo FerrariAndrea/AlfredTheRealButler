@@ -13,7 +13,6 @@ Context ctxResourceModel ip[host="localhost" port=8036] -mqtt
 
 ExternalQActor mindrobot context ctxDummy
 
-
 QActor resourcemodel context ctxResourceModel {
 	["var dobackstep = false"]
 	State s0 initial {
