@@ -6,8 +6,9 @@ Dispatch local_modelChanged   : modelChanged( TARGET, VALUE )
 Dispatch modelChange  : modelChange( TARGET, VALUE )  //force a resource-model change
 Dispatch modelUpdate  : modelUpdate( TARGET, VALUE )  //sent by the mind
  
-Dispatch kbModelUpdate  : kbModelUpdate( TARGET, VALUE )  //force a resource-model change
+//Dispatch kbModelUpdate  : kbModelUpdate( TARGET, VALUE )  //force a resource-model change
  
+
 Context ctxDummy ip[host="dummyhost" port=9999] -mqtt //as ctxRobot
 Context ctxResourceModel ip[host="localhost" port=8036] -mqtt
 
@@ -21,15 +22,16 @@ QActor resourcemodel context ctxResourceModel {
 		solve( showResourceModel ) 		
 		run itunibo.coap.modelResourceCoap.create( myself, "resourcemodel" ) //CoAP access
 		
-		println("Start resourcemodel")	
+	
 	}
 	Goto waitModelChange
-	
+
+
 	State waitModelChange{ }
 	Transition t0 whenMsg modelChange -> changeModel
-	              whenMsg modelUpdate -> updateModel
+	            //  whenMsg modelUpdate -> updateModel
 		
-		
+	/*
 	State updateModel  {
 		onMsg(  modelUpdate:  modelUpdate( TARGET, VALUE ) ) { 
 			["
@@ -47,13 +49,14 @@ QActor resourcemodel context ctxResourceModel {
 		}
 	}	
 	Goto  waitModelChange
-	
+	*/
 	State changeModel {
 		printCurrentMessage 
 		//ROBOT MOVE
 		onMsg( modelChange : modelChange( robot,V ) ) { // V= w | ...
 			run itunibo.robot.resourceModelSupport.updateRobotModel( myself, payloadArg(1) )
 			forward mindrobot -m local_modelChanged : modelChanged(  robot,  $payloadArg(1))  //for the robotmind
+			forward kb -m modelUpdate : modelUpdate(  robot,  $payloadArg(1))  //for kb
 		} 
 		//SONAR DATA  
 		onMsg( modelChange : modelChange( sonarRobot,V ) ) { // V= w | ...
@@ -65,18 +68,23 @@ QActor resourcemodel context ctxResourceModel {
 
 
 QActor kb context ctxResourceModel{
-		State s0 initial {
+	
+	State s0 initial {
 		println("Start kb")		
 	}
-	Transition t0  whenMsg   kbModelUpdate  -> handleUpdate
+	Transition t0  whenMsg   modelUpdate  -> handleUpdate
 	
 	State handleUpdate  {
-		onMsg(  kbModelUpdate:  kbModelUpdate( TARGET, VALUE ) ) { 
+		onMsg(  modelUpdate:  modelUpdate( TARGET, VALUE ) ) { 
 		
 			["
 				var Target=payloadArg(0)
 				var Value=payloadArg(1)
+				
 			"]
+			println("----------->KB[$Target][$Value]")
+		
 		}		
-	}
+	}Transition t0  whenMsg   modelUpdate  -> handleUpdate
+	
 }

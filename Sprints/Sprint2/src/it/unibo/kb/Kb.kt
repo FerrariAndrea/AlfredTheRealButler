@@ -20,17 +20,20 @@ class Kb ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope){
 					action { //it:State
 						println("Start kb")
 					}
-					 transition(edgeName="t02",targetState="handleUpdate",cond=whenDispatch("kbModelUpdate"))
+					 transition(edgeName="t01",targetState="handleUpdate",cond=whenDispatch("modelUpdate"))
 				}	 
 				state("handleUpdate") { //this:State
 					action { //it:State
-						if( checkMsgContent( Term.createTerm("kbModelUpdate(TARGET,VALUE)"), Term.createTerm("kbModelUpdate(TARGET,VALUE)"), 
+						if( checkMsgContent( Term.createTerm("modelUpdate(TARGET,VALUE)"), Term.createTerm("modelUpdate(TARGET,VALUE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								
 												var Target=payloadArg(0)
 												var Value=payloadArg(1)
+												
+								println("----------->KB[$Target][$Value]")
 						}
 					}
+					 transition(edgeName="t02",targetState="handleUpdate",cond=whenDispatch("modelUpdate"))
 				}	 
 			}
 		}

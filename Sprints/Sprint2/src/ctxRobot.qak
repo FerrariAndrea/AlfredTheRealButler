@@ -6,7 +6,6 @@ Event  sonarRobot     : sonar( DISTANCE )	     //from  sonar on robot
 Event  sonar          : sonar(SONAR, DISTANCE)	 //from sonar in the robot environment          
 Event  polar          : p( Distance, Angle ) 
 
-
 Dispatch local_modelChanged   : modelChanged( TARGET, VALUE )
 Dispatch robotCmd     : robotCmd( CMD )				  //sent by the mind to the basicrobot
 

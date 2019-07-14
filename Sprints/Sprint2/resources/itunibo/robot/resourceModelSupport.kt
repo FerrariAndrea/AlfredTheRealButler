@@ -20,7 +20,7 @@ lateinit var resourcecoap : modelResourceCoap
  				actor.emit( "modelChanged" , "modelChanged(  robot,  $content)" )  //for the robotmind
 				actor.emit( "modelContent" , "content( robot( $RobotState ) )" )
 				resourcecoap.updateState( "robot( $RobotState )" )
-  			}	
+  			}
 	}	
 	fun updateSonarRobotModel( actor: ActorBasic, content: String ){
  			actor.solve( "action( sonarRobot,  $content )" ) //change the robot state model

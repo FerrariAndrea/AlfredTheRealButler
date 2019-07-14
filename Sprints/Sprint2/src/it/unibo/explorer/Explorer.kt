@@ -35,8 +35,9 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						itunibo.planner.plannerUtil.initAI(  )
 						println("Actor: Explorer; State: handleStepFail; Payload: INITIAL MAP")
 						itunibo.planner.plannerUtil.showMap(  )
+						println("Waiting for testCmd...")
 					}
-					 transition( edgeName="goto",targetState="goToTheFridge", cond=doswitch() )
+					 transition(edgeName="t00",targetState="goToTheFridge",cond=whenDispatch("testCmd"))
 				}	 
 				state("goToTheFridge") { //this:State
 					action { //it:State
@@ -66,6 +67,12 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				state("goalOk") { //this:State
 					action { //it:State
 						println("Actor: Explorer; State: goalOk; Payload: ON THE TARGET CELL !!!")
+						println("Waiting for testCmd...")
+					}
+					 transition(edgeName="t01",targetState="testPass_1",cond=whenDispatch("testCmd"))
+				}	 
+				state("testPass_1") { //this:State
+					action { //it:State
 					}
 					 transition( edgeName="goto",targetState="atHome", cond=doswitchGuarded({goingHome}) )
 					transition( edgeName="goto",targetState="backToHome", cond=doswitchGuarded({! goingHome}) )
@@ -91,8 +98,8 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						itunibo.planner.plannerUtil.startTimer(  )
 						forward("onestep", "onestep($StepTime)" ,"onecellforward" ) 
 					}
-					 transition(edgeName="t00",targetState="handleStepOk",cond=whenDispatch("stepOk"))
-					transition(edgeName="t01",targetState="handleStepFail",cond=whenDispatch("stepFail"))
+					 transition(edgeName="t02",targetState="handleStepOk",cond=whenDispatch("stepOk"))
+					transition(edgeName="t03",targetState="handleStepFail",cond=whenDispatch("stepFail"))
 				}	 
 				state("handleStepOk") { //this:State
 					action { //it:State
@@ -119,6 +126,12 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						itunibo.planner.plannerUtil.showMap(  )
 						println("Actor: Explorer; State: handleStepFail; Payload: Replan and return at home.")
 						delay(500) 
+						println("Waiting for testCmd...")
+					}
+					 transition(edgeName="t04",targetState="testPass_2",cond=whenDispatch("testCmd"))
+				}	 
+				state("testPass_2") { //this:State
+					action { //it:State
 					}
 					 transition( edgeName="goto",targetState="backToHome", cond=doswitch() )
 				}	 

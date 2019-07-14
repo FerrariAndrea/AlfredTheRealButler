@@ -23,7 +23,6 @@ class Resourcemodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 						solve("consult('resourceModel.pl')","") //set resVar	
 						solve("showResourceModel","") //set resVar	
 						itunibo.coap.modelResourceCoap.create(myself ,"resourcemodel" )
-						println("Start resourcemodel")
 					}
 					 transition( edgeName="goto",targetState="waitModelChange", cond=doswitch() )
 				}	 
@@ -31,28 +30,6 @@ class Resourcemodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 					action { //it:State
 					}
 					 transition(edgeName="t00",targetState="changeModel",cond=whenDispatch("modelChange"))
-					transition(edgeName="t01",targetState="updateModel",cond=whenDispatch("modelUpdate"))
-				}	 
-				state("updateModel") { //this:State
-					action { //it:State
-						if( checkMsgContent( Term.createTerm("modelUpdate(TARGET,VALUE)"), Term.createTerm("modelUpdate(TARGET,VALUE)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								
-												var Target=payloadArg(0)
-												var Value=payloadArg(1)
-								println("Resource Model -> Invio aggiornamento a KB: $Target , $Value")
-								forward("kbModelUpdate", "kbModelUpdate($Target,$Value)" ,"kb" ) 
-						}
-						if( checkMsgContent( Term.createTerm("modelUpdate(TARGET,VALUE)"), Term.createTerm("modelUpdate(robot,V)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								itunibo.robot.resourceModelSupport.updateRobotModel(myself ,payloadArg(1) )
-						}
-						if( checkMsgContent( Term.createTerm("modelUpdate(TARGET,VALUE)"), Term.createTerm("modelUpdate(sonarRobot,V)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								itunibo.robot.resourceModelSupport.updateSonarRobotModel(myself ,payloadArg(1) )
-						}
-					}
-					 transition( edgeName="goto",targetState="waitModelChange", cond=doswitch() )
 				}	 
 				state("changeModel") { //this:State
 					action { //it:State
@@ -61,6 +38,7 @@ class Resourcemodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								itunibo.robot.resourceModelSupport.updateRobotModel(myself ,payloadArg(1) )
 								forward("local_modelChanged", "modelChanged(robot,${payloadArg(1)})" ,"mindrobot" ) 
+								forward("modelUpdate", "modelUpdate(robot,${payloadArg(1)})" ,"kb" ) 
 						}
 						if( checkMsgContent( Term.createTerm("modelChange(TARGET,VALUE)"), Term.createTerm("modelChange(sonarRobot,V)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList

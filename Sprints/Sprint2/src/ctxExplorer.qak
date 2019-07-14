@@ -6,6 +6,8 @@ Dispatch onestep       : onestep(DURATION)
 Dispatch stepOk        : stepOk(V)		//TODO eliminate  V
 Dispatch stepFail      : stepFail(R,T) //R=ok | obstacle, T = time
 
+Dispatch testCmd  : testCmd( cmd )  //sent by kotlinTest
+ 
 Event  sonarRobot     : sonar( DISTANCE )	     //from  sonar on robot 
 
 Context ctxExplorer ip[host="localhost" port=8039] -mqtt
@@ -38,8 +40,10 @@ QActor explorer context ctxExplorer{
 		run itunibo.planner.plannerUtil.initAI()
 		println("Actor: Explorer; State: handleStepFail; Payload: INITIAL MAP")
  		run itunibo.planner.plannerUtil.showMap()
+ 		println("Waiting for testCmd...")
  	}
-	Goto  goToTheFridge
+	//Goto  goToTheFridge
+	Transition t0  whenMsg   testCmd  -> goToTheFridge
 	
 	/*
 	 * 1)Go to the Fridge
@@ -73,7 +77,13 @@ QActor explorer context ctxExplorer{
  	
  	State goalOk{		  
  		println("Actor: Explorer; State: goalOk; Payload: ON THE TARGET CELL !!!")
+ 		println("Waiting for testCmd...")
  	} 	
+ 	Transition t0  whenMsg   testCmd  -> testPass_1
+ 	
+ 	State testPass_1{		  
+ 		//aggiunto per fermare il robot e dare il tempo al test kotlin di capire la sua posizione
+ 	}	
  	Goto atHome if "goingHome" else backToHome
  	
  	//Execute the move if it is a rotation or halt
@@ -124,8 +134,14 @@ QActor explorer context ctxExplorer{
 		run itunibo.planner.plannerUtil.showMap()	
 		println("Actor: Explorer; State: handleStepFail; Payload: Replan and return at home.")
 		delay 500
-	}Goto backToHome
-	
+		println("Waiting for testCmd...")
+	}
+	Transition t0  whenMsg   testCmd  -> testPass_2
+	//Goto backToHome
+	State testPass_2{		  
+ 		//aggiunto per fermare il robot e dare il tempo al test kotlin di capire la sua posizione
+ 	}	
+ 	Goto backToHome
 /*
  * Exploration step done: go back to home
  * If we use the planner - setGoal(0,0) - then the robot could 
