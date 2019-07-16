@@ -30,16 +30,8 @@ class Sonarhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 				}	 
 				state("handleSonar") { //this:State
 					action { //it:State
-						println("$name in ${currentState.stateName} | $currentMsg")
-						if( checkMsgContent( Term.createTerm("sonar(SONAR,DISTANCE)"), Term.createTerm("sonar(SONAR,DISTANCE)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								 val D = Integer.parseInt( payloadArg(1) ) * 5
-								emit("polar", "p($D,90)" ) 
-						}
 						if( checkMsgContent( Term.createTerm("sonar(DISTANCE)"), Term.createTerm("sonar(DISTANCE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								 val D = Integer.parseInt( payloadArg(0) ) * 5
-								emit("polar", "p($D,180)" ) 
 								forward("modelChange", "modelChange(sonarRobot,${payloadArg(0)})" ,"resourcemodel" ) 
 						}
 					}

@@ -20,13 +20,18 @@ object sonarHCSR04Support {
 	
 	fun startRead( actor: ActorBasic  ){
 		GlobalScope.launch{
+			var old_data = 0
 			while( true ){
 				var data = reader.readLine()
-				println("sonarHCSR04Support data = $data"   )
-				if( data != null ){
+				//println("sonarHCSR04Support data = $data"   )
+				if( data != null ){					
 	 				val m1 = "sonar( $data )"
+					if(Math.abs(old_data-data.toInt())>6){
+							actor.emit("sonarRobot",m1 )
+							old_data=data.toInt()
+					}
 					//println("sonarHCSR04Support m1 = $m1"   )
-					actor.emit("sonarRobot",m1 )
+				
 				}
 				delay( 250 )
 			}

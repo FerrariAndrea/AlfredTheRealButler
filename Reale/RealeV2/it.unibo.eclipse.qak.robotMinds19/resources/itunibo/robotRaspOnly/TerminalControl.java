@@ -29,8 +29,8 @@ public class TerminalControl {
 		IBaseRobotSpeed speedMedium   = new BaseRobotSpeed(BaseRobotSpeedValue.ROBOT_SPEED_MEDIUM);
 		IBaseRobotCommand forward     = new BaseRobotForward(speedHigh);
 		IBaseRobotCommand backward    = new BaseRobotBackward(speedHigh);
-		IBaseRobotCommand left        = new BaseRobotLeft(speedMedium);
-		IBaseRobotCommand right       = new BaseRobotRight(speedMedium);
+		IBaseRobotCommand left        = new BaseRobotLeft(speedHigh);
+		IBaseRobotCommand right       = new BaseRobotRight(speedHigh);
 		IBaseRobotCommand stop        = new BaseRobotStop( speedLow );
 		IBaseRobotCommand last        = stop;
 

@@ -98,6 +98,7 @@ QActor basicrobot context ctxRobot{
 }
 
 QActor sonarhandler context ctxRobot {
+
 	State s0 initial {
 		println("Start Sonarhandler")		
 	}
@@ -108,16 +109,18 @@ QActor sonarhandler context ctxRobot {
    	              whenEvent sonarRobot ->  handleSonar
    	               
  	State handleSonar {                      
- 		printCurrentMessage                                        
- 		onMsg ( sonar  : sonar( SONAR, DISTANCE ) ){    			
-		[" val D = Integer.parseInt( payloadArg(1) ) * 5"] //AMPLIFY
-			emit polar : p( $D, 90  )  
- 		}
+ 	//	printCurrentMessage                                        
+ 	//	onMsg ( sonar  : sonar( SONAR, DISTANCE ) ){    			
+	//	[" val D = Integer.parseInt( payloadArg(1) ) * 5"] //AMPLIFY
+	//		emit polar : p( $D, 90  )  
+ 	//	}
  		onMsg ( sonarRobot : sonar( DISTANCE ) ){     
-		[" val D = Integer.parseInt( payloadArg(0) ) * 5"] //AMPLIFY
-			emit polar : p( $D, 180  ) 
-			forward resourcemodel -m modelChange : modelChange(sonarRobot,$payloadArg(0))
- 		}
+	//	[" val D = Integer.parseInt( payloadArg(0) ) * 5"] //AMPLIFY
+	//		emit polar : p( $D, 180  ) 
+	
+					forward resourcemodel -m modelChange : modelChange(sonarRobot,$payloadArg(0))
+ 			
+		}
  	} 
  	Goto waitForEvents
 }
