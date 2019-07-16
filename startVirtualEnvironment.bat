@@ -1,5 +1,4 @@
-cd ..
-cd ..
+cd Sprints
 cd it.unibo.robots19
 cd node
 cd WEnv
