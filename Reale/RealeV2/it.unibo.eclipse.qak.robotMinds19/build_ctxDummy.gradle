@@ -1,22 +1,22 @@
 /*
 ================================================================================
-build_ctxRobotMind.gradle
+build_ctxDummy.gradle
 GENERATED ONLY ONCE
 USAGE:	 
 	gradle build eclipse		//to set the dependency on the library
-	gradle   -b build_ctxRobotMind.gradle distZip //for executable jar and distribution
+	gradle   -b build_ctxDummy.gradle distZip //for executable jar and distribution
 	
-	gradle   -b build_ctxRobotMind.gradle qawrapper
-	gradlew  -b build_ctxRobotMind.gradle eclipse		//to set the dependency on the library
-	gradlew  -b build_ctxRobotMind.gradle build
-	gradlew  -b build_ctxRobotMind.gradle -q tasks --all
-	gradlew  -b build_ctxRobotMind.gradle cleanDistDir	//to clean the src directory
+	gradle   -b build_ctxDummy.gradle qawrapper
+	gradlew  -b build_ctxDummy.gradle eclipse		//to set the dependency on the library
+	gradlew  -b build_ctxDummy.gradle build
+	gradlew  -b build_ctxDummy.gradle -q tasks --all
+	gradlew  -b build_ctxDummy.gradle cleanDistDir	//to clean the src directory
 ================================================================================
 */
 plugins {
     id 'java'
     id 'eclipse'
-    id 'application'
+    //id 'application'
     id 'org.jetbrains.kotlin.jvm' version '1.3.21'
 }
 
@@ -26,6 +26,9 @@ sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
+    flatDir { //grazie Mattia Piretti
+       dirs '/C:/Didattica2018Work/iss2019Lab/libs'	//full path
+   }
 }
 
 dependencies {
@@ -53,23 +56,27 @@ dependencies {
 	//compile group: 'org.mongodb', name: 'mongo-java-driver', version: '3.8.2'
 
 //CUSTOM
-    compile fileTree(dir: 'C:/MyData/Magistrale/Ing.del.soft/GeneralLibs', include: 'uniboInterfaces.jar')
-    compile fileTree(dir: 'C:/MyData/Magistrale/Ing.del.soft/GeneralLibs', include: '2p301.jar')
-    compile fileTree(dir: 'C:/MyData/Magistrale/Ing.del.soft/GeneralLibs', include: 'it.unibo.qakactor-1.0.jar')
+    compile name: 'uniboInterfaces'
+    compile name: '2p301'
+    compile name: 'it.unibo.qakactor-1.0'
  
     //For p2p two-way connections (TCP, UDP, BTH, Serial ...)
-    compile fileTree(dir: 'C:/MyData/Magistrale/Ing.del.soft/GeneralLibs', include: 'unibonoawtsupports.jar')
+    compile name: 'unibonoawtsupports'
 
 	//BLS
-	compile fileTree(dir: 'C:/MyData/Magistrale/Ing.del.soft/GeneralLibs', include: 'it.unibo.bls19Local-1.0.jar')
+	compile name: 'it.unibo.bls19Local-1.0'
 	//RADAR
-	compile fileTree(dir: 'C:/MyData/Magistrale/Ing.del.soft/GeneralLibs', include: 'radarPojo.jar')
+	compile name: 'radarPojo'
 	//RADAR GUI
 	// https://mvnrepository.com/artifact/org.pushingpixels/trident
 	compile group: 'org.pushingpixels', name: 'trident', version: '1.3'
 	//ROBOT nano (SAM)
-    compile fileTree(dir: 'C:/MyData/Magistrale/Ing.del.soft/GeneralLibs',  include: 'labbaseRobotSam.jar')
-	compile fileTree(dir: 'C:/MyData/Magistrale/Ing.del.soft/GeneralLibs',  include: 'pi4j-core.jar') //2-12 SNAPSHOT non in gradle
+    //compile name: 'labbaseRobotSam'
+	//compile mame: 'pi4j-core' //2-12 SNAPSHOT non in gradle
+ 	//PLANNER
+    //compile name: 'it.unibo.planner'
+ 	// https://mvnrepository.com/artifact/com.googlecode.aima-java/aima-core
+	compile group: 'com.googlecode.aima-java', name: 'aima-core', version: '3.0.0'
 }
 
 compileKotlin {
@@ -81,10 +88,10 @@ compileTestKotlin {
 
 sourceSets {
     main.java.srcDirs += 'src'
-    main.java.srcDirs += 'resources'
+    //main.java.srcDirs += 'resources'
 }
-
-mainClassName = 'it.unibo.ctxRobot.MainCtxRobotKt'
+/*
+mainClassName = 'it.unibo.TODOKt'
 
 jar {
     println("executing jar")
@@ -93,3 +100,4 @@ jar {
         attributes 'Main-Class': "$mainClassName"
     }
 }
+*/

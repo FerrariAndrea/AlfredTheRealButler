@@ -18,27 +18,23 @@ class Basicrobot ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
+						println("Start basicrobot")
 						solve("consult('basicRobotConfig.pl')","") //set resVar	
 						solve("robot(R,PORT)","") //set resVar	
-						if(currentSolution.isSuccess()) println("USING ROBOT : ${getCurSol("R")},  port= ${getCurSol("PORT")} ")
-						 		else{
-						 			 println("no robot")
-						 		}
-						if(currentSolution.isSuccess()) itunibo.robot.robotSupport.create(myself ,getCurSol("R").toString(), getCurSol("PORT").toString() )
-						itunibo.robot.robotSupport.move( "msg(a)"  )
-						delay(700) 
-						itunibo.robot.robotSupport.move( "msg(h)"  )
-						delay(150) 
-						itunibo.robot.robotSupport.move( "msg(d)"  )
-						delay(700) 
-						itunibo.robot.robotSupport.move( "msg(h)"  )
+						if(currentSolution.isSuccess()) { println("USING ROBOT : ${getCurSol("R")},  port= ${getCurSol("PORT")} ")
+						 }
+						else
+						{ println("no robot")
+						 }
+						if(currentSolution.isSuccess()) { itunibo.robot.robotSupport.create(myself ,getCurSol("R").toString(), getCurSol("PORT").toString() )
+						 }
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
 				state("waitCmd") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t07",targetState="handleRobotCmd",cond=whenDispatch("robotCmd"))
+					 transition(edgeName="t03",targetState="handleRobotCmd",cond=whenDispatch("robotCmd"))
 				}	 
 				state("handleRobotCmd") { //this:State
 					action { //it:State

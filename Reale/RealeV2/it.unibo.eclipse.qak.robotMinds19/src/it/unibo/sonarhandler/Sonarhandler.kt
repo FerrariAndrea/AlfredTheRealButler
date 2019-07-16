@@ -11,22 +11,22 @@ import kotlinx.coroutines.runBlocking
 class Sonarhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope){
  	
 	override fun getInitialState() : String{
-		return "init"
+		return "s0"
 	}
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		return { //this:ActionBasciFsm
-				state("init") { //this:State
+				state("s0") { //this:State
 					action { //it:State
-						println("sonarhandler STARTS ... ")
+						println("Start Sonarhandler")
 					}
 					 transition( edgeName="goto",targetState="waitForEvents", cond=doswitch() )
 				}	 
 				state("waitForEvents") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t05",targetState="handleSonar",cond=whenEvent("sonar"))
-					transition(edgeName="t06",targetState="handleSonar",cond=whenEvent("sonarRobot"))
+					 transition(edgeName="t04",targetState="handleSonar",cond=whenEvent("sonar"))
+					transition(edgeName="t05",targetState="handleSonar",cond=whenEvent("sonarRobot"))
 				}	 
 				state("handleSonar") { //this:State
 					action { //it:State
