@@ -15,7 +15,6 @@ Context ctxDummy ip[host="dummyhost" port=9999] -mqtt //as resourceModel
 
 ExternalQActor resourcemodel context ctxDummy
 
-
 /*
  *  The goal is to move the robot to the fridge and let it come back 
  *  Fridge Position is given *a priori*
