@@ -44,10 +44,37 @@ namespace RobotPinger
 
         private void timer1_Tick(object sender, EventArgs e)
         {
-            Check(textBox1.Text.ToLower().Replace(':', '-'), ref _labelRobot);
-            Check(textBox2.Text.ToLower().Replace(':', '-'), ref _labelPC);
+            // Check(textBox1.Text.ToLower().Replace(':', '-'), ref _labelRobot);
+            // Check(textBox2.Text.ToLower().Replace(':', '-'), ref _labelPC);
+            DoOnlyPing(textBox1.Text, ref _labelRobot);
+            DoOnlyPing(textBox2.Text, ref _labelPC);
+
         }
-   
+
+        public void DoOnlyPing(string Name, ref Label l) {
+            Ping pinger = new Ping();
+            try
+            {
+                if (pinger.Send(Name).Status == IPStatus.Success)
+                {
+                    l.Text = "Online";
+                    l.ForeColor = Color.DarkGreen;
+
+                }
+                else
+                {
+                    l.Text = "Offline";
+                    l.ForeColor = Color.Orange;
+                }
+            }
+            catch (Exception e)
+            {
+                l.Text = "Errore: " + e.Message;
+                l.ForeColor = Color.DarkRed;
+            }
+
+        }
+
         public void Check(string Name,ref Label l)
         {
       
@@ -55,10 +82,21 @@ namespace RobotPinger
             {
 
                 string ris = ArpHelper.FindIpAddressByMacAddress(Name);
+                Ping pinger = new Ping();
                 if (ris != null)
                 {
-                    l.Text = "On--> " + ris;
-                    l.ForeColor = Color.DarkGreen;
+                  if( pinger.Send(ris).Status == IPStatus.Success)
+                    {
+                        l.Text = "On--> " + ris;
+                        l.ForeColor = Color.DarkGreen;
+
+                    }
+                    else
+                    {
+                        l.Text = "Offline";
+                        l.ForeColor = Color.Orange;
+                    }
+                 
                 }
                 else
                 {
