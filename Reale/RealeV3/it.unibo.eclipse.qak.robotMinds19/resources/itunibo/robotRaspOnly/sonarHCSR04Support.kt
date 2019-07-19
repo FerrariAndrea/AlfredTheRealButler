@@ -26,7 +26,7 @@ object sonarHCSR04Support {
 				//println("sonarHCSR04Support data = $data"   )
 				if( data != null ){					
 	 				val m1 = "sonar( $data )"
-					if(Math.abs(old_data-data.toInt())>6){
+					if(Math.abs(old_data-data.toInt())>3){
 							actor.emit("sonarRobot",m1 )
 							old_data=data.toInt()
 					}

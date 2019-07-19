@@ -28,6 +28,7 @@ QActor mindrobot context ctxRobot{
 	["
 	var obstacle = false
 	val minDifferenceForBelance = 2
+	var myagain = false
 	"]
 	
 	State s0 initial {
@@ -53,31 +54,34 @@ QActor mindrobot context ctxRobot{
 	Goto requestBelancer
 	
 	State requestBelancer{
+		println("requestBelancer")
 		run itunibo.robotRaspOnly.sonarBelancerOnlySupport.requestValue()
 	}
 	Transition t0 whenEvent sonarBelancer ->  riadrizza
 	
 	State riadrizza{
-		["var again = false"]
+		
+		["myagain = false"]
 		onMsg ( sonarBelancer : sonar( DIFFERENCE ) ){
 			["
 				var diff = Integer.parseInt( payloadArg(0) )								
 			"]
+			println("riadrizza--> $diff")
 			if "diff>2" {
-				["again = true"]
+				["myagain = true"]
 				forward basicrobot -m robotCmd : robotCmd( a )			
 				delay 50
 				forward basicrobot -m robotCmd : robotCmd( h )
 			}
 			if "diff<-minDifferenceForBelance" {
-				["again = true"]
+				["myagain = true"]
 				forward basicrobot -m robotCmd : robotCmd( d )	
 				delay 50
 				forward basicrobot -m robotCmd : robotCmd( h )
 			}
  		}//onMsg
 	}
-	Goto waitCmd if "again==false" else requestBelancer
+	Goto waitCmd if "myagain" else requestBelancer
 	
 	State handleSonarRobot {
 		printCurrentMessage
@@ -94,8 +98,6 @@ QActor mindrobot context ctxRobot{
 			forward basicrobot -m robotCmd : robotCmd( $payloadArg(1) )			
 		}	
 	}
-	
-	
 	Goto handleObstacle if "obstacle" else waitCmd 
 	
 	State handleObstacle{		

@@ -7,6 +7,10 @@ Dispatch stepOk        : stepOk(V)		//TODO eliminate  V
 Dispatch stepFail      : stepFail(R,T) //R=ok | obstacle, T = time
 Event  sonarRobot     : sonar( DISTANCE )	     //from  sonar on robot 
 
+Dispatch setTimer        : setTimer(DURATION)		//TODO eliminate  V
+Dispatch resetTimer      : resetTimer(V) //TODO eliminate  V
+Dispatch tickTimer        : tickTimer(V) //TODO eliminate  V
+
 Context ctxController ip[host="localhost"port=8083] -mqtt
 Context ctxDummy ip[host="dummyhost" port=8084] -mqtt //as ctxRobot
 //ATTENZIONE:
@@ -19,44 +23,53 @@ QActor controller context ctxController {
 ["
 	
 	var Tback      = 0L
-	var StepTime   = 350L	//for real
+	var StepTime   = 700L	//for real
 	var RotateTime = 300L	//for real
 	var PauseTime  = 250L 
 "]	
 	State s0 initial {
-		/* 
+		/*/
 		forward mindrobot -m local_modelChanged : modelChanged(  robot, w)
-		delay 1000
+		delay 250
+		forward mindrobot -m local_modelChanged : modelChanged(  robot, h)
+		delay 2000
+		forward mindrobot -m local_modelChanged : modelChanged(  robot, s)
+		delay 250
 		forward mindrobot -m local_modelChanged : modelChanged(  robot, h)
 		*/
+		println("Start one step")
 		delay 1000
 	}
 	Goto oneStep
 	
 	State next{
-		
+		println("next")
 	}
+	
 	State oneStep{
+			
 			forward onecellforward -m onestep : onestep($StepTime)	
 	}
 	Transition t0 	whenMsg stepOk   -> handleStepOk   
 					whenMsg stepFail -> handleStepFail 
 
 	State handleStepOk{	
+		println("OK step :)")
 		delayVar PauseTime	
 	}
 	Goto next
 	
 	State handleStepFail{ 
+			
 		println("Fail step :(")
 			onMsg( stepFail:stepFail(R,D) ) {
 				["Tback=payloadArg(1).toString().toLong()  
 				 if( Tback > StepTime * 2 / 3 ) Tback = 0 else Tback=Tback/2
 				"]
 					if "Tback > 0 "{
-				 		forward mindrobot -m local_modelChanged : local_modelChanged(robot,s)  
+				 		forward mindrobot -m local_modelChanged : modelChanged(robot,s)  
 				 		delayVar Tback 
-				  		forward mindrobot -m local_modelChanged : local_modelChanged(robot,h) 
+				  		forward mindrobot -m local_modelChanged : modelChanged(robot,h) 
 					}
 			}
 			
@@ -67,10 +80,33 @@ QActor controller context ctxController {
 }
 
 
+QActor timer context ctxController {
+	["var ActualTimer = 0L "]
+	State s0 initial {	   
+		["ActualTimer = 0L "]
+	}Transition t0 whenMsg setTimer -> start
+	
+	State start{
+		onMsg( setTimer : setTimer( DURATION ) ) {
+			["ActualTimer = payloadArg(0).toLong()"]
+		}
+	}Transition t0 whenTimeVar  ActualTimer -> drinnn	
+					whenEvent resetTimer  -> s0
+					
+	State drinnn{
+		forward onecellforward -m tickTimer : tickTimer(ok) 
+	}
+	Goto s0
+	
+}
+
 
 //Application move step
 QActor onecellforward context ctxController {
-	["var foundObstacle = false; var StepTime = 0L"]  
+	["
+		var foundObstacle = false
+		var StepTime = 0L
+	"]  
 	State s0 initial {	   
 		["foundObstacle = false "]
 	} 
@@ -81,13 +117,18 @@ QActor onecellforward context ctxController {
 		onMsg( onestep : onestep( TIME ) ) {
 			["StepTime = payloadArg(0).toLong()"]
 			forward mindrobot -m local_modelChanged : modelChanged(  robot, w)
+			forward timer -m setTimer : setTimer( $StepTime )			
+			run itunibo.planner.plannerUtil.startTimer()
 		}
 	} 
-	Transition t0 whenTimeVar  StepTime -> endDoMoveForward		
- 		          whenEvent sonarRobot  -> handleSonarRobot
+	Transition t0
+		whenEvent tickTimer  -> endDoMoveForward	
+		whenEvent sonarRobot  -> handleSonarRobot	
+		
+ 		          
 		  
 	State endDoMoveForward{
-		forward mindrobot -m local_modelChanged : modelChanged(robot,h)
+		forward mindrobot -m local_modelChanged : modelChanged(robot,h) 				
 		forward controller -m stepOk : stepOk(ok)  //answer
 	}
 	Goto s0
@@ -95,18 +136,26 @@ QActor onecellforward context ctxController {
 	//Substitute with an ad-hoc actor for a real robot
 	State handleSonarRobot{  //before than the step time
 		printCurrentMessage
+		run itunibo.planner.moveUtils.setDuration(myself)
  		onMsg ( sonarRobot : sonar( DISTANCE ) ){     
 			["val distance = Integer.parseInt( payloadArg(0) ) 
               foundObstacle = (distance<20) "]  
+              println("SONAR-->$distance")
    		}
-	}
-	
-	Goto stepFail if "foundObstacle" else s0
+	}	
+	Goto stepFail if "foundObstacle" else mustGoOn
 	
 	State stepFail{
+		forward timer -m resetTimer : resetTimer( reset )						
+		forward mindrobot -m local_modelChanged : modelChanged(robot,h)						
 		println("Actor: OneStepForward; State:stepfail ")
 		solve( wduration( TIME ) )
 		forward controller -m stepFail : stepFail(obstacle,#TIME)  	
 	}
 	Goto s0
+	
+	State mustGoOn{
+	}
+	Transition t0 whenEvent tickTimer  -> endDoMoveForward	
+					whenEvent sonarRobot  -> handleSonarRobot	
 }

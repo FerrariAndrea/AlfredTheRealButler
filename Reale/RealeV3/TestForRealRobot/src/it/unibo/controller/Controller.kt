@@ -18,18 +18,20 @@ class Controller ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 		
 			
 			var Tback      = 0L
-			var StepTime   = 350L	//for real
+			var StepTime   = 700L	//for real
 			var RotateTime = 300L	//for real
 			var PauseTime  = 250L 
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
+						println("Start one step")
 						delay(1000) 
 					}
 					 transition( edgeName="goto",targetState="oneStep", cond=doswitch() )
 				}	 
 				state("next") { //this:State
 					action { //it:State
+						println("next")
 					}
 				}	 
 				state("oneStep") { //this:State
@@ -41,6 +43,7 @@ class Controller ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 				}	 
 				state("handleStepOk") { //this:State
 					action { //it:State
+						println("OK step :)")
 						delay(PauseTime)
 					}
 					 transition( edgeName="goto",targetState="next", cond=doswitch() )
@@ -52,9 +55,9 @@ class Controller ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								Tback=payloadArg(1).toString().toLong()  
 												 if( Tback > StepTime * 2 / 3 ) Tback = 0 else Tback=Tback/2
-								if(Tback > 0 ){ forward("local_modelChanged", "local_modelChanged(robot,s)" ,"mindrobot" ) 
+								if(Tback > 0 ){ forward("local_modelChanged", "modelChanged(robot,s)" ,"mindrobot" ) 
 								delay(Tback)
-								forward("local_modelChanged", "local_modelChanged(robot,h)" ,"mindrobot" ) 
+								forward("local_modelChanged", "modelChanged(robot,h)" ,"mindrobot" ) 
 								 }
 						}
 					}
