@@ -12,6 +12,7 @@ import it.unibo.iot.models.commands.baseRobot.IBaseRobotCommand
 import it.unibo.kactor.sysUtil
 import it.unibo.kactor.ActorBasic
 import itunibo.robotRaspOnly.sonarHCSR04Support
+ import itunibo.robotRaspOnly.otherSonarsSupport
  
 object nanoSupport {
 	
@@ -26,6 +27,8 @@ object nanoSupport {
 		println("nanoSupport CREATING $robot")
 		if(withSonar)
 			sonarHCSR04Support.create( actor, " ")
+		//QUI IL SUPPORTO DEGLI ALTRI SONAR (non tativo)
+		otherSonarsSupport.create(actor)
 	} 
 	
 	fun move( cmd : String ){
