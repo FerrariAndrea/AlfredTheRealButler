@@ -2,8 +2,9 @@ package itunibo.kb;
 
 import java.awt.Point;
 
-public class kb {
+public class RobotPosResolver {
 
+	/*
 	private static Point p= new Point(0,0);
 	private static int direction =0;
 	public static  int getPos_x() {
@@ -12,7 +13,8 @@ public class kb {
 	public static  int getPos_y() {
 		return p.y;
 	}
-	public static  String getDirection() {
+	*/
+	public static  String convertDirection( int direction) {
 		if(direction==0) {
 			return "sud";
 		}
@@ -27,7 +29,8 @@ public class kb {
 		}
 		return null;
 	}
-	public static void update(String msg) {
+	/*
+	public static void update(int actualDirection,String msg) {
 		if(msg=="a") {
 			direction=direction-1;
 			if(direction<0) {
@@ -69,4 +72,5 @@ public class kb {
 			}
 		}
 	}
+	*/
 }
