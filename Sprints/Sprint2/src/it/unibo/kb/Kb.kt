@@ -19,21 +19,43 @@ class Kb ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope){
 				state("s0") { //this:State
 					action { //it:State
 						println("Start kb")
+						solve("consult('robotPosResolver.pl')","") //set resVar	
 					}
-					 transition(edgeName="t01",targetState="handleUpdate",cond=whenDispatch("modelUpdate"))
+					 transition(edgeName="t01",targetState="handle",cond=whenDispatch("modelUpdate"))
+					transition(edgeName="t02",targetState="handle",cond=whenDispatch("modelRequest"))
 				}	 
-				state("handleUpdate") { //this:State
+				state("handle") { //this:State
 					action { //it:State
+						if( checkMsgContent( Term.createTerm("modelRequest(TARGET,PROP)"), Term.createTerm("modelRequest(TARGET,PROP)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								
+												var Target=payloadArg(0)
+												var Prop=payloadArg(1)
+												//var Sender=payloadArg(2)
+								if(Target=="robot" && Prop=="location"){ solve("actualRobotPos(X,Y,O)","") //set resVar	
+								if(currentSolution.isSuccess()) { 
+														var X = getCurSol("X").toString()
+														var Y = getCurSol("Y").toString()
+														var O = getCurSol("O").toString()
+								forward("modelResponse", "modelResponse($X,$Y,$O)" ,"controller" ) 
+								 }
+								else
+								{ forward("modelResponse", "modelResponse(error)" ,"controller" ) 
+								 }
+								 }
+						}
 						if( checkMsgContent( Term.createTerm("modelUpdate(TARGET,VALUE)"), Term.createTerm("modelUpdate(TARGET,VALUE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								
 												var Target=payloadArg(0)
 												var Value=payloadArg(1)
 												
-								println("----------->KB[$Target][$Value]")
+								if(Target=="robot"){ solve("updateRobotStateFromMove($Value)","") //set resVar	
+								 }
 						}
 					}
-					 transition(edgeName="t02",targetState="handleUpdate",cond=whenDispatch("modelUpdate"))
+					 transition(edgeName="t03",targetState="handle",cond=whenDispatch("modelUpdate"))
+					transition(edgeName="t04",targetState="handle",cond=whenDispatch("modelRequest"))
 				}	 
 			}
 		}

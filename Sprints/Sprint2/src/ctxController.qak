@@ -3,25 +3,71 @@ mqttBroker "localhost" : 1883
 
 Dispatch testCmd  : testCmd( cmd )  //i payload sono inutili ad ora
  
-Context ctxExplorerDummy ip[host="dummyhost" port=9999] -mqtt //as ctxExplorer
+  //Dispatch modelRequest : modelRequest( TARGET,PROP, SENDER)
+ Dispatch modelRequest : modelRequest( TARGET,PROP)
+ Dispatch modelResponse : modelResponse( X,Y,O )
+ 
+Context ctxExplorerDummy ip[host="dummyhost1" port=9999] -mqtt //as ctxExplorer
 Context ctxController ip[host="localhost" port=8039] -mqtt
 
 
+Context ctxResourceModelDummy ip[host="dummyhost2" port=8039] -mqtt
+
+ExternalQActor kb context ctxResourceModelDummy
 ExternalQActor explorer context ctxExplorerDummy
 
 
 QActor controller context ctxController{	
-	
-	State s0 initial {
-		
+	["
+		var iter =0
+	"]
+	State s0 initial {		
 		println("Send Start to explorer ")	
 		forward explorer -m  testCmd :  testCmd( Start ) 
-		delay 6500
-		println("Send Next to explorer ")	
-		forward explorer -m  testCmd :  testCmd( Next ) 
-		delay 6500
-		println("Send Next to explorer ")	
-		forward explorer -m  testCmd :  testCmd( Next ) 
-		
+		delay 6500		
+	
+		forward kb -m  modelRequest :  modelRequest( robot, location ) 
+		println("Waiting response ")	
 	}
+	Transition t0  whenMsg   modelResponse  -> handleResponse
+	
+	
+	
+	State next {
+		if "iter==1"{
+			println("Send Next to explorer (iter1) ")	
+			forward explorer -m  testCmd :  testCmd( Next ) 
+			delay 6500
+		}
+		if "iter==2"{
+			println("Send Next to explorer (iter2) ")	
+			forward explorer -m  testCmd :  testCmd( Next ) 
+			delay 6500
+		}	
+		forward kb -m  modelRequest :  modelRequest( robot, location ) 
+		println("Waiting response ")	
+	}
+	Transition t0  whenMsg   modelResponse  -> handleResponse
+	
+	State handleResponse {
+		
+			["
+				iter = iter+1
+			"] 
+		onMsg(   modelResponse:  modelResponse( X,Y,O ) ) { 
+			
+			["
+				var X=payloadArg(0)
+				var Y=payloadArg(1)
+				var O=payloadArg(2)
+			"] 
+			println("----->Actual robot Pos: $X $Y $O")	
+		}
+	}Goto next  if "(iter<=2)" else end
+	
+	State end{
+		
+			println("Sprint2 END :)")
+	}
+ 	
 }

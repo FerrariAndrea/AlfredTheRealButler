@@ -15,17 +15,53 @@ class Controller ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 	}
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
+		
+				var iter =0
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
 						println("Send Start to explorer ")
 						forward("testCmd", "testCmd(Start)" ,"explorer" ) 
 						delay(6500) 
-						println("Send Next to explorer ")
+						forward("modelRequest", "modelRequest(robot,location)" ,"kb" ) 
+						println("Waiting response ")
+					}
+					 transition(edgeName="t00",targetState="handleResponse",cond=whenDispatch("modelResponse"))
+				}	 
+				state("next") { //this:State
+					action { //it:State
+						if(iter==1){ println("Send Next to explorer (iter1) ")
 						forward("testCmd", "testCmd(Next)" ,"explorer" ) 
 						delay(6500) 
-						println("Send Next to explorer ")
+						 }
+						if(iter==2){ println("Send Next to explorer (iter2) ")
 						forward("testCmd", "testCmd(Next)" ,"explorer" ) 
+						delay(6500) 
+						 }
+						forward("modelRequest", "modelRequest(robot,location)" ,"kb" ) 
+						println("Waiting response ")
+					}
+					 transition(edgeName="t01",targetState="handleResponse",cond=whenDispatch("modelResponse"))
+				}	 
+				state("handleResponse") { //this:State
+					action { //it:State
+						
+										iter = iter+1
+						if( checkMsgContent( Term.createTerm("modelResponse(X,Y,O)"), Term.createTerm("modelResponse(X,Y,O)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								
+												var X=payloadArg(0)
+												var Y=payloadArg(1)
+												var O=payloadArg(2)
+								println("----->Actual robot Pos: $X $Y $O")
+						}
+					}
+					 transition( edgeName="goto",targetState="next", cond=doswitchGuarded({(iter<=2)}) )
+					transition( edgeName="goto",targetState="end", cond=doswitchGuarded({! (iter<=2)}) )
+				}	 
+				state("end") { //this:State
+					action { //it:State
+						println("Sprint2 END :)")
 					}
 				}	 
 			}

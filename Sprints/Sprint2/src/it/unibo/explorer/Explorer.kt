@@ -182,8 +182,6 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 								val map = itunibo.planner.plannerUtil.getMap() 
 								println(map)
 						println("Actor: Explorer; State: atHome; Payload: direction at home: ${getCurSol("D").toString()}")
-						if(Direction == "leftDir" || Direction == "upDir" ){ forward("modelChange", "modelChange(robot,w)" ,"resourcemodel" ) 
-						 }
 					}
 					 transition( edgeName="goto",targetState="rotateSouth", cond=doswitch() )
 				}	 

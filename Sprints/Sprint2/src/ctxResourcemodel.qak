@@ -6,13 +6,23 @@ Dispatch local_modelChanged   : modelChanged( TARGET, VALUE )
 Dispatch modelChange  : modelChange( TARGET, VALUE )  //force a resource-model change
 Dispatch modelUpdate  : modelUpdate( TARGET, VALUE )  //sent by the mind
  
+ //Dispatch modelRequest : modelRequest( TARGET,PROP, SENDER)
+ Dispatch modelRequest : modelRequest( TARGET,PROP)
+ Dispatch modelResponse : modelResponse( X,Y,O )
 //Dispatch kbModelUpdate  : kbModelUpdate( TARGET, VALUE )  //force a resource-model change
  
 
 Context ctxDummy ip[host="dummyhost" port=9999] -mqtt //as ctxRobot
 Context ctxResourceModel ip[host="localhost" port=8036] -mqtt
 
+
+//sa cambiare, quando sarà possibile rispondere agli attori che inviano dispatch
+//o comunque quando il Controller diventerà il Metre
+Context ctxControllerDummy ip[host="dummyhost" port=8039] -mqtt
+ExternalQActor controller context ctxControllerDummy
+
 ExternalQActor mindrobot context ctxDummy
+
 
 
 QActor resourcemodel context ctxResourceModel {
@@ -71,11 +81,37 @@ QActor resourcemodel context ctxResourceModel {
 QActor kb context ctxResourceModel{
 	
 	State s0 initial {
-		println("Start kb")		
+		println("Start kb")	
+		solve( consult("robotPosResolver.pl") )
 	}
-	Transition t0  whenMsg   modelUpdate  -> handleUpdate
-	
-	State handleUpdate  {
+	Transition t0  whenMsg   modelUpdate  -> handle
+					whenMsg   modelRequest  -> handle
+	State handle  {
+		//tengo un solo handle sperando così di non perdere i messaggi di un tipo mentre servo i messagig dell'altro tipo
+		//sperando che rimangano tutti in coda a questo stato (se ho capito bene come funzionano gli stati dei qak)
+		onMsg(   modelRequest:  modelRequest(TARGET,PROP) ) { // modelRequest:  modelRequest(TARGET,PROP, SENDER) ) { 
+		
+			["
+				var Target=payloadArg(0)
+				var Prop=payloadArg(1)
+				//var Sender=payloadArg(2)
+			"]
+			if "Target==\"robot\" && Prop==\"location\""{
+				solve(actualRobotPos(X,Y,O))
+				ifSolved { 					
+					["
+						var X = getCurSol(\"X\").toString()
+						var Y = getCurSol(\"Y\").toString()
+						var O = getCurSol(\"O\").toString()
+					"]
+					//forward Sender -m modelResponse : modelResponse( ris )
+					forward controller -m modelResponse : modelResponse( $X,$Y,$O )
+				}else{
+					forward controller -m modelResponse : modelResponse( error )
+				}
+			}
+		
+		}
 		onMsg(  modelUpdate:  modelUpdate( TARGET, VALUE ) ) { 
 		
 			["
@@ -83,9 +119,16 @@ QActor kb context ctxResourceModel{
 				var Value=payloadArg(1)
 				
 			"]
-			println("----------->KB[$Target][$Value]")
+			if "Target==\"robot\""{
+				solve(updateRobotStateFromMove($Value))
+				
+			}
+			//println("----------->KB[$Target][$Value]")
 		
-		}		
-	}Transition t0  whenMsg   modelUpdate  -> handleUpdate
+		}			
+	}Transition t0  whenMsg   modelUpdate  -> handle
+					whenMsg   modelRequest  -> handle
+	
+	
 	
 }

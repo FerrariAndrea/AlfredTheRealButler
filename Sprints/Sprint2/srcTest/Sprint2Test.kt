@@ -74,7 +74,6 @@ class Sprint1Test {
 		send(actor!!,"testCmd","testCmd(Next)");//avvio l'andata al frigo
 		delay(6500)
 	}
-
 	fun delay( time : Long ){
 		Thread.sleep( time )
 	}

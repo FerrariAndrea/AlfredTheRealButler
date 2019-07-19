@@ -7,6 +7,8 @@ Dispatch modelChange  : modelChange( TARGET, VALUE )  //force a resource-model c
 Context ctxMaitre ip[host="localhost" port=8035] -mqtt
 Context ctxDummy ip[host="dummyhost" port=9999] -mqtt //as resourceModel
 
+
+
 ExternalQActor resourcemodel context ctxDummy
 
 
