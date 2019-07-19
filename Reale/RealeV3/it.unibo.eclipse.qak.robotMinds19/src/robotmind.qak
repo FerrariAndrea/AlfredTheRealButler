@@ -27,6 +27,7 @@ ExternalQActor maitre context ctxDummy
 QActor mindrobot context ctxRobot{
 	["
 	var obstacle = false
+	val minDifferenceForBelance = 2
 	"]
 	
 	State s0 initial {
@@ -47,8 +48,36 @@ QActor mindrobot context ctxRobot{
  			forward basicrobot -m robotCmd : robotCmd( h )	//First do ...
  			forward resourcemodel -m modelUpdate : modelUpdate(robot,h) //... then update the model
 		}
+		
 	}
-	Goto waitCmd
+	Goto requestBelancer
+	
+	State requestBelancer{
+		run itunibo.robotRaspOnly.sonarBelancerOnlySupport.requestValue()
+	}
+	Transition t0 whenEvent sonarBelancer ->  riadrizza
+	
+	State riadrizza{
+		["var again = false"]
+		onMsg ( sonarBelancer : sonar( DIFFERENCE ) ){
+			["
+				var diff = Integer.parseInt( payloadArg(0) )								
+			"]
+			if "diff>2" {
+				["again = true"]
+				forward basicrobot -m robotCmd : robotCmd( a )			
+				delay 50
+				forward basicrobot -m robotCmd : robotCmd( h )
+			}
+			if "diff<-minDifferenceForBelance" {
+				["again = true"]
+				forward basicrobot -m robotCmd : robotCmd( d )	
+				delay 50
+				forward basicrobot -m robotCmd : robotCmd( h )
+			}
+ 		}//onMsg
+	}
+	Goto waitCmd if "again==false" else requestBelancer
 	
 	State handleSonarRobot {
 		printCurrentMessage
@@ -62,8 +91,7 @@ QActor mindrobot context ctxRobot{
 		["obstacle=false"]
 		printCurrentMessage
 		onMsg ( local_modelChanged : modelChanged(robot,CMD) ){ 
-			forward basicrobot -m robotCmd : robotCmd( $payloadArg(1) )
-			
+			forward basicrobot -m robotCmd : robotCmd( $payloadArg(1) )			
 		}	
 	}
 	
@@ -107,25 +135,46 @@ QActor sonarhandler context ctxRobot {
 	State s0 initial {
 		println("Start Sonarhandler")		
 	}
-	Goto waitForEvents
-	
-	State waitForEvents {}
-	   	Transition t0 whenEvent sonar      ->  handleSonar
+	Transition t0 whenEvent sonar      ->  handleSonar
    	              whenEvent sonarRobot ->  handleSonar
-   	               
+   	              whenEvent sonarLeft ->  handleSonar
+   	              whenEvent sonarRigth ->  handleSonar
+   				
+   	/*
+ * Event  sonarLeft     : sonar( DISTANCE )
+	Event  sonarRigth     : sonar( DISTANCE )
+Event  sonarBelancer    : sonar( DIFFERENCE )
+* */
+
+     
  	State handleSonar {                      
- 	//	printCurrentMessage                                        
+ 	//	printCurrentMessage  
+ 	//---------------------------------------------------------------SONAR OGGETTI VIRTUALI                                      
  	//	onMsg ( sonar  : sonar( SONAR, DISTANCE ) ){    			
 	//	[" val D = Integer.parseInt( payloadArg(1) ) * 5"] //AMPLIFY
 	//		emit polar : p( $D, 90  )  
  	//	}
+ 	//---------------------------------------------------------------SONAR FRONTALE  
  		onMsg ( sonarRobot : sonar( DISTANCE ) ){     
 	//	[" val D = Integer.parseInt( payloadArg(0) ) * 5"] //AMPLIFY
 	//		emit polar : p( $D, 180  ) 
-	
-					forward resourcemodel -m modelChange : modelChange(sonarRobot,$payloadArg(0))
- 			
-		}
+			forward resourcemodel -m modelChange : modelChange(sonarRobot,$payloadArg(0))
+ 		}
+ 		//---------------------------------------------------------------SONAR Left
+ 		onMsg ( sonarLeft : sonar( DISTANCE ) ){     
+	//	[" val D = Integer.parseInt( payloadArg(0) ) * 5"] //AMPLIFY
+	//		emit polar : p( $D, 90  ) 
+			forward resourcemodel -m modelChange : modelChange(sonarLeft,$payloadArg(0))
+ 		}
+ 		//---------------------------------------------------------------SONAR Rigth
+ 		onMsg ( sonarRigth : sonar( DISTANCE ) ){     
+	//	[" val D = Integer.parseInt( payloadArg(0) ) * 5"] //AMPLIFY
+	//		emit polar : p( $D, 270  ) 
+			forward resourcemodel -m modelChange : modelChange(sonarRigth,$payloadArg(0))
+ 		}
  	} 
- 	Goto waitForEvents
+ 	Transition t0 whenEvent sonar      ->  handleSonar
+   	              whenEvent sonarRobot ->  handleSonar
+   	              whenEvent sonarLeft ->  handleSonar
+   	              whenEvent sonarRigth ->  handleSonar
 }

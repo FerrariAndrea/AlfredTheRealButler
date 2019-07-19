@@ -12,7 +12,9 @@ import it.unibo.iot.models.commands.baseRobot.IBaseRobotCommand
 import it.unibo.kactor.sysUtil
 import it.unibo.kactor.ActorBasic
 import itunibo.robotRaspOnly.sonarHCSR04Support
- import itunibo.robotRaspOnly.otherSonarsSupport
+import itunibo.robotRaspOnly.otherSonarsSupport
+import itunibo.robotRaspOnly.sonarBelancerOnlySupport
+
  
 object nanoSupport {
 	
@@ -28,7 +30,8 @@ object nanoSupport {
 		if(withSonar)
 			sonarHCSR04Support.create( actor, " ")
 		//QUI IL SUPPORTO DEGLI ALTRI SONAR (non tativo)
-		otherSonarsSupport.create(actor)
+		otherSonarsSupport.create(actor,true,true,false)
+		sonarBelancerOnlySupport.create(actor)
 	} 
 	
 	fun move( cmd : String ){

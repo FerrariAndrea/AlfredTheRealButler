@@ -17,6 +17,7 @@ class Mindrobot ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
 			var obstacle = false
+			val minDifferenceForBelance = 2
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -40,7 +41,35 @@ class Mindrobot ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 								forward("modelUpdate", "modelUpdate(robot,h)" ,"resourcemodel" ) 
 						}
 					}
-					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
+					 transition( edgeName="goto",targetState="requestBelancer", cond=doswitch() )
+				}	 
+				state("requestBelancer") { //this:State
+					action { //it:State
+						itunibo.robotRaspOnly.sonarBelancerOnlySupport.requestValue(  )
+					}
+					 transition(edgeName="t03",targetState="riadrizza",cond=whenEvent("sonarBelancer"))
+				}	 
+				state("riadrizza") { //this:State
+					action { //it:State
+						var again = false
+						if( checkMsgContent( Term.createTerm("sonar(DIFFERENCE)"), Term.createTerm("sonar(DIFFERENCE)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								
+												var diff = Integer.parseInt( payloadArg(0) )								
+								if(diff>2){ again = true
+								forward("robotCmd", "robotCmd(a)" ,"basicrobot" ) 
+								delay(50) 
+								forward("robotCmd", "robotCmd(h)" ,"basicrobot" ) 
+								 }
+								if(diff<-minDifferenceForBelance){ again = true
+								forward("robotCmd", "robotCmd(d)" ,"basicrobot" ) 
+								delay(50) 
+								forward("robotCmd", "robotCmd(h)" ,"basicrobot" ) 
+								 }
+						}
+					}
+					 transition( edgeName="goto",targetState="waitCmd", cond=doswitchGuarded({again==false}) )
+					transition( edgeName="goto",targetState="requestBelancer", cond=doswitchGuarded({! again==false}) )
 				}	 
 				state("handleSonarRobot") { //this:State
 					action { //it:State
