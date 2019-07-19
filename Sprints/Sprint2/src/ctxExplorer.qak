@@ -189,8 +189,7 @@ QActor explorer context ctxExplorer{
 		println(map)
 		"] 		
    		println("Actor: Explorer; State: atHome; Payload: direction at home: ${getCurSol(\"D\").toString()}")
-   		//if "Direction == \"leftDir\" || Direction == \"upDir\" " {
-   		//	forward resourcemodel -m modelChange : modelChange(robot,w)   	}	
+   	
 	}
 	Goto rotateSouth
 	
