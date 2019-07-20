@@ -18,30 +18,32 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 		
 				var foundObstacle = false
 				var StepTime = 0L
+				var Duration : Int =0
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
 						foundObstacle = false 
 					}
-					 transition(edgeName="t05",targetState="doMoveForward",cond=whenDispatch("onestep"))
+					 transition(edgeName="t013",targetState="doMoveForward",cond=whenDispatch("onestep"))
 				}	 
 				state("doMoveForward") { //this:State
 					action { //it:State
+						storeCurrentMessageForReply()
 						if( checkMsgContent( Term.createTerm("onestep(DURATION)"), Term.createTerm("onestep(TIME)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								StepTime = payloadArg(0).toLong()
 								forward("local_modelChanged", "modelChanged(robot,w)" ,"mindrobot" ) 
 								forward("setTimer", "setTimer($StepTime)" ,"timer" ) 
-								itunibo.planner.plannerUtil.startTimer(  )
+								startTimer()
 						}
 					}
-					 transition(edgeName="t06",targetState="endDoMoveForward",cond=whenEvent("tickTimer"))
-					transition(edgeName="t07",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
+					 transition(edgeName="t014",targetState="endDoMoveForward",cond=whenEvent("tickTimer"))
+					transition(edgeName="t015",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
 				}	 
 				state("endDoMoveForward") { //this:State
 					action { //it:State
 						forward("local_modelChanged", "modelChanged(robot,h)" ,"mindrobot" ) 
-						forward("stepOk", "stepOk(ok)" ,"controller" ) 
+						replyToCaller("stepOk", "stepOk(ok)")
 					}
 					 transition( edgeName="goto",targetState="s0", cond=doswitch() )
 				}	 
@@ -64,16 +66,16 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						forward("resetTimer", "resetTimer(reset)" ,"timer" ) 
 						forward("local_modelChanged", "modelChanged(robot,h)" ,"mindrobot" ) 
 						println("Actor: OneStepForward; State:stepfail ")
-						solve("wduration(TIME)","") //set resVar	
-						forward("stepFail", "stepFail(obstacle,${getCurSol("TIME").toString()})" ,"controller" ) 
+						Duration=getDuration()
+						replyToCaller("stepFail", "stepFail(obstacle,$Duration) ")
 					}
 					 transition( edgeName="goto",targetState="s0", cond=doswitch() )
 				}	 
 				state("mustGoOn") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t08",targetState="endDoMoveForward",cond=whenEvent("tickTimer"))
-					transition(edgeName="t09",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
+					 transition(edgeName="t016",targetState="endDoMoveForward",cond=whenEvent("tickTimer"))
+					transition(edgeName="t017",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
 				}	 
 			}
 		}

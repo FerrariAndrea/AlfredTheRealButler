@@ -1,4 +1,4 @@
-package itunibo.robotRaspOnly
+package surpluss
 
 import java.io.BufferedReader
 import java.io.InputStreamReader
@@ -7,7 +7,7 @@ import kotlinx.coroutines.launch
 import it.unibo.kactor.ActorBasic
 import kotlinx.coroutines.delay
 
-object sonarHCSR04Support {
+object ledManager {
 	lateinit var reader : BufferedReader
 	
 	//g++  SonarAlone.c -l wiringPi -o  SonarAlone
@@ -33,7 +33,7 @@ object sonarHCSR04Support {
 					//println("sonarHCSR04Support m1 = $m1"   )
 				
 				}
-				delay( 120 )
+				delay( 250 )
 			}
 		}
 	}
