@@ -26,21 +26,21 @@ class Kb ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope){
 				}	 
 				state("handle") { //this:State
 					action { //it:State
+						storeCurrentMessageForReply()
 						if( checkMsgContent( Term.createTerm("modelRequest(TARGET,PROP)"), Term.createTerm("modelRequest(TARGET,PROP)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								
 												var Target=payloadArg(0)
 												var Prop=payloadArg(1)
-												//var Sender=payloadArg(2)
 								if(Target=="robot" && Prop=="location"){ solve("actualRobotPos(X,Y,O)","") //set resVar	
 								if(currentSolution.isSuccess()) { 
 														var X = getCurSol("X").toString()
 														var Y = getCurSol("Y").toString()
 														var O = getCurSol("O").toString()
-								forward("modelResponse", "modelResponse($X,$Y,$O)" ,"maitre" ) 
+								replyToCaller("modelRobotResponse", "modelRobotResponse( $X,$Y,$O )")
 								 }
 								else
-								{ forward("modelResponse", "modelResponse(error)" ,"maitre" ) 
+								{ replyToCaller("modelErrorResponse", "modelErrorResponse(-1)")
 								 }
 								 }
 						}

@@ -6,9 +6,10 @@ mqttBroker "localhost" : 1883
 //e dopo ancora che dica all'explorer direttamente cosa fare (es: porta i piatti a lavare)
 Dispatch testCmd  : testCmd( cmd )  //i payload sono inutili ad ora
 
-//Dispatch modelRequest : modelRequest( TARGET,PROP, SENDER)
+
 Dispatch modelRequest : modelRequest( TARGET,PROP)
-Dispatch modelResponse : modelResponse( X,Y,O )
+Dispatch modelRobotResponse : modelRobotResponse( X,Y,O ) 
+Dispatch modelErrorResponse : modelErrorResponse( ERROR )
 
 Dispatch modelChange  : modelChange( TARGET, VALUE )  //force a resource-model change
 
@@ -47,8 +48,8 @@ QActor maitre context ctxMaitre {
 		forward kb -m  modelRequest :  modelRequest( robot, location ) 
 		println("Waiting response ")	
 	}
-	Transition t0  whenMsg   modelResponse  -> handleResponse
-	
+	Transition t0  whenMsg   modelRobotResponse  -> handleResponse
+					whenMsg   modelErrorResponse  -> handleResponse
 	
 	
 	State next {
@@ -65,14 +66,14 @@ QActor maitre context ctxMaitre {
 		forward kb -m  modelRequest :  modelRequest( robot, location ) 
 		println("Waiting response ")	
 	}
-	Transition t0  whenMsg   modelResponse  -> handleResponse
-	
+	Transition t0  whenMsg   modelRobotResponse  -> handleResponse
+				whenMsg   modelErrorResponse  -> handleResponse
 	State handleResponse {
 		
 			["
 				iter = iter+1
 			"] 
-		onMsg(   modelResponse:  modelResponse( X,Y,O ) ) { 
+		onMsg(   modelRobotResponse:  modelRobotResponse( X,Y,O ) ) { 
 			
 			["
 				var X=payloadArg(0)
@@ -80,6 +81,9 @@ QActor maitre context ctxMaitre {
 				var O=payloadArg(2)
 			"] 
 			println("----->Actual robot Pos: $X $Y $O")	
+		}
+		onMsg(   modelErrorResponse:  modelErrorResponse(ERRORE ) ) { 
+			println("Errore-->Impossiible ottenere la posizione attuale del robot.")	
 		}
 	}Goto next  if "(iter<=2)" else end
 	

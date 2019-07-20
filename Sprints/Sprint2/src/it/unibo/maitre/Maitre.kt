@@ -32,7 +32,8 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						forward("modelRequest", "modelRequest(robot,location)" ,"kb" ) 
 						println("Waiting response ")
 					}
-					 transition(edgeName="t00",targetState="handleResponse",cond=whenDispatch("modelResponse"))
+					 transition(edgeName="t00",targetState="handleResponse",cond=whenDispatch("modelRobotResponse"))
+					transition(edgeName="t01",targetState="handleResponse",cond=whenDispatch("modelErrorResponse"))
 				}	 
 				state("next") { //this:State
 					action { //it:State
@@ -47,19 +48,24 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						forward("modelRequest", "modelRequest(robot,location)" ,"kb" ) 
 						println("Waiting response ")
 					}
-					 transition(edgeName="t01",targetState="handleResponse",cond=whenDispatch("modelResponse"))
+					 transition(edgeName="t02",targetState="handleResponse",cond=whenDispatch("modelRobotResponse"))
+					transition(edgeName="t03",targetState="handleResponse",cond=whenDispatch("modelErrorResponse"))
 				}	 
 				state("handleResponse") { //this:State
 					action { //it:State
 						
 										iter = iter+1
-						if( checkMsgContent( Term.createTerm("modelResponse(X,Y,O)"), Term.createTerm("modelResponse(X,Y,O)"), 
+						if( checkMsgContent( Term.createTerm("modelRobotResponse(X,Y,O)"), Term.createTerm("modelRobotResponse(X,Y,O)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								
 												var X=payloadArg(0)
 												var Y=payloadArg(1)
 												var O=payloadArg(2)
 								println("----->Actual robot Pos: $X $Y $O")
+						}
+						if( checkMsgContent( Term.createTerm("modelErrorResponse(ERROR)"), Term.createTerm("modelErrorResponse(ERRORE)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								println("Errore-->Impossiible ottenere la posizione attuale del robot.")
 						}
 					}
 					 transition( edgeName="goto",targetState="next", cond=doswitchGuarded({(iter<=2)}) )
