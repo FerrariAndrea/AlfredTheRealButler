@@ -1,13 +1,23 @@
 System system1a
 mqttBroker "localhost" : 1883
 
+//in futuro andrà sostituito con qualcosa di più articolato 
+//ad esempio un messaggio che dica all'Explorer in che posizione della mappa andare
+//e dopo ancora che dica all'explorer direttamente cosa fare (es: porta i piatti a lavare)
+Dispatch testCmd  : testCmd( cmd )  //i payload sono inutili ad ora
+
+//Dispatch modelRequest : modelRequest( TARGET,PROP, SENDER)
+Dispatch modelRequest : modelRequest( TARGET,PROP)
+Dispatch modelResponse : modelResponse( X,Y,O )
 
 Dispatch modelChange  : modelChange( TARGET, VALUE )  //force a resource-model change
 
 Context ctxMaitre ip[host="localhost" port=8035] -mqtt
-Context ctxDummy ip[host="dummyhost" port=9999] -mqtt //as resourceModel
+Context ctxDummy ip[host="dummyhost" port=9999] -mqtt 
 
 
+ExternalQActor kb context ctxDummy
+ExternalQActor explorer context ctxDummy
 
 ExternalQActor resourcemodel context ctxDummy
 
@@ -21,10 +31,61 @@ ExternalQActor resourcemodel context ctxDummy
 
 
 QActor maitre context ctxMaitre {
-		State s0 initial {
-		println("Start maitre")		
-		delay 1000
-		//TEST ROBOT MOVEMENT
-		forward resourcemodel -m  modelChange :  modelChange(robot, w)
+	["
+		var iter =0
+	"]
+	State s0 initial {
+		println("Start maitre")
 	}
+	Goto go
+		
+	State go {		
+		println("Send Start to explorer ")	
+		forward explorer -m  testCmd :  testCmd( Start ) 
+		delay 6500		
+	
+		forward kb -m  modelRequest :  modelRequest( robot, location ) 
+		println("Waiting response ")	
+	}
+	Transition t0  whenMsg   modelResponse  -> handleResponse
+	
+	
+	
+	State next {
+		if "iter==1"{
+			println("Send Next to explorer (iter1) ")	
+			forward explorer -m  testCmd :  testCmd( Next ) 
+			delay 6500
+		}
+		if "iter==2"{
+			println("Send Next to explorer (iter2) ")	
+			forward explorer -m  testCmd :  testCmd( Next ) 
+			delay 6500
+		}	
+		forward kb -m  modelRequest :  modelRequest( robot, location ) 
+		println("Waiting response ")	
+	}
+	Transition t0  whenMsg   modelResponse  -> handleResponse
+	
+	State handleResponse {
+		
+			["
+				iter = iter+1
+			"] 
+		onMsg(   modelResponse:  modelResponse( X,Y,O ) ) { 
+			
+			["
+				var X=payloadArg(0)
+				var Y=payloadArg(1)
+				var O=payloadArg(2)
+			"] 
+			println("----->Actual robot Pos: $X $Y $O")	
+		}
+	}Goto next  if "(iter<=2)" else end
+	
+	State end{
+		
+			println("Sprint2 END :)")
+	}
+ 	
 }

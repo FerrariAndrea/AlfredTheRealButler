@@ -37,10 +37,10 @@ class Kb ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope){
 														var X = getCurSol("X").toString()
 														var Y = getCurSol("Y").toString()
 														var O = getCurSol("O").toString()
-								forward("modelResponse", "modelResponse($X,$Y,$O)" ,"controller" ) 
+								forward("modelResponse", "modelResponse($X,$Y,$O)" ,"maitre" ) 
 								 }
 								else
-								{ forward("modelResponse", "modelResponse(error)" ,"controller" ) 
+								{ forward("modelResponse", "modelResponse(error)" ,"maitre" ) 
 								 }
 								 }
 						}

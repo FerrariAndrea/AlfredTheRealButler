@@ -20,7 +20,6 @@ Dispatch modelUpdate  : modelUpdate( TARGET, VALUE )  //sent by the mind
 
 Context ctxRobot ip[host="localhost" port=8038] -mqtt
 Context ctxDummy ip[host="dummyhost" port=9999] -mqtt
-//Context ctxExplorerDummy ip[host="dummyhostExplorer" port=9001] -mqtt
 
 ExternalQActor resourcemodel context ctxDummy
 ExternalQActor maitre context ctxDummy

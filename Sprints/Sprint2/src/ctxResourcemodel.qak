@@ -15,12 +15,7 @@ Dispatch modelUpdate  : modelUpdate( TARGET, VALUE )  //sent by the mind
 Context ctxDummy ip[host="dummyhost" port=9999] -mqtt //as ctxRobot
 Context ctxResourceModel ip[host="localhost" port=8036] -mqtt
 
-
-//sa cambiare, quando sarà possibile rispondere agli attori che inviano dispatch
-//o comunque quando il Controller diventerà il Metre
-//Context ctxControllerDummy ip[host="dummyhost" port=8039] -mqtt
-ExternalQActor controller context ctxDummy
-
+ExternalQActor maitre context ctxDummy
 ExternalQActor mindrobot context ctxDummy
 
 
@@ -105,9 +100,9 @@ QActor kb context ctxResourceModel{
 						var O = getCurSol(\"O\").toString()
 					"]
 					//forward Sender -m modelResponse : modelResponse( ris )
-					forward controller -m modelResponse : modelResponse( $X,$Y,$O )
+					forward maitre -m modelResponse : modelResponse( $X,$Y,$O )
 				}else{
-					forward controller -m modelResponse : modelResponse( error )
+					forward maitre -m modelResponse : modelResponse( error )
 				}
 			}
 		
