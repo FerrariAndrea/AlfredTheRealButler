@@ -6,7 +6,6 @@ mqttBroker "localhost" : 1883
 //e dopo ancora che dica all'explorer direttamente cosa fare (es: porta i piatti a lavare)
 Dispatch testCmd  : testCmd( cmd )  //i payload sono inutili ad ora
 
-
 Dispatch modelRequest : modelRequest( TARGET,PROP)
 Dispatch modelRobotResponse : modelRobotResponse( X,Y,O ) 
 Dispatch modelErrorResponse : modelErrorResponse( ERROR )

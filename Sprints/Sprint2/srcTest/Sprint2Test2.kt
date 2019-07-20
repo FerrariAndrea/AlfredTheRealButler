@@ -15,14 +15,17 @@ import it.unibo.kactor.MsgUtil
 import it.unibo.blsFramework.kotlin.fsm.forward
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import org.junit.BeforeClass
-
+import it.unibo.kactor.MqttUtils
+import it.unibo.kactor.ActorBasicFsm
+import alice.tuprolog.Term
+import srcTest.Tester
 
 class Sprint2Test2 {
 
 
 	companion object {
 		//----------------------var
-		var actor : ActorBasic?= null
+		var actor : Tester?= null
 		var testName = "Sprint2Test2"
 		var sleepTime = 1000L
 		var testCount =0
@@ -39,7 +42,7 @@ class Sprint2Test2 {
 		GlobalScope.launch{
 			println("--- send $msg -->$msg_and_payload")
 			//actor.autoMsg("$dest","$msg($payload)")
-			MsgUtil.sendMsg("$msg","$msg_and_payload",actor)
+				MsgUtil.sendMsg("$msg","$msg_and_payload",actor)
 		}
 	}
 
@@ -52,6 +55,7 @@ class Sprint2Test2 {
 		actor.messageArrived(requestType,message)
 		println("--- send $msg -->$msg_and_payload")
 		//actor.autoMsg("$dest","$msg($payload)")
+					
 		MsgUtil.sendMsg("$msg","$msg_and_payload",actor)
 	}
 		
@@ -76,9 +80,13 @@ class Sprint2Test2 {
 			}
 			delay(sleepTime)
 		
-			println(" %%%%%%% $testName starts ctxMaitre")	 			
+			println(" %%%%%%% $testName start ctxTest")	 			
 			GlobalScope.launch{
-				it.unibo.ctxMaitre.main()							
+				srcTest.main()				
+			}
+			delay(sleepTime)
+			GlobalScope.launch{
+				actor=sysUtil.getActor("tester") as Tester
 			}
 		}
 
@@ -90,55 +98,58 @@ class Sprint2Test2 {
 		testCount++
 	}
 
-	
-	@Test
-	fun onecellforwardTest(){
-		checkActorExist("onecellforward")
-	}
-	@Test
-	fun explorerTest(){
-		checkActorExist("explorer")
-	}
-	@Test
-	fun mindrobotTest(){
-		checkActorExist("mindrobot")
-	}
 
-	@Test
-	fun basicrobotTest(){
-		checkActorExist("basicrobot")
-	}
-	
-	@Test
-	fun sonarhandlerTest(){
-		checkActorExist("sonarhandler")
-	}
-	@Test
-	fun resourcemodelTest(){
-		checkActorExist("resourcemodel")
-	}
-	@Test
-	fun kbTest(){
-		checkActorExist("kb")
-	}
-
-	
 	
 
 	
 	@Test
 	fun goToFridge(){
-		var resourcesmodel :ActorBasic? = sysUtil.getActor("resourcemodel")
-		println(" %%%%%%% $testName goToFridge")
-		send(actor!!,"testCmd","testCmd(Start)");//avvio l'andata al frigo
+		assertTrue("Tester actor on",null!=actor)		
+		GlobalScope.launch{		
+			actor!!.forward("testCmd","testCmd(Next)","explorer")
+		}
 		delay(6500)//do al robot il tempo di raggiungere il frigo-->posizione (6,0)
-		var message: MqttMessage = request(resourcesmodel!!,"modelRequest","modelRequest(robot,location)","modelRobotResponse")
-		delay(250)
-		println("---->${message.toString()}")
-		send(actor!!,"testCmd","testCmd(Next)");//avvio l'andata al frigo
-		delay(6500)		
-		send(actor!!,"testCmd","testCmd(Next)");//avvio l'andata al frigo
+		var result: String?=null
+		GlobalScope.launch{		
+			actor!!.forward("modelRequest", "modelRequest(robot,location)" ,"kb" ) 
+			delay(150)
+			//actor!!.checkMsgContent(checkMsgContent( Term.createTerm("modelRobotResponse(X,Y,O)"), Term.createTerm("modelRobotResponse(X,Y,O)"),  currentMsg.msgContent()) )
+			result=actor!!.getRobotStatus()
+		}
+		delay(300)
+		println("--->$result")
+		assertTrue("Robot on (5,0,ovest)","5-0-ovest"==result ||"6-0-ovest"==result)
+		GlobalScope.launch{		
+			actor!!.forward("testCmd","testCmd(Next)","explorer")
+		}
 		delay(6500)
+		result=null
+		GlobalScope.launch{		
+			actor!!.forward("modelRequest", "modelRequest(robot,location)" ,"kb" ) 
+			delay(150)
+			//actor!!.checkMsgContent(checkMsgContent( Term.createTerm("modelRobotResponse(X,Y,O)"), Term.createTerm("modelRobotResponse(X,Y,O)"),  currentMsg.msgContent()) )
+			result=actor!!.getRobotStatus()
+		}
+		delay(300)
+		println("--->$result")
+		assertTrue("Robot on (0,0,est)","0-0-est"==result)
+		GlobalScope.launch{		
+			actor!!.forward("testCmd","testCmd(Next)","explorer")
+		}
+		delay(6500)
+		result=null
+		GlobalScope.launch{		
+			actor!!.forward("modelRequest", "modelRequest(robot,location)" ,"kb" ) 
+			delay(50)
+			//actor!!.checkMsgContent(checkMsgContent( Term.createTerm("modelRobotResponse(X,Y,O)"), Term.createTerm("modelRobotResponse(X,Y,O)"),  currentMsg.msgContent()) )
+			result=actor!!.getRobotStatus()
+		}
+		delay(300)
+		println("--->$result")
+		assertTrue("Robot on (0,0,sud)","0-0-sud"==result)
+		
+		println("test finish !!!")
+	
 	}
 
 

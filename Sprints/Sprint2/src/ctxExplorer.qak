@@ -11,7 +11,6 @@ Dispatch testCmd  : testCmd( cmd )  //sent by kotlinTest
  
 Event  sonarRobot     : sonar( DISTANCE )	     //from  sonar on robot 
 
-
 Context ctxExplorer ip[host="localhost" port=8039] -mqtt
 Context ctxDummy ip[host="dummyhost" port=9999] -mqtt 
 
