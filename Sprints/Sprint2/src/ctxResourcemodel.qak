@@ -1,10 +1,11 @@
-System system2b
+System system2
 mqttBroker "localhost" : 1883
 
 Dispatch local_modelChanged   : modelChanged( TARGET, VALUE )
 
 Dispatch modelChange  : modelChange( TARGET, VALUE )  //force a resource-model change
 Dispatch modelUpdate  : modelUpdate( TARGET, VALUE )  //sent by the mind
+ 
  
  //richieste
  Dispatch modelRequest : modelRequest( TARGET,PROP)
@@ -26,6 +27,7 @@ ExternalQActor mindrobot context ctxDummy
 QActor resourcemodel context ctxResourceModel {
 	["var dobackstep = false"]
 	State s0 initial {
+		println("Start resourcemodel")
 		solve( consult("sysRules.pl")	 )       
 		solve( consult("resourceModel.pl")	 )
 		solve( showResourceModel ) 		

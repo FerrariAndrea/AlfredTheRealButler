@@ -19,6 +19,7 @@ class Resourcemodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
+						println("Start resourcemodel")
 						solve("consult('sysRules.pl')","") //set resVar	
 						solve("consult('resourceModel.pl')","") //set resVar	
 						solve("showResourceModel","") //set resVar	

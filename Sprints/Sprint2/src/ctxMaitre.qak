@@ -1,4 +1,4 @@
-System system1a
+System system4
 mqttBroker "localhost" : 1883
 
 //in futuro andrà sostituito con qualcosa di più articolato 
@@ -16,10 +16,8 @@ Dispatch modelChange  : modelChange( TARGET, VALUE )  //force a resource-model c
 Context ctxMaitre ip[host="localhost" port=8035] -mqtt
 Context ctxDummy ip[host="dummyhost" port=9999] -mqtt 
 
-
 ExternalQActor kb context ctxDummy
 ExternalQActor explorer context ctxDummy
-
 ExternalQActor resourcemodel context ctxDummy
 
 
