@@ -13,13 +13,13 @@ Dispatch testCmd  : testCmd( cmd )  //sent by kotlinTest
 Event  sonarRobot     : sonar( DISTANCE )	     //from  sonar on robot 
 
 Context ctxExplorer ip[host="localhost" port=8039] -mqtt
-Context ctxDummy ip[host="dummyhost1" port=9999] -mqtt //as resourceModel
-Context ctxControllerDummy ip[host="dummyhost2" port=8888] -mqtt
+Context ctxDummy ip[host="dummyhost" port=9999] -mqtt 
+//Context ctxControllerDummy ip[host="dummyhost2" port=8888] -mqtt
 
 
-ExternalQActor controller context ctxControllerDummy
+ExternalQActor controller context ctxDummy
 ExternalQActor resourcemodel context ctxDummy
-
+ExternalQActor onecellforward context ctxDummy
 /*
  *  The goal is to move the robot to the fridge and let it come back 
  *  Fridge Position is given *a priori*
@@ -215,49 +215,3 @@ QActor explorer context ctxExplorer{
 		println("END")
 	}
 }	
-
-//Application move step
-QActor onecellforward context ctxExplorer {
-	["var foundObstacle = false; var StepTime = 0L; var Duration : Int =0"]  
-	State s0 initial {	   
-		["foundObstacle = false "]
-	} 
-	Transition t0 whenMsg onestep -> doMoveForward
-	
-	State doMoveForward{		  
-		onMsg( onestep : onestep( TIME ) ) {
-			["StepTime = payloadArg(0).toLong()"]
-			forward resourcemodel -m modelChange : modelChange(robot,w)
-			//run itunibo.planner.plannerUtil.startTimer()
-			["startTimer()"] //startTimer is built-in in the actor
-		}
-	} 
-	Transition t0 whenTimeVar  StepTime -> endDoMoveForward		
- 		          whenEvent sonarRobot  -> handleSonarRobot
-		  
-	State endDoMoveForward{
-		forward resourcemodel -m modelChange : modelChange(robot,h)
-		forward explorer -m stepOk : stepOk(ok)  //answer
-	}
-	Goto s0
-	
-	//Substitute with an ad-hoc actor for a real robot
-	State handleSonarRobot{  //before than the step time
-		run itunibo.planner.moveUtils.setDuration(myself)
-		printCurrentMessage
- 		onMsg ( sonarRobot : sonar( DISTANCE ) ){     
-			["val distance = Integer.parseInt( payloadArg(0) ) 
-              foundObstacle = (distance<20) "]  
-   		}
-	}
-	
-	Goto stepFail if "foundObstacle" else s0
-	
-	State stepFail{
-		["Duration=getDuration()"] 
-		println("Actor: OneStepForward; stepFail Duration=$Duration ")
-		//solve( wduration( TIME ) )
-		forward explorer -m stepFail : stepFail(obstacle,$Duration)  	
-	}
-	Goto s0
-}

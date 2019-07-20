@@ -18,8 +18,8 @@ Context ctxResourceModel ip[host="localhost" port=8036] -mqtt
 
 //sa cambiare, quando sarà possibile rispondere agli attori che inviano dispatch
 //o comunque quando il Controller diventerà il Metre
-Context ctxControllerDummy ip[host="dummyhost" port=8039] -mqtt
-ExternalQActor controller context ctxControllerDummy
+//Context ctxControllerDummy ip[host="dummyhost" port=8039] -mqtt
+ExternalQActor controller context ctxDummy
 
 ExternalQActor mindrobot context ctxDummy
 
