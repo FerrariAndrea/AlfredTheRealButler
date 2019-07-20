@@ -218,7 +218,7 @@ QActor explorer context ctxExplorer{
 
 //Application move step
 QActor onecellforward context ctxExplorer {
-	["var foundObstacle = false; var StepTime = 0L"]  
+	["var foundObstacle = false; var StepTime = 0L; var Duration : Int =0"]  
 	State s0 initial {	   
 		["foundObstacle = false "]
 	} 
@@ -228,8 +228,8 @@ QActor onecellforward context ctxExplorer {
 		onMsg( onestep : onestep( TIME ) ) {
 			["StepTime = payloadArg(0).toLong()"]
 			forward resourcemodel -m modelChange : modelChange(robot,w)
-			run itunibo.planner.plannerUtil.startTimer()
-			// ["startTimer()"] //startTimer is built-in in the actor
+			//run itunibo.planner.plannerUtil.startTimer()
+			["startTimer()"] //startTimer is built-in in the actor
 		}
 	} 
 	Transition t0 whenTimeVar  StepTime -> endDoMoveForward		
@@ -254,9 +254,10 @@ QActor onecellforward context ctxExplorer {
 	Goto stepFail if "foundObstacle" else s0
 	
 	State stepFail{
-		println("Actor: OneStepForward; State:stepfail ")
-		solve( wduration( TIME ) )
-		forward explorer -m stepFail : stepFail(obstacle,#TIME)  	
+		["Duration=getDuration()"] 
+		println("Actor: OneStepForward; stepFail Duration=$Duration ")
+		//solve( wduration( TIME ) )
+		forward explorer -m stepFail : stepFail(obstacle,$Duration)  	
 	}
 	Goto s0
 }

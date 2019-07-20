@@ -15,7 +15,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 	}
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
-		var foundObstacle = false; var StepTime = 0L
+		var foundObstacle = false; var StepTime = 0L; var Duration : Int =0
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -29,7 +29,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								StepTime = payloadArg(0).toLong()
 								forward("modelChange", "modelChange(robot,w)" ,"resourcemodel" ) 
-								itunibo.planner.plannerUtil.startTimer(  )
+								startTimer()
 						}
 						stateTimer = TimerActor("timer_doMoveForward", 
 							scope, context!!, "local_tout_onecellforward_doMoveForward", StepTime )
@@ -59,9 +59,9 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				}	 
 				state("stepFail") { //this:State
 					action { //it:State
-						println("Actor: OneStepForward; State:stepfail ")
-						solve("wduration(TIME)","") //set resVar	
-						forward("stepFail", "stepFail(obstacle,${getCurSol("TIME").toString()})" ,"explorer" ) 
+						Duration=getDuration()
+						println("Actor: OneStepForward; stepFail Duration=$Duration ")
+						forward("stepFail", "stepFail(obstacle,$Duration)" ,"explorer" ) 
 					}
 					 transition( edgeName="goto",targetState="s0", cond=doswitch() )
 				}	 
