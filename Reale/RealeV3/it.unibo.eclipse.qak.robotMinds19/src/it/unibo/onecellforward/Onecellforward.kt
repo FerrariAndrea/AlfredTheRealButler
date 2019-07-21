@@ -34,7 +34,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 								StepTime = payloadArg(0).toLong()
 								forward("local_modelChanged", "modelChanged(robot,w)" ,"mindrobot" ) 
 								forward("setTimer", "setTimer($StepTime)" ,"timer" ) 
-								startTimer()
+								itunibo.planner.plannerUtil.startTimer(  )
 						}
 					}
 					 transition(edgeName="t014",targetState="endDoMoveForward",cond=whenEvent("tickTimer"))

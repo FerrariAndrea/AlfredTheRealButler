@@ -210,10 +210,13 @@ object plannerUtil {
 
     fun startTimer() {
         timeStart = System.currentTimeMillis()
+		println("startTimer.StartTime-->$timeStart")
     }
 	
     fun getDuration() : Int{
         val duration = (System.currentTimeMillis() - timeStart).toInt()
+		println("getDuration.EndTime-->${System.currentTimeMillis()}")
+		println("getDuration.StartTime-->$timeStart")
 		println("DURATION = $duration")
 		return duration
     }

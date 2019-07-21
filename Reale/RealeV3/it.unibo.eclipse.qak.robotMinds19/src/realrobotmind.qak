@@ -205,11 +205,13 @@ QActor onecellforward context ctxRobot {
 	State doMoveForward{		  
 		["storeCurrentMessageForReply()"] 
 		onMsg( onestep : onestep( TIME ) ) {
+			//["startTimer()"] <<<<<-----------------NON VA
+			//println("need start here.....")
 			["StepTime = payloadArg(0).toLong()"]
 			forward mindrobot -m local_modelChanged : modelChanged(  robot, w)
 			forward timer -m setTimer : setTimer( $StepTime )			
-			//run itunibo.planner.plannerUtil.startTimer()
-			["startTimer()"]
+			run itunibo.planner.plannerUtil.startTimer()
+			
 		}
 	} 
 	Transition t0
@@ -220,7 +222,7 @@ QActor onecellforward context ctxRobot {
 		  
 	State endDoMoveForward{
 		forward mindrobot -m local_modelChanged : modelChanged(robot,h)
-		["replyToCaller(\"stepOk\", \"stepOk(ok)\")"]			
+		["replyToCaller(\"stepOk\", \"stepOk(ok)\")"]	
 		
 	}
 	Goto s0
@@ -272,4 +274,13 @@ QActor timer context ctxRobot {
 	}
 	Goto s0
 	
+}
+
+QActor leds context ctxRobot {
+	State s0 initial {	   
+		run surpluss.ledManagerSupport.create()
+		delay 10
+		run surpluss.ledManagerSupport.frontLedBlink(250)
+	}
+
 }
