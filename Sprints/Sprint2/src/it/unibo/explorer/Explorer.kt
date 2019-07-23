@@ -115,7 +115,8 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						if( checkMsgContent( Term.createTerm("stepFail(R,T)"), Term.createTerm("stepFail(R,D)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								Tback=payloadArg(1).toString().toLong()  
-												 if( Tback > StepTime * 2 / 3 ) Tback = 0 else Tback=Tback/2
+													 if( Tback > StepTime * 2 / 3 ) Tback = 0 else Tback=Tback/2
+										
 								println("Actor: Explorer; State: handleStepFail; Payload: BACK TIME= $Tback over $StepTime")
 								if(Tback > 0 ){ Curmove="s"
 								forward("modelChange", "modelChange(robot,$Curmove)" ,"resourcemodel" ) 

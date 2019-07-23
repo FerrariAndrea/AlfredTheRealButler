@@ -124,7 +124,8 @@ QActor explorer context ctxExplorer{
 		println("Actor: Explorer; State: handleStepFail; Payload: MAP when handleStepFail")
 			onMsg( stepFail:stepFail(R,D) ) {
 				["Tback=payloadArg(1).toString().toLong()  
-				 if( Tback > StepTime * 2 / 3 ) Tback = 0 else Tback=Tback/2
+					 if( Tback > StepTime * 2 / 3 ) Tback = 0 else Tback=Tback/2
+		
 				"]
 					println("Actor: Explorer; State: handleStepFail; Payload: BACK TIME= $Tback over $StepTime")
 					if "Tback > 0 "{

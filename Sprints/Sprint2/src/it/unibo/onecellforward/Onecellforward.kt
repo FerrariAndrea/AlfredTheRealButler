@@ -29,7 +29,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								StepTime = payloadArg(0).toLong()
 								forward("modelChange", "modelChange(robot,w)" ,"resourcemodel" ) 
-								startTimer()
+								itunibo.planner.plannerUtil.startTimer(  )
 						}
 						stateTimer = TimerActor("timer_doMoveForward", 
 							scope, context!!, "local_tout_onecellforward_doMoveForward", StepTime )
@@ -59,9 +59,9 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				}	 
 				state("stepFail") { //this:State
 					action { //it:State
-						Duration=getDuration()
 						println("Actor: OneStepForward; stepFail Duration=$Duration ")
-						forward("stepFail", "stepFail(obstacle,$Duration)" ,"explorer" ) 
+						solve("wduration(TIME)","") //set resVar	
+						forward("stepFail", "stepFail(obstacle,${getCurSol("TIME").toString()})" ,"explorer" ) 
 					}
 					 transition( edgeName="goto",targetState="s0", cond=doswitch() )
 				}	 
