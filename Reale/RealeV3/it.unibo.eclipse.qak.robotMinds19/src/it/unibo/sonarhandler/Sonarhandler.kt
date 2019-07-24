@@ -15,21 +15,21 @@ class Sonarhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 	}
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
+		var LastSonarRobot : Int = 0
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
 						println("Start Sonarhandler")
 					}
-					 transition(edgeName="t02",targetState="handleSonar",cond=whenEvent("sonar"))
-					transition(edgeName="t03",targetState="handleSonar",cond=whenEvent("sonarRobot"))
-					transition(edgeName="t04",targetState="handleSonar",cond=whenEvent("sonarLeft"))
-					transition(edgeName="t05",targetState="handleSonar",cond=whenEvent("sonarRigth"))
+					 transition(edgeName="t03",targetState="handleSonar",cond=whenEvent("sonarRobot"))
 				}	 
 				state("handleSonar") { //this:State
 					action { //it:State
 						if( checkMsgContent( Term.createTerm("sonar(DISTANCE)"), Term.createTerm("sonar(DISTANCE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								forward("modelChange", "modelChange(sonarRobot,${payloadArg(0)})" ,"resourcemodel" ) 
+								LastSonarRobot =  Integer.parseInt( payloadArg(0) )
+								println("lastsonarrobot--> $LastSonarRobot")
 						}
 						if( checkMsgContent( Term.createTerm("sonar(DISTANCE)"), Term.createTerm("sonar(DISTANCE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
@@ -39,11 +39,16 @@ class Sonarhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								forward("modelChange", "modelChange(sonarRigth,${payloadArg(0)})" ,"resourcemodel" ) 
 						}
+						if( checkMsgContent( Term.createTerm("internalReq(TARGET)"), Term.createTerm("internalReq(TARGET)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								forward("lastSonarRobot", "lastSonarRobot($LastSonarRobot)" ,"onecellforward" ) 
+						}
 					}
-					 transition(edgeName="t06",targetState="handleSonar",cond=whenEvent("sonar"))
-					transition(edgeName="t07",targetState="handleSonar",cond=whenEvent("sonarRobot"))
-					transition(edgeName="t08",targetState="handleSonar",cond=whenEvent("sonarLeft"))
-					transition(edgeName="t09",targetState="handleSonar",cond=whenEvent("sonarRigth"))
+					 transition(edgeName="t04",targetState="handleSonar",cond=whenEvent("sonar"))
+					transition(edgeName="t05",targetState="handleSonar",cond=whenEvent("sonarRobot"))
+					transition(edgeName="t06",targetState="handleSonar",cond=whenEvent("sonarLeft"))
+					transition(edgeName="t07",targetState="handleSonar",cond=whenEvent("sonarRigth"))
+					transition(edgeName="t08",targetState="handleSonar",cond=whenEvent("internalReq"))
 				}	 
 			}
 		}

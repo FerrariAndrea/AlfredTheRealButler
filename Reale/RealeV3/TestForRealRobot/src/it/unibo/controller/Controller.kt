@@ -53,8 +53,11 @@ class Controller ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 						println("Fail step :(")
 						if( checkMsgContent( Term.createTerm("stepFail(R,T)"), Term.createTerm("stepFail(R,D)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								Tback=payloadArg(1).toString().toLong()  
-												 if( Tback > StepTime * 2 / 3 ) Tback = 0 else Tback=Tback/2
+								Tback=payloadArg(1).toString().toLong()
+								println("recived $Tback")
+								
+												if( Tback > StepTime * 2 / 3 ) Tback = 0 else Tback=Tback/2
+								println("modded $Tback")
 								if(Tback > 0 ){ forward("local_modelChanged", "modelChanged(robot,s)" ,"mindrobot" ) 
 								delay(Tback)
 								forward("local_modelChanged", "modelChanged(robot,h)" ,"mindrobot" ) 

@@ -120,12 +120,11 @@ QActor kb context ctxResourceModel{
 				
 			"]
 			if "Target==\"robot\""{
-				solve(updateRobotStateFromMove($Value))
-				
+				solve(updateRobotStateFromMove($Value))				
 			}
 			//println("----------->KB[$Target][$Value]")
 		
-		}			
+		}	
 	}Transition t0  whenMsg   modelUpdate  -> handle
 					whenMsg   modelRequest  -> handle
 	

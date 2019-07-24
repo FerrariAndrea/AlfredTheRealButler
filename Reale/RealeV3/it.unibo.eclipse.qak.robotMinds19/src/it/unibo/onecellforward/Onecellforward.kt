@@ -16,26 +16,47 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
-				var foundObstacle = false
+				var FoundObstacle = false
 				var StepTime = 0L
 				var Duration : Int =0
+				var DistanzaMinima :Int =20
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
-						foundObstacle = false 
+						FoundObstacle = false 
 					}
-					 transition(edgeName="t010",targetState="doMoveForward",cond=whenDispatch("onestep"))
+					 transition(edgeName="t09",targetState="checkFirst",cond=whenDispatch("onestep"))
 				}	 
-				state("doMoveForward") { //this:State
+				state("checkFirst") { //this:State
 					action { //it:State
 						storeCurrentMessageForReply()
 						if( checkMsgContent( Term.createTerm("onestep(DURATION)"), Term.createTerm("onestep(TIME)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								StepTime = payloadArg(0).toLong()
-								forward("local_modelChanged", "modelChanged(robot,w)" ,"mindrobot" ) 
-								forward("setTimer", "setTimer($StepTime)" ,"timer" ) 
-								itunibo.planner.plannerUtil.startTimer(  )
 						}
+						forward("internalReq", "internalReq(lastSonarRobot)" ,"sonarhandler" ) 
+					}
+					 transition(edgeName="t010",targetState="waitingForcheckFirstSonar",cond=whenEvent("lastSonarRobot"))
+				}	 
+				state("waitingForcheckFirstSonar") { //this:State
+					action { //it:State
+						if( checkMsgContent( Term.createTerm("lastSonarRobot(DISATNCE)"), Term.createTerm("lastSonarRobot(DISTANCE)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								var distance = Integer.parseInt( payloadArg(0) ) 
+								              FoundObstacle = (distance<DistanzaMinima) 
+								if(FoundObstacle){ replyToCaller("stepFail", "stepFail(obstacle,$distance) ")
+								println("Actor: OneStepForward; State:cantDoOneStep")
+								 }
+						}
+					}
+					 transition( edgeName="goto",targetState="s0", cond=doswitchGuarded({FoundObstacle}) )
+					transition( edgeName="goto",targetState="doMoveForward", cond=doswitchGuarded({! FoundObstacle}) )
+				}	 
+				state("doMoveForward") { //this:State
+					action { //it:State
+						forward("local_modelChanged", "modelChanged(robot,w)" ,"mindrobot" ) 
+						forward("setTimer", "setTimer($StepTime)" ,"timer" ) 
+						itunibo.planner.plannerUtil.startTimer(  )
 					}
 					 transition(edgeName="t011",targetState="endDoMoveForward",cond=whenEvent("tickTimer"))
 					transition(edgeName="t012",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
@@ -54,19 +75,19 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						if( checkMsgContent( Term.createTerm("sonar(DISTANCE)"), Term.createTerm("sonar(DISTANCE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								val distance = Integer.parseInt( payloadArg(0) ) 
-								              foundObstacle = (distance<20) 
-								println("SONAR-->$distance")
+								              FoundObstacle = (distance<DistanzaMinima) 
+								println("SONAR------>$distance")
 						}
 					}
-					 transition( edgeName="goto",targetState="stepFail", cond=doswitchGuarded({foundObstacle}) )
-					transition( edgeName="goto",targetState="mustGoOn", cond=doswitchGuarded({! foundObstacle}) )
+					 transition( edgeName="goto",targetState="stepFail", cond=doswitchGuarded({FoundObstacle}) )
+					transition( edgeName="goto",targetState="mustGoOn", cond=doswitchGuarded({! FoundObstacle}) )
 				}	 
 				state("stepFail") { //this:State
 					action { //it:State
 						forward("resetTimer", "resetTimer(reset)" ,"timer" ) 
 						forward("local_modelChanged", "modelChanged(robot,h)" ,"mindrobot" ) 
-						println("Actor: OneStepForward; State:stepfail ")
-						Duration=getDuration()
+						solve("wduration(TIME)","") //set resVar	
+						println("Actor: OneStepForward; State:stepfail -> $Duration")
 						replyToCaller("stepFail", "stepFail(obstacle,$Duration) ")
 					}
 					 transition( edgeName="goto",targetState="s0", cond=doswitch() )

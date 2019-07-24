@@ -65,9 +65,12 @@ QActor controller context ctxController {
 			
 		println("Fail step :(")
 			onMsg( stepFail:stepFail(R,D) ) {
-				["Tback=payloadArg(1).toString().toLong()  
-				 if( Tback > StepTime * 2 / 3 ) Tback = 0 else Tback=Tback/2
+				["Tback=payloadArg(1).toString().toLong()"]
+				println("recived $Tback")
+				 ["
+				if( Tback > StepTime * 2 / 3 ) Tback = 0 else Tback=Tback/2
 				"]
+				println("modded $Tback")
 					if "Tback > 0 "{
 				 		forward mindrobot -m local_modelChanged : modelChanged(robot,s)  
 				 		delayVar Tback 

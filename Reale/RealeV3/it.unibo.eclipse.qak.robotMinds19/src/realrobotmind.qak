@@ -25,6 +25,8 @@ Dispatch robotCmd     : robotCmd( CMD )				  //sent by the mind to the basicrobo
 Dispatch modelChange  : modelChange( TARGET, VALUE )  //force a resource-model change
 Dispatch modelUpdate  : modelUpdate( TARGET, VALUE )  //sent by the mind
 
+Dispatch internalReq : internalReq( TARGET )
+Dispatch lastSonarRobot : lastSonarRobot( DISATNCE )
 
 Context ctxRobot ip[host="localhost" port=8038] -mqtt
 Context ctxDummy ip[host="dummyhost" port=9999] -mqtt //as ctdResourceModel and ctxMaitre
@@ -46,10 +48,9 @@ QActor mindrobot context ctxRobot{
 	Goto waitCmd
 	 
 	State waitCmd {		} 
-		
 	Transition t0 whenEvent envCond      -> handleEnvCond
 		       //   whenEvent sonarRobot   -> handleSonarRobot
-		       //   whenEvent local_modelChanged -> handleModelChanged
+		          whenEvent local_modelChanged -> handleModelChanged
 	
 	State handleEnvCond {
 		printCurrentMessage
@@ -100,24 +101,20 @@ QActor mindrobot context ctxRobot{
  		}//onMsg 	 
 	}
 	Goto waitCmd
+	* 
+	*/
 	
 	State handleModelChanged {
-		["obstacle=false"]
 		printCurrentMessage
 		onMsg ( local_modelChanged : modelChanged(robot,CMD) ){ 
-			forward basicrobot -m robotCmd : robotCmd( $payloadArg(1) )			
+			forward basicrobot -m robotCmd : robotCmd( $payloadArg(1) )	
+			forward resourcemodel -m modelUpdate : modelUpdate(robot,$payloadArg(1)) //... then update the model
+				
 		}	
 	}
-	Goto handleObstacle if "obstacle" else waitCmd 
-	
-	State handleObstacle{		
-		forward basicrobot -m robotCmd : robotCmd( h )	//First do ...
-		forward resourcemodel -m modelUpdate : modelUpdate(robot,h) //... then update the model
-		
-	}
 	Goto waitCmd
-	
-	*/
+
+
 }
 
 QActor basicrobot context ctxRobot{
@@ -146,19 +143,14 @@ QActor basicrobot context ctxRobot{
 
 QActor sonarhandler context ctxRobot {
 
+
+	["var LastSonarRobot : Int = 0"]
 	State s0 initial {
 		println("Start Sonarhandler")		
 	}
-	Transition t0 whenEvent sonar      ->  handleSonar
-   	              whenEvent sonarRobot ->  handleSonar
-   	              whenEvent sonarLeft ->  handleSonar
-   	              whenEvent sonarRigth ->  handleSonar
+	Transition t0 whenEvent sonarRobot ->  handleSonar
    				
-   	/*
- * Event  sonarLeft     : sonar( DISTANCE )
-	Event  sonarRigth     : sonar( DISTANCE )
-Event  sonarBelancer    : sonar( DIFFERENCE )
-* */
+
 
      
  	State handleSonar {                      
@@ -173,6 +165,8 @@ Event  sonarBelancer    : sonar( DIFFERENCE )
 	//	[" val D = Integer.parseInt( payloadArg(0) ) * 5"] //AMPLIFY
 	//		emit polar : p( $D, 180  ) 
 			forward resourcemodel -m modelChange : modelChange(sonarRobot,$payloadArg(0))
+ 			["LastSonarRobot =  Integer.parseInt( payloadArg(0) )"] 	
+ 			println("lastsonarrobot--> $LastSonarRobot")		
  		}
  		//---------------------------------------------------------------SONAR Left
  		onMsg ( sonarLeft : sonar( DISTANCE ) ){     
@@ -186,37 +180,62 @@ Event  sonarBelancer    : sonar( DIFFERENCE )
 	//		emit polar : p( $D, 270  ) 
 			forward resourcemodel -m modelChange : modelChange(sonarRigth,$payloadArg(0))
  		}
+ 		//per il dispatch interno dell'ultimo sonar
+ 		onMsg ( internalReq : internalReq( TARGET ) ){     
+	//	[" val D = Integer.parseInt( payloadArg(0) ) * 5"] //AMPLIFY
+	//		emit polar : p( $D, 270  ) 
+			forward onecellforward -m lastSonarRobot : lastSonarRobot( $LastSonarRobot )
+ 		}
  	} 
  	Transition t0 whenEvent sonar      ->  handleSonar
    	              whenEvent sonarRobot ->  handleSonar
    	              whenEvent sonarLeft ->  handleSonar
    	              whenEvent sonarRigth ->  handleSonar
+   	               whenEvent internalReq ->  handleSonar
 }
 
 
 //Application move step
 QActor onecellforward context ctxRobot {
 	["
-		var foundObstacle = false
+		var FoundObstacle = false
 		var StepTime = 0L
 		var Duration : Int =0
+		var DistanzaMinima :Int =20
 	"]  
 	State s0 initial {	   
-		["foundObstacle = false "]
+		["FoundObstacle = false "]
 	} 
-	Transition t0 whenMsg onestep -> doMoveForward
+	Transition t0 whenMsg onestep -> checkFirst
 	
-	State doMoveForward{		  
-		["storeCurrentMessageForReply()"] 
+	
+	State checkFirst{
+		["storeCurrentMessageForReply()"]		
 		onMsg( onestep : onestep( TIME ) ) {
-			//["startTimer()"] <<<<<-----------------NON VA
-			//println("need start here.....")
 			["StepTime = payloadArg(0).toLong()"]
-			forward mindrobot -m local_modelChanged : modelChanged(  robot, w)
+		}
+		forward sonarhandler -m internalReq : internalReq(lastSonarRobot)
+			
+	}Transition t0 whenEvent lastSonarRobot  -> waitingForcheckFirstSonar
+	
+	State waitingForcheckFirstSonar{
+		onMsg ( lastSonarRobot : lastSonarRobot( DISTANCE ) ){     
+			["var distance = Integer.parseInt( payloadArg(0) ) 
+              FoundObstacle = (distance<DistanzaMinima) "] 
+               if"FoundObstacle"{
+              	  ["replyToCaller(\"stepFail\", \"stepFail(obstacle,$distance) \")"]
+				println("Actor: OneStepForward; State:cantDoOneStep")	
+              }
+   		}
+	}Goto s0 if "FoundObstacle" else doMoveForward
+
+	State doMoveForward{		  
+		
+			//["startTimer()"] <<<<<-----------------NON VA
+			forward mindrobot -m local_modelChanged : modelChanged(robot, w)
 			forward timer -m setTimer : setTimer( $StepTime )			
 			run itunibo.planner.plannerUtil.startTimer()
-			
-		}
+		
 	} 
 	Transition t0
 		whenEvent tickTimer  -> endDoMoveForward	
@@ -237,19 +256,18 @@ QActor onecellforward context ctxRobot {
 		run itunibo.planner.moveUtils.setDuration(myself)
  		onMsg ( sonarRobot : sonar( DISTANCE ) ){     
 			["val distance = Integer.parseInt( payloadArg(0) ) 
-              foundObstacle = (distance<20) "]  
-              println("SONAR-->$distance")
+              FoundObstacle = (distance<DistanzaMinima) "]  
+              println("SONAR------>$distance")
    		}
 	}	
-	Goto stepFail if "foundObstacle" else mustGoOn
+	Goto stepFail if "FoundObstacle" else mustGoOn
 	
 	State stepFail{
 		forward timer -m resetTimer : resetTimer( reset )						
-		forward mindrobot -m local_modelChanged : modelChanged(robot,h)						
-		println("Actor: OneStepForward; State:stepfail ")
-		//solve( wduration( TIME ) )
-		["Duration=getDuration()"]
-			 
+		forward mindrobot -m local_modelChanged : modelChanged(robot,h)	
+		solve( wduration( TIME ) )
+		//["Duration=getDuration()"]
+		println("Actor: OneStepForward; State:stepfail -> $Duration")			 
 		["replyToCaller(\"stepFail\", \"stepFail(obstacle,$Duration) \")"]//#TIME
 			 	
 	}
@@ -260,6 +278,7 @@ QActor onecellforward context ctxRobot {
 	Transition t0 whenEvent tickTimer  -> endDoMoveForward	
 					whenEvent sonarRobot  -> handleSonarRobot	
 }
+
 QActor timer context ctxRobot {
 	["var ActualTimer = 0L "]
 	State s0 initial {	   

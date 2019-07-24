@@ -30,6 +30,7 @@ class Mindrobot ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 					action { //it:State
 					}
 					 transition(edgeName="t00",targetState="handleEnvCond",cond=whenEvent("envCond"))
+					transition(edgeName="t01",targetState="handleModelChanged",cond=whenEvent("local_modelChanged"))
 				}	 
 				state("handleEnvCond") { //this:State
 					action { //it:State
@@ -45,6 +46,17 @@ class Mindrobot ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 				state("requestBelancer") { //this:State
 					action { //it:State
 						println("requestBelancer")
+					}
+					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
+				}	 
+				state("handleModelChanged") { //this:State
+					action { //it:State
+						println("$name in ${currentState.stateName} | $currentMsg")
+						if( checkMsgContent( Term.createTerm("modelChanged(TARGET,VALUE)"), Term.createTerm("modelChanged(robot,CMD)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								forward("robotCmd", "robotCmd(${payloadArg(1)})" ,"basicrobot" ) 
+								forward("modelUpdate", "modelUpdate(robot,${payloadArg(1)})" ,"resourcemodel" ) 
+						}
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
