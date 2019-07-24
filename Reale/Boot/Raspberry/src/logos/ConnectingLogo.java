@@ -10,20 +10,24 @@ public class ConnectingLogo {
 	
 	public static byte[]   next() {
 		actual++;
-		if(actual>6) {
+		if(actual>8) {
 			actual=0;
 		}
 		if(actual==0) {
 			return ImgFactory(IMG.ONE);
 		}else if(actual==1) {
-			return ImgFactory(IMG.TOW);
+			return ImgFactory(IMG.ZERO);
 		}else if(actual==2) {
 			return ImgFactory(IMG.ONE);
 		}else if(actual==3) {
 			return ImgFactory(IMG.TOW);
 		}else if(actual==4) {
-			return ImgFactory(IMG.THREE);
+			return ImgFactory(IMG.ONE);
 		}else if(actual==5) {
+			return ImgFactory(IMG.TOW);
+		}else if(actual==6) {
+			return ImgFactory(IMG.THREE);
+		}else if(actual==7) {
 			return ImgFactory(IMG.TOW);
 		}else{
 			return ImgFactory(IMG.THREE);			
@@ -46,6 +50,7 @@ public class ConnectingLogo {
 	public enum IMG{
 		ONE,
 		TOW,
-		THREE
+		THREE,
+		ZERO
 	}
 }

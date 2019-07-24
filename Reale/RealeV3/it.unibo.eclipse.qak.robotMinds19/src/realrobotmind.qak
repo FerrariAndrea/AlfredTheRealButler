@@ -48,8 +48,8 @@ QActor mindrobot context ctxRobot{
 	State waitCmd {		} 
 		
 	Transition t0 whenEvent envCond      -> handleEnvCond
-		          whenEvent sonarRobot   -> handleSonarRobot
-		          whenEvent local_modelChanged -> handleModelChanged
+		       //   whenEvent sonarRobot   -> handleSonarRobot
+		       //   whenEvent local_modelChanged -> handleModelChanged
 	
 	State handleEnvCond {
 		printCurrentMessage
@@ -59,13 +59,15 @@ QActor mindrobot context ctxRobot{
 		}
 		
 	}
-	Goto requestBelancer
+	Goto waitCmd
 	
 	State requestBelancer{
 		println("requestBelancer")
-		run itunibo.robotRaspOnly.sonarBelancerOnlySupport.requestValue()
+		//run itunibo.robotRaspOnly.sonarBelancerOnlySupport.requestValue()
 	}
-	Transition t0 whenEvent sonarBelancer ->  riadrizza
+	Goto waitCmd
+	/*
+	//Transition t0 whenEvent sonarBelancer ->  riadrizza
 	
 	State riadrizza{
 		
@@ -94,7 +96,7 @@ QActor mindrobot context ctxRobot{
 	State handleSonarRobot {
 		printCurrentMessage
  		onMsg ( sonarRobot : sonar( DISTANCE ) ){
-			["obstacle = Integer.parseInt( payloadArg(0) ) < 10 "]
+			["obstacle = Integer.parseInt( payloadArg(0) ) < 20 "]
  		}//onMsg 	 
 	}
 	Goto waitCmd
@@ -114,6 +116,8 @@ QActor mindrobot context ctxRobot{
 		
 	}
 	Goto waitCmd
+	
+	*/
 }
 
 QActor basicrobot context ctxRobot{

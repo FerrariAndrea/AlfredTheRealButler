@@ -23,7 +23,7 @@ public class Main {
 		System.out.println("BootRasp");	
 		
 		ml.open();
-		ml.brightness((byte) 8);		
+		ml.brightness((byte) 5);		
 		ml.orientation(180);	
 		try {
 			ml.draw(0,MyMatrixLed.ImgFactory(IMG.BOOTING));

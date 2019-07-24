@@ -24,7 +24,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 					action { //it:State
 						foundObstacle = false 
 					}
-					 transition(edgeName="t013",targetState="doMoveForward",cond=whenDispatch("onestep"))
+					 transition(edgeName="t010",targetState="doMoveForward",cond=whenDispatch("onestep"))
 				}	 
 				state("doMoveForward") { //this:State
 					action { //it:State
@@ -37,8 +37,8 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 								itunibo.planner.plannerUtil.startTimer(  )
 						}
 					}
-					 transition(edgeName="t014",targetState="endDoMoveForward",cond=whenEvent("tickTimer"))
-					transition(edgeName="t015",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
+					 transition(edgeName="t011",targetState="endDoMoveForward",cond=whenEvent("tickTimer"))
+					transition(edgeName="t012",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
 				}	 
 				state("endDoMoveForward") { //this:State
 					action { //it:State
@@ -74,8 +74,8 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				state("mustGoOn") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t016",targetState="endDoMoveForward",cond=whenEvent("tickTimer"))
-					transition(edgeName="t017",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
+					 transition(edgeName="t013",targetState="endDoMoveForward",cond=whenEvent("tickTimer"))
+					transition(edgeName="t014",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
 				}	 
 			}
 		}
