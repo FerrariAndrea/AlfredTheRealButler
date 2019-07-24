@@ -13,6 +13,7 @@ import com.pi4j.io.gpio.RaspiPin;
 
 import gipo.devices.*;
 import gipo.devices.MyMatrixLed.IMG;
+import logos.Bootinglogo;
 
 public class Main {
 	public static MyMatrixLed ml= new MyMatrixLed((short)1);	
@@ -22,7 +23,7 @@ public class Main {
 		System.out.println("BootRasp");	
 		
 		ml.open();
-		ml.brightness((byte) 15);		
+		ml.brightness((byte) 8);		
 		ml.orientation(180);	
 		try {
 			ml.draw(0,MyMatrixLed.ImgFactory(IMG.BOOTING));
@@ -43,56 +44,33 @@ public class Main {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		try {
-			Thread.sleep(1000);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+		s(1000);
+		BootinglogoMenagment btm = new BootinglogoMenagment(ml);
+		
+		btm.startWaitingConnection();
+		s(1500);
+		while(ConnectedUser.getGateway()!=null) {
+			s(1000);
 		}
-		Runnable logo = new Runnable() {
-				public void run() {
-					bootingLogo();
-				}
-		};
-		Thread thlogo = new Thread(logo);
-		thlogo.start();
-		try {
-			Thread.sleep(500);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-
+		btm.stop();
+		s(150);
+		
+		btm.startWaitingLogin();
+		
 		//------------------------------------------------->DO YOUR JOB HERE!!!!!
 		
 		while(ConnectedUser.numberOfConnectedUser()<1) {
-			try {
-				Thread.sleep(1000);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+			s(1000);
 		}
-		
-		thlogo.stop();
-		try {
-			Thread.sleep(150);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		btm.stop();
+		s(150);
 		try {
 			ml.draw(0,MyMatrixLed.ImgFactory(IMG.SMILE));
 		} catch (Exception e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		try {
-			Thread.sleep(500);
-		} catch (InterruptedException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
+		s(500);
 		System.out.print("Finish booting :");
 		try {
 			ml.draw(0,MyMatrixLed.ImgFactory(IMG.CLEAN));
@@ -111,23 +89,13 @@ public class Main {
 			GpioFactory.getInstance().provisionDigitalOutputPin(iter.next(), "MyLED", PinState.LOW).low();
 		}
 	}
-	
-	private static void bootingLogo() {
-		Bootinglogo.init();
-		while(true) {
-			try {
-				ml.draw(0,Bootinglogo.convertMatrix(Bootinglogo.next()));				
-				//Bootinglogo.printMatrix(Bootinglogo.next());
-			} catch (Exception e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
-			try {
-				Thread.sleep(100);
-			} catch (InterruptedException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+
+	private static void s(int ms) {
+		try {
+			Thread.sleep(ms);
+		} catch (InterruptedException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 	}
 	

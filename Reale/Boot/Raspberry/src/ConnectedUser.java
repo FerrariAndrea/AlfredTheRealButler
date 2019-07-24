@@ -1,5 +1,6 @@
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
+import java.util.StringTokenizer;
 
 public class ConnectedUser {
 
@@ -20,4 +21,21 @@ public class ConnectedUser {
 		}
 		return 0;
 	}
+	
+	public static String getGateway() {
+		try{
+			Process p = Runtime.getRuntime().exec("./network.sh");
+			BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
+			String data = reader.readLine();
+			if(data!=null && data.length()>0) {
+				return data;
+			}else {
+				return null;
+			}
+ 		}catch(Exception e){
+ 			System.out.println(" ERROR " + e.getMessage() );
+		}
+		return null;
+	}
+	
 }
