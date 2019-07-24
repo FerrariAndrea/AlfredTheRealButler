@@ -42,7 +42,8 @@ QActor controller context ctxController {
 		delay 1000
 	}
 	Goto oneStep
-	
+
+
 	State next{
 		println("next")
 	}
