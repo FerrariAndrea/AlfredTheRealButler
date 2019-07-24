@@ -27,11 +27,12 @@ object nanoSupport {
  	
 	fun create(actor: ActorBasic, withSonar : Boolean = true){
 		println("nanoSupport CREATING $robot")
-		if(withSonar)
+		if(withSonar){
 			sonarHCSR04Support.create( actor, " ")
-		//QUI IL SUPPORTO DEGLI ALTRI SONAR (non tativo)
-		otherSonarsSupport.create(actor,true,true,false)
-		sonarBelancerOnlySupport.create(actor)
+			//QUI IL SUPPORTO DEGLI ALTRI SONAR (non tativo)
+			otherSonarsSupport.create(actor,true,true,false)
+			//sonarBelancerOnlySupport.create(actor)
+		}
 	} 
 	
 	fun move( cmd : String ){

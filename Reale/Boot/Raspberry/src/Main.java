@@ -49,7 +49,7 @@ public class Main {
 		
 		btm.startWaitingConnection();
 		s(1500);
-		while(ConnectedUser.getGateway()!=null) {
+		while(ConnectedUser.getGateway()==null) {
 			s(1000);
 		}
 		btm.stop();

@@ -8,13 +8,14 @@ import it.unibo.kactor.ActorBasic
 import kotlinx.coroutines.delay
 
 object sonarHCSR04Support {
-	lateinit var reader : BufferedReader
+	lateinit var readerPrimary : BufferedReader
+	
 	
 	//g++  SonarAlone.c -l wiringPi -o  SonarAlone
 	fun create( actor : ActorBasic, todo : String="" ){
 		println("sonarHCSR04Support CREATING")
 		val p = Runtime.getRuntime().exec("sudo ./SonarAlone")
-		reader = BufferedReader(  InputStreamReader(p.getInputStream() ))
+		readerPrimary = BufferedReader(  InputStreamReader(p.getInputStream() ))
 		startRead( actor )
 	}
 	
@@ -22,7 +23,7 @@ object sonarHCSR04Support {
 		GlobalScope.launch{
 			var old_data = 0
 			while( true ){
-				var data = reader.readLine()
+				var data = readerPrimary.readLine()
 				//println("sonarHCSR04Support data = $data"   )
 				if( data != null ){					
 	 				val m1 = "sonar( $data )"
