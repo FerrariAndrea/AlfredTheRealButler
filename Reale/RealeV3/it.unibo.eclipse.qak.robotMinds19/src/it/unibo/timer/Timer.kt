@@ -19,6 +19,12 @@ class Timer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
+						println("Start timer")
+					}
+					 transition( edgeName="goto",targetState="ready", cond=doswitch() )
+				}	 
+				state("ready") { //this:State
+					action { //it:State
 						ActualTimer = 0L 
 					}
 					 transition(edgeName="t015",targetState="start",cond=whenDispatch("setTimer"))
@@ -33,13 +39,13 @@ class Timer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope
 							scope, context!!, "local_tout_timer_start", ActualTimer )
 					}
 					 transition(edgeName="t016",targetState="drinnn",cond=whenTimeout("local_tout_timer_start"))   
-					transition(edgeName="t017",targetState="s0",cond=whenEvent("resetTimer"))
+					transition(edgeName="t017",targetState="ready",cond=whenEvent("resetTimer"))
 				}	 
 				state("drinnn") { //this:State
 					action { //it:State
 						forward("tickTimer", "tickTimer(ok)" ,"onecellforward" ) 
 					}
-					 transition( edgeName="goto",targetState="s0", cond=doswitch() )
+					 transition( edgeName="goto",targetState="ready", cond=doswitch() )
 				}	 
 			}
 		}

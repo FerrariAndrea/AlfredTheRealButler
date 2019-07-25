@@ -19,7 +19,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				var FoundObstacle = false
 				var StepTime = 0L
 				var Duration : Int =0
-				var DistanzaMinima :Int =30
+				var DistanzaMinima :Int =10
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -42,6 +42,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 								StepTime = payloadArg(0).toLong()
 						}
 						forward("internalReq", "internalReq(lastSonarRobot)" ,"sonarhandler" ) 
+						println("----------------WAITING")
 					}
 					 transition(edgeName="t010",targetState="waitingForcheckFirstSonar",cond=whenEvent("lastSonarRobot"))
 				}	 
@@ -50,7 +51,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						if( checkMsgContent( Term.createTerm("lastSonarRobot(DISATNCE)"), Term.createTerm("lastSonarRobot(DISTANCE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								var distance = Integer.parseInt( payloadArg(0) ) 
-								              FoundObstacle = (distance<DistanzaMinima/4) 
+								              FoundObstacle = (distance<DistanzaMinima/2) 
 								if(FoundObstacle){ replyToCaller("stepFail", "stepFail(obstacle,$distance) ")
 								println("Actor: OneStepForward; State:cantDoOneStep")
 								 }
@@ -81,6 +82,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				}	 
 				state("handleSonarRobot") { //this:State
 					action { //it:State
+						println("SONAR------------------------------------>HERE")
 						if( checkMsgContent( Term.createTerm("sonar(DISTANCE)"), Term.createTerm("sonar(DISTANCE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								val distance = Integer.parseInt( payloadArg(0) ) 
@@ -98,8 +100,8 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						forward("resetTimer", "resetTimer(reset)" ,"timer" ) 
 						forward("local_modelChanged", "modelChanged(robot,h)" ,"mindrobot" ) 
 						solve("wduration(TIME)","") //set resVar	
-						Duration=getCurSol("TIME").toString().toInt()
 						println("Actor: OneStepForward; State:stepfail -> $Duration")
+						Duration=getCurSol("TIME").toString().toInt()
 						replyToCaller("stepFail", "stepFail(obstacle,$Duration) ")
 					}
 					 transition( edgeName="goto",targetState="ready", cond=doswitch() )

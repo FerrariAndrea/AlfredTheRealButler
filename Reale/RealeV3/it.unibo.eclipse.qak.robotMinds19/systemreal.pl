@@ -12,3 +12,4 @@ context(ctxdummy, "dummyhost",  "MQTT", "0" ).
   qactor( onecellforward, ctxrobot, "it.unibo.onecellforward.Onecellforward").
   qactor( timer, ctxrobot, "it.unibo.timer.Timer").
   qactor( leds, ctxrobot, "it.unibo.leds.Leds").
+  qactor( flusher, ctxrobot, "it.unibo.flusher.Flusher").

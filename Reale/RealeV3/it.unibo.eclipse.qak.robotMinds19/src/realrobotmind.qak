@@ -202,7 +202,7 @@ QActor onecellforward context ctxRobot {
 		var FoundObstacle = false
 		var StepTime = 0L
 		var Duration : Int =0
-		var DistanzaMinima :Int =30
+		var DistanzaMinima :Int =10
 	"]  
 	State s0 initial {	   		
 		println("Start onecellforward")
@@ -222,13 +222,13 @@ QActor onecellforward context ctxRobot {
 			["StepTime = payloadArg(0).toLong()"]
 		}
 		forward sonarhandler -m internalReq : internalReq(lastSonarRobot)
-			
+			println ("----------------WAITING")
 	}Transition t0 whenEvent lastSonarRobot  -> waitingForcheckFirstSonar
 	
 	State waitingForcheckFirstSonar{
 		onMsg ( lastSonarRobot : lastSonarRobot( DISTANCE ) ){     
 			["var distance = Integer.parseInt( payloadArg(0) ) 
-              FoundObstacle = (distance<DistanzaMinima/4) "] 
+              FoundObstacle = (distance<DistanzaMinima/2) "] 
                if"FoundObstacle"{
               	  ["replyToCaller(\"stepFail\", \"stepFail(obstacle,$distance) \")"]
 				println("Actor: OneStepForward; State:cantDoOneStep")	
@@ -264,7 +264,9 @@ QActor onecellforward context ctxRobot {
 	
 	//Substitute with an ad-hoc actor for a real robot
 	State handleSonarRobot{  //before than the step time
-		//printCurrentMessage			
+		//printCurrentMessage		
+		
+         println("SONAR------------------------------------>HERE")	
  		onMsg ( sonarRobot : sonar( DISTANCE ) ){     
 			["val distance = Integer.parseInt( payloadArg(0) ) 
               FoundObstacle = (distance<DistanzaMinima) "]  
@@ -282,8 +284,9 @@ QActor onecellforward context ctxRobot {
 		forward mindrobot -m local_modelChanged : modelChanged(robot,h)	
 		solve( wduration( TIME ) )
 		//["Duration=getDuration()"]
-		["Duration=getCurSol(\"TIME\").toString().toInt()"]
 		println("Actor: OneStepForward; State:stepfail -> $Duration")			 
+		
+		["Duration=getCurSol(\"TIME\").toString().toInt()"]
 		["replyToCaller(\"stepFail\", \"stepFail(obstacle,$Duration) \")"]//#TIME
 			 	
 	}
@@ -298,29 +301,45 @@ QActor onecellforward context ctxRobot {
 QActor timer context ctxRobot {
 	["var ActualTimer = 0L "]
 	State s0 initial {	   
+		println("Start timer") 
+	}Goto ready
+	
+	State ready{
+		  
 		["ActualTimer = 0L "]
-	}Transition t0 whenMsg setTimer -> start
+		}Transition t0 whenMsg setTimer -> start
 	
 	State start{
 		onMsg( setTimer : setTimer( DURATION ) ) {
 			["ActualTimer = payloadArg(0).toLong()"]
 		}
 	}Transition t0 whenTimeVar  ActualTimer -> drinnn	
-					whenEvent resetTimer  -> s0
+					whenEvent resetTimer  -> ready
 					
 	State drinnn{
 		forward onecellforward -m tickTimer : tickTimer(ok) 
 	}
-	Goto s0
+	Goto ready
 	
 }
 
 QActor leds context ctxRobot {
-	State s0 initial {	   
+	State s0 initial {	
+		println("Start leds")   
 		run surpluss.ledManagerSupport.create()
 		delay 10
 		run surpluss.ledManagerSupport.frontLedBlink(250)
 		delay 1000
 	}
-
+	Goto after
+	State after{}
+	
 }
+QActor flusher context ctxRobot {
+	["val FlushTimer = 2000L "]
+	State s0 initial {	
+		println("Start flusher")  
+	}
+}
+
+
