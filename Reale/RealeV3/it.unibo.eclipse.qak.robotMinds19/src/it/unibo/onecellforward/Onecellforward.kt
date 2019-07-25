@@ -19,7 +19,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				var FoundObstacle = false
 				var StepTime = 0L
 				var Duration : Int =0
-				var DistanzaMinima :Int =20
+				var DistanzaMinima :Int =30
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -54,6 +54,9 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 								if(FoundObstacle){ replyToCaller("stepFail", "stepFail(obstacle,$distance) ")
 								println("Actor: OneStepForward; State:cantDoOneStep")
 								 }
+								else
+								 { println("Actor: OneStepForward; State: OK-> $distance")
+								  }
 						}
 					}
 					 transition( edgeName="goto",targetState="ready", cond=doswitchGuarded({FoundObstacle}) )

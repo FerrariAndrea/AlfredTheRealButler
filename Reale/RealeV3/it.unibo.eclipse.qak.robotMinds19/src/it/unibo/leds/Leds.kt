@@ -21,6 +21,7 @@ class Leds ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope)
 						surpluss.ledManagerSupport.create(  )
 						delay(10) 
 						surpluss.ledManagerSupport.frontLedBlink( 250  )
+						delay(1000) 
 					}
 				}	 
 			}

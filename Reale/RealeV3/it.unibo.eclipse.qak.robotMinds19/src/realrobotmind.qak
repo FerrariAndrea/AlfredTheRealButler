@@ -53,7 +53,7 @@ QActor mindrobot context ctxRobot{
 		          whenEvent local_modelChanged -> handleModelChanged
 	
 	State handleEnvCond {
-		printCurrentMessage
+		//printCurrentMessage
  		onMsg( envCond : envCond(CMD) ) {
  			forward basicrobot -m robotCmd : robotCmd( h )	//First do ...
  			forward resourcemodel -m modelUpdate : modelUpdate(robot,h) //... then update the model
@@ -105,7 +105,7 @@ QActor mindrobot context ctxRobot{
 	*/
 	
 	State handleModelChanged {
-		printCurrentMessage
+		//printCurrentMessage
 		onMsg ( local_modelChanged : modelChanged(robot,CMD) ){ 
 			forward basicrobot -m robotCmd : robotCmd( $payloadArg(1) )	
 			forward resourcemodel -m modelUpdate : modelUpdate(robot,$payloadArg(1)) //... then update the model
@@ -202,7 +202,7 @@ QActor onecellforward context ctxRobot {
 		var FoundObstacle = false
 		var StepTime = 0L
 		var Duration : Int =0
-		var DistanzaMinima :Int =20
+		var DistanzaMinima :Int =30
 	"]  
 	State s0 initial {	   		
 		println("Start onecellforward")
@@ -232,11 +232,10 @@ QActor onecellforward context ctxRobot {
                if"FoundObstacle"{
               	  ["replyToCaller(\"stepFail\", \"stepFail(obstacle,$distance) \")"]
 				println("Actor: OneStepForward; State:cantDoOneStep")	
-              }
-              //else{
+              }else{
               	
-              //	println("Actor: OneStepForward; State: OK-> $distance")	
-              //}
+              	println("Actor: OneStepForward; State: OK-> $distance")	
+              }
               
               
    		}
@@ -321,6 +320,7 @@ QActor leds context ctxRobot {
 		run surpluss.ledManagerSupport.create()
 		delay 10
 		run surpluss.ledManagerSupport.frontLedBlink(250)
+		delay 1000
 	}
 
 }

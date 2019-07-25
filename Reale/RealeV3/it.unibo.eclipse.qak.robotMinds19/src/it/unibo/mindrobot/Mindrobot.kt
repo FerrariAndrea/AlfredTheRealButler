@@ -34,7 +34,6 @@ class Mindrobot ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 				}	 
 				state("handleEnvCond") { //this:State
 					action { //it:State
-						println("$name in ${currentState.stateName} | $currentMsg")
 						if( checkMsgContent( Term.createTerm("envCond(CONDTYPE)"), Term.createTerm("envCond(CMD)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								forward("robotCmd", "robotCmd(h)" ,"basicrobot" ) 
@@ -51,7 +50,6 @@ class Mindrobot ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 				}	 
 				state("handleModelChanged") { //this:State
 					action { //it:State
-						println("$name in ${currentState.stateName} | $currentMsg")
 						if( checkMsgContent( Term.createTerm("modelChanged(TARGET,VALUE)"), Term.createTerm("modelChanged(robot,CMD)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								forward("robotCmd", "robotCmd(${payloadArg(1)})" ,"basicrobot" ) 

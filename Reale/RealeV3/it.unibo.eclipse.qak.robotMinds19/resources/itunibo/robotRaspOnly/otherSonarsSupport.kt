@@ -49,7 +49,7 @@ object otherSonarsSupport {
 					//println("sonarHCSR04Support m1 = $m1"   )
 				
 				}
-				//delay( 250 )
+				delay( 200 )
 			}
 		}
 	}

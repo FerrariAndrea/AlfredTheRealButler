@@ -32,7 +32,7 @@ object nanoSupport {
 		println( "nanoSupport move $cmd $robot" )
 		var command : IBaseRobotCommand = BaseRobotStop(SPEED_LOW )
 		when( cmd ){
-			"msg(w)" -> command = BaseRobotForward( SPEED_HIGH )
+			"msg(w)" -> command = BaseRobotForward( SPEED_MEDIUM )
 			"msg(s)" -> command = BaseRobotBackward(SPEED_HIGH )
 			"msg(a)" -> command = BaseRobotLeft(SPEED_MEDIUM )
 			"msg(d)" -> command = BaseRobotRight(SPEED_MEDIUM )

@@ -19,22 +19,31 @@ object ledManagerSupport {
 		writeFrontLed = p.outputStream
 	}
 	
-	
-	fun frontLedOn(){
-		writeFrontLed.write(1)
+	private fun frontLedOnEnable(enabe : Boolean){
+		if(enabe){			
+			writeFrontLed.write(1)
+		}else{
+			writeFrontLed.write(0)
+		}
 	}
 	
-	fun frontLedOff(){
+	 fun frontLedOn(){
 		blinking=false
-		writeFrontLed.write(0)
+		frontLedOnEnable(true)
+	}
+	
+	 fun frontLedOff(){
+		blinking=false
+		frontLedOnEnable(false)
 	}
 	
 	fun frontLedBlink(intervall:Long){
 		blinking=true
 		while(blinking){
-			frontLedOn()
+			frontLedOnEnable(true)
 			Thread.sleep(intervall)
-			frontLedOff()
+			if(blinking)
+				frontLedOnEnable(false)
 			Thread.sleep(intervall)
 		}
 	}
