@@ -30,11 +30,11 @@ class Sonarhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 								forward("modelChange", "modelChange(sonarRobot,${payloadArg(0)})" ,"resourcemodel" ) 
 								LastSonarRobot =  Integer.parseInt( payloadArg(0) )
 						}
-						if( checkMsgContent( Term.createTerm("sonar(DISTANCE)"), Term.createTerm("sonar(DISTANCE)"), 
+						if( checkMsgContent( Term.createTerm("sonarLeft(DISTANCE)"), Term.createTerm("sonar(DISTANCE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								forward("modelChange", "modelChange(sonarLeft,${payloadArg(0)})" ,"resourcemodel" ) 
 						}
-						if( checkMsgContent( Term.createTerm("sonar(DISTANCE)"), Term.createTerm("sonar(DISTANCE)"), 
+						if( checkMsgContent( Term.createTerm("sonarRigth(DISTANCE)"), Term.createTerm("sonar(DISTANCE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								forward("modelChange", "modelChange(sonarRigth,${payloadArg(0)})" ,"resourcemodel" ) 
 						}

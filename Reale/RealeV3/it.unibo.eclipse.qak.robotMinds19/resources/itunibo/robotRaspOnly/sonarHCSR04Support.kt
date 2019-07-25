@@ -31,10 +31,10 @@ object sonarHCSR04Support {
 							actor.emit("sonarRobot",m1 )
 							old_data=data.toInt()
 					}
-					//println("sonarHCSR04Support m1 = $m1"   )
+					println("------------------------------->sonarHCSR04Support m1 = $m1"   )
 				
 				}
-				delay( 120 )
+				//delay( 120 )
 			}
 		}
 	}

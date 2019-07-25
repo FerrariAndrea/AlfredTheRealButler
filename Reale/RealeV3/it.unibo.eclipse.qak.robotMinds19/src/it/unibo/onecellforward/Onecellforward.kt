@@ -23,13 +23,20 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
-						FoundObstacle = false 
+						println("Start onecellforward")
+					}
+					 transition( edgeName="goto",targetState="ready", cond=doswitch() )
+				}	 
+				state("ready") { //this:State
+					action { //it:State
 					}
 					 transition(edgeName="t09",targetState="checkFirst",cond=whenDispatch("onestep"))
 				}	 
 				state("checkFirst") { //this:State
 					action { //it:State
-						storeCurrentMessageForReply()
+						
+									storeCurrentMessageForReply()
+									FoundObstacle = false 
 						if( checkMsgContent( Term.createTerm("onestep(DURATION)"), Term.createTerm("onestep(TIME)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								StepTime = payloadArg(0).toLong()
@@ -49,7 +56,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 								 }
 						}
 					}
-					 transition( edgeName="goto",targetState="s0", cond=doswitchGuarded({FoundObstacle}) )
+					 transition( edgeName="goto",targetState="ready", cond=doswitchGuarded({FoundObstacle}) )
 					transition( edgeName="goto",targetState="doMoveForward", cond=doswitchGuarded({! FoundObstacle}) )
 				}	 
 				state("doMoveForward") { //this:State
@@ -57,6 +64,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						forward("local_modelChanged", "modelChanged(robot,w)" ,"mindrobot" ) 
 						forward("setTimer", "setTimer($StepTime)" ,"timer" ) 
 						itunibo.planner.plannerUtil.startTimer(  )
+						println("------WAITING SONAR-------")
 					}
 					 transition(edgeName="t011",targetState="endDoMoveForward",cond=whenEvent("tickTimer"))
 					transition(edgeName="t012",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
@@ -66,16 +74,16 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						forward("local_modelChanged", "modelChanged(robot,h)" ,"mindrobot" ) 
 						replyToCaller("stepOk", "stepOk(ok)")
 					}
-					 transition( edgeName="goto",targetState="s0", cond=doswitch() )
+					 transition( edgeName="goto",targetState="ready", cond=doswitch() )
 				}	 
 				state("handleSonarRobot") { //this:State
 					action { //it:State
-						println("$name in ${currentState.stateName} | $currentMsg")
-						itunibo.planner.moveUtils.setDuration(myself)
 						if( checkMsgContent( Term.createTerm("sonar(DISTANCE)"), Term.createTerm("sonar(DISTANCE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								val distance = Integer.parseInt( payloadArg(0) ) 
 								              FoundObstacle = (distance<DistanzaMinima) 
+								if(FoundObstacle){ itunibo.planner.moveUtils.setDuration(myself)
+								 }
 								println("SONAR------>$distance")
 						}
 					}
@@ -87,10 +95,11 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						forward("resetTimer", "resetTimer(reset)" ,"timer" ) 
 						forward("local_modelChanged", "modelChanged(robot,h)" ,"mindrobot" ) 
 						solve("wduration(TIME)","") //set resVar	
-						println("Actor: OneStepForward; State:stepfail -> #TIME")
-						replyToCaller("stepFail", "stepFail(obstacle,#TIME) ")
+						Duration=getCurSol("TIME").toString().toInt()
+						println("Actor: OneStepForward; State:stepfail -> $Duration")
+						replyToCaller("stepFail", "stepFail(obstacle,$Duration) ")
 					}
-					 transition( edgeName="goto",targetState="s0", cond=doswitch() )
+					 transition( edgeName="goto",targetState="ready", cond=doswitch() )
 				}	 
 				state("mustGoOn") { //this:State
 					action { //it:State

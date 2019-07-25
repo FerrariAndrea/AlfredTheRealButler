@@ -41,7 +41,7 @@ object otherSonarsSupport {
 				var data = reader.readLine()
 				//println("sonarHCSR04Support data = $data"   )
 				if( data != null ){					
-	 				val m1 = "$leftMsgName( $data )"
+	 				val m1 = "$msgName( $data )"
 					if(Math.abs(old_data-data.toInt())>windowSize){
 							actor.emit(msgName,m1 )
 							old_data=data.toInt()
@@ -49,7 +49,7 @@ object otherSonarsSupport {
 					//println("sonarHCSR04Support m1 = $m1"   )
 				
 				}
-				delay( 250 )
+				//delay( 250 )
 			}
 		}
 	}
