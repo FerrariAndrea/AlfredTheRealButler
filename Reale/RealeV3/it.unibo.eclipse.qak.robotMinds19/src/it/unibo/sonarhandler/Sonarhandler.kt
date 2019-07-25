@@ -29,7 +29,6 @@ class Sonarhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								forward("modelChange", "modelChange(sonarRobot,${payloadArg(0)})" ,"resourcemodel" ) 
 								LastSonarRobot =  Integer.parseInt( payloadArg(0) )
-								println("lastsonarrobot--> $LastSonarRobot")
 						}
 						if( checkMsgContent( Term.createTerm("sonar(DISTANCE)"), Term.createTerm("sonar(DISTANCE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList

@@ -43,7 +43,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						if( checkMsgContent( Term.createTerm("lastSonarRobot(DISATNCE)"), Term.createTerm("lastSonarRobot(DISTANCE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								var distance = Integer.parseInt( payloadArg(0) ) 
-								              FoundObstacle = (distance<DistanzaMinima) 
+								              FoundObstacle = (distance<DistanzaMinima/4) 
 								if(FoundObstacle){ replyToCaller("stepFail", "stepFail(obstacle,$distance) ")
 								println("Actor: OneStepForward; State:cantDoOneStep")
 								 }
@@ -87,8 +87,8 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						forward("resetTimer", "resetTimer(reset)" ,"timer" ) 
 						forward("local_modelChanged", "modelChanged(robot,h)" ,"mindrobot" ) 
 						solve("wduration(TIME)","") //set resVar	
-						println("Actor: OneStepForward; State:stepfail -> $Duration")
-						replyToCaller("stepFail", "stepFail(obstacle,$Duration) ")
+						println("Actor: OneStepForward; State:stepfail -> #TIME")
+						replyToCaller("stepFail", "stepFail(obstacle,#TIME) ")
 					}
 					 transition( edgeName="goto",targetState="s0", cond=doswitch() )
 				}	 

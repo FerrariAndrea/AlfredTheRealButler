@@ -166,7 +166,7 @@ QActor sonarhandler context ctxRobot {
 	//		emit polar : p( $D, 180  ) 
 			forward resourcemodel -m modelChange : modelChange(sonarRobot,$payloadArg(0))
  			["LastSonarRobot =  Integer.parseInt( payloadArg(0) )"] 	
- 			println("lastsonarrobot--> $LastSonarRobot")		
+ 			//println("lastsonarrobot--> $LastSonarRobot")		
  		}
  		//---------------------------------------------------------------SONAR Left
  		onMsg ( sonarLeft : sonar( DISTANCE ) ){     
@@ -221,7 +221,7 @@ QActor onecellforward context ctxRobot {
 	State waitingForcheckFirstSonar{
 		onMsg ( lastSonarRobot : lastSonarRobot( DISTANCE ) ){     
 			["var distance = Integer.parseInt( payloadArg(0) ) 
-              FoundObstacle = (distance<DistanzaMinima) "] 
+              FoundObstacle = (distance<DistanzaMinima/4) "] 
                if"FoundObstacle"{
               	  ["replyToCaller(\"stepFail\", \"stepFail(obstacle,$distance) \")"]
 				println("Actor: OneStepForward; State:cantDoOneStep")	
@@ -267,8 +267,8 @@ QActor onecellforward context ctxRobot {
 		forward mindrobot -m local_modelChanged : modelChanged(robot,h)	
 		solve( wduration( TIME ) )
 		//["Duration=getDuration()"]
-		println("Actor: OneStepForward; State:stepfail -> $Duration")			 
-		["replyToCaller(\"stepFail\", \"stepFail(obstacle,$Duration) \")"]//#TIME
+		println("Actor: OneStepForward; State:stepfail -> #TIME")			 
+		["replyToCaller(\"stepFail\", \"stepFail(obstacle,#TIME) \")"]//#TIME
 			 	
 	}
 	Goto s0
