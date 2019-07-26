@@ -30,7 +30,7 @@ object nanoSupport {
 		if(withSonar){
 			//sonarHCSR04Support.create( actor, " ")
 			//QUI IL SUPPORTO DEGLI ALTRI SONAR (non tativo)
-			otherSonarsSupport.create(actor,true,true,false)
+			//otherSonarsSupport.create(actor,true,true,false)
 			//sonarBelancerOnlySupport.create(actor)
 		}
 	} 

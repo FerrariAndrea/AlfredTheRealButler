@@ -19,16 +19,28 @@ class Leds ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope)
 				state("s0") { //this:State
 					action { //it:State
 						println("Start leds")
-						surpluss.ledManagerSupport.create(  )
+						surpluss.ledManagerSupport.instance(  )
 						delay(10) 
 						surpluss.ledManagerSupport.frontLedBlink( 250  )
 						delay(1000) 
+						surpluss.ledManagerSupport.frontLedOff(  )
 					}
-					 transition( edgeName="goto",targetState="after", cond=doswitch() )
+					 transition(edgeName="t018",targetState="menageLed",cond=whenDispatch("setLed"))
 				}	 
-				state("after") { //this:State
+				state("menageLed") { //this:State
 					action { //it:State
+						if( checkMsgContent( Term.createTerm("setLed(CMD)"), Term.createTerm("setLed(CMD)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								val Cmd = payloadArg(0).toLong() 
+								if(Cmd<0){ surpluss.ledManagerSupport.frontLedOff(  )
+								 }
+								if(Cmd==0.toLong()){ surpluss.ledManagerSupport.frontLedOn(  )
+								 }
+								if(Cmd>0){ surpluss.ledManagerSupport.frontLedBlink( Cmd  )
+								 }
+						}
 					}
+					 transition(edgeName="t019",targetState="menageLed",cond=whenDispatch("onestep"))
 				}	 
 			}
 		}

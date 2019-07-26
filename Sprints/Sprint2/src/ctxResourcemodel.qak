@@ -67,7 +67,7 @@ QActor resourcemodel context ctxResourceModel {
 		onMsg( modelChange : modelChange( robot,V ) ) { // V= w | ...
 			run itunibo.robot.resourceModelSupport.updateRobotModel( myself, payloadArg(1) )
 			forward mindrobot -m local_modelChanged : modelChanged(  robot,  $payloadArg(1))  //for the robotmind
-			forward kb -m modelUpdate : modelUpdate(  robot,  $payloadArg(1))  //for kb
+			//forward kb -m modelUpdate : modelUpdate(  robot,  $payloadArg(1))  //for kb
 		} 
 		//SONAR DATA  
 		onMsg( modelChange : modelChange( sonarRobot,V ) ) { // V= w | ...

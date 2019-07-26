@@ -26,7 +26,7 @@ QActor attore1 context ctx1{
 }
 
 
-QActor attore2 context ctx2{
+QActor attore2 context ctx1{
 	
 	
 	

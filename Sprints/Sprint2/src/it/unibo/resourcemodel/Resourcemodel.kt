@@ -39,7 +39,6 @@ class Resourcemodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								itunibo.robot.resourceModelSupport.updateRobotModel(myself ,payloadArg(1) )
 								forward("local_modelChanged", "modelChanged(robot,${payloadArg(1)})" ,"mindrobot" ) 
-								forward("modelUpdate", "modelUpdate(robot,${payloadArg(1)})" ,"kb" ) 
 						}
 						if( checkMsgContent( Term.createTerm("modelChange(TARGET,VALUE)"), Term.createTerm("modelChange(sonarRobot,V)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList

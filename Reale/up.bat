@@ -11,5 +11,7 @@ call gradle -b build_ctxRobotMind.gradle distZip
 
 echo "estrazione..."
 powershell Expand-Archive -Force "build\distributions\it.unibo.eclipse.qak.robotMinds19-1.0.zip" -DestinationPath "\\192.168.43.15\AnotherRobot\qak\qakV3"
+echo "copio .pl"
+copy "*.pl" "\\192.168.43.15\AnotherRobot\qak\qakV3\it.unibo.eclipse.qak.robotMinds19-1.0\bin"
 
 pause

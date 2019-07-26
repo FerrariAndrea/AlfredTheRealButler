@@ -18,8 +18,8 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 		
 				var FoundObstacle = false
 				var StepTime = 0L
-				var Duration : Int =0
-				var DistanzaMinima :Int =10
+				var Duration : Long =0
+				var DistanzaMinima :Long =10
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -29,11 +29,13 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				}	 
 				state("ready") { //this:State
 					action { //it:State
+						println("->ready")
 					}
 					 transition(edgeName="t09",targetState="checkFirst",cond=whenDispatch("onestep"))
 				}	 
 				state("checkFirst") { //this:State
 					action { //it:State
+						println("---------->checkFirst")
 						
 									storeCurrentMessageForReply()
 									FoundObstacle = false 
@@ -48,6 +50,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				}	 
 				state("waitingForcheckFirstSonar") { //this:State
 					action { //it:State
+						println("---------->waitingForcheckFirstSonar")
 						if( checkMsgContent( Term.createTerm("lastSonarRobot(DISATNCE)"), Term.createTerm("lastSonarRobot(DISTANCE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								var distance = Integer.parseInt( payloadArg(0) ) 
@@ -65,31 +68,32 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				}	 
 				state("doMoveForward") { //this:State
 					action { //it:State
+						println("-->doMoveForward")
 						forward("local_modelChanged", "modelChanged(robot,w)" ,"mindrobot" ) 
 						forward("setTimer", "setTimer($StepTime)" ,"timer" ) 
 						itunibo.planner.plannerUtil.startTimer(  )
-						println("------WAITING SONAR-------")
 					}
 					 transition(edgeName="t011",targetState="endDoMoveForward",cond=whenEvent("tickTimer"))
 					transition(edgeName="t012",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
 				}	 
 				state("endDoMoveForward") { //this:State
 					action { //it:State
+						println("---------------------------OK----->endDoMoveForward")
 						forward("local_modelChanged", "modelChanged(robot,h)" ,"mindrobot" ) 
+						forward("modelUpdate", "modelUpdate(robot,w)" ,"kb" ) 
 						replyToCaller("stepOk", "stepOk(ok)")
 					}
 					 transition( edgeName="goto",targetState="ready", cond=doswitch() )
 				}	 
 				state("handleSonarRobot") { //this:State
 					action { //it:State
-						println("SONAR------------------------------------>HERE")
 						if( checkMsgContent( Term.createTerm("sonar(DISTANCE)"), Term.createTerm("sonar(DISTANCE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								val distance = Integer.parseInt( payloadArg(0) ) 
 								              FoundObstacle = (distance<DistanzaMinima) 
 								if(FoundObstacle){ itunibo.planner.moveUtils.setDuration(myself)
 								 }
-								println("SONAR------>$distance")
+								println("handleSonarRobot-ONESTEP--------------------------------------------->$distance")
 						}
 					}
 					 transition( edgeName="goto",targetState="stepFail", cond=doswitchGuarded({FoundObstacle}) )
@@ -100,14 +104,22 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						forward("resetTimer", "resetTimer(reset)" ,"timer" ) 
 						forward("local_modelChanged", "modelChanged(robot,h)" ,"mindrobot" ) 
 						solve("wduration(TIME)","") //set resVar	
-						println("Actor: OneStepForward; State:stepfail -> $Duration")
-						Duration=getCurSol("TIME").toString().toInt()
+						Duration=getCurSol("TIME").toString().toLong()
+					}
+					 transition( edgeName="goto",targetState="goBackFromFail", cond=doswitch() )
+				}	 
+				state("goBackFromFail") { //this:State
+					action { //it:State
+						forward("modelChange", "modelChange(robot,s)" ,"resourcemodel" ) 
+						delay(Duration)
+						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
 						replyToCaller("stepFail", "stepFail(obstacle,$Duration) ")
 					}
 					 transition( edgeName="goto",targetState="ready", cond=doswitch() )
 				}	 
 				state("mustGoOn") { //this:State
 					action { //it:State
+						println("->mustGoOn")
 					}
 					 transition(edgeName="t013",targetState="endDoMoveForward",cond=whenEvent("tickTimer"))
 					transition(edgeName="t014",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))

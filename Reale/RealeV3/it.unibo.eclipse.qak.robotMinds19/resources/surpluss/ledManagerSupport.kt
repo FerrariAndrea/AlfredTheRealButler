@@ -13,7 +13,7 @@ object ledManagerSupport {
 	lateinit var writeFrontLed : OutputStream
 	var blinking = false
 	//g++  SonarAlone.c -l wiringPi -o  SonarAlone
-	fun create(){//actor : ActorBasic, todo : String=""
+	fun instance(){//actor : ActorBasic, todo : String=""
 		println("ledManagerSupport CREATING")
 		val p = Runtime.getRuntime().exec("sudo ./FrontLed")
 		writeFrontLed = p.outputStream
@@ -21,10 +21,11 @@ object ledManagerSupport {
 	
 	private fun frontLedOnEnable(enabe : Boolean){
 		if(enabe){			
-			writeFrontLed.write(1)
+			writeFrontLed.write(1)		
 		}else{
 			writeFrontLed.write(0)
 		}
+		writeFrontLed.flush()
 	}
 	
 	 fun frontLedOn(){
@@ -43,7 +44,7 @@ object ledManagerSupport {
 			frontLedOnEnable(true)
 			Thread.sleep(intervall)
 			if(blinking)
-				frontLedOnEnable(false)
+			frontLedOnEnable(false)
 			Thread.sleep(intervall)
 		}
 	}
