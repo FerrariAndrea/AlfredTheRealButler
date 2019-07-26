@@ -1,7 +1,7 @@
 %====================================================================================
 % systemreal description   
 %====================================================================================
-mqttBroker("192.168.43.61", "1883").
+mqttBroker("11.0.0.18", "1883").
 context(ctxrobot, "localhost",  "MQTT", "0" ).
 context(ctxdummy, "dummyhost",  "MQTT", "0" ).
  qactor( kb, ctxdummy, "external").

@@ -29,6 +29,15 @@ class Sonarhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								forward("modelChange", "modelChange(sonarRobot,${payloadArg(0)})" ,"resourcemodel" ) 
 								LastSonarRobot =  Integer.parseInt( payloadArg(0) )
+								if(LastSonarRobot>=50 ){ val Off :Int = -1
+								forward("setLed", "setLed($Off)" ,"leds" ) 
+								 }
+								if(LastSonarRobot<50 && LastSonarRobot>20){ forward("setLed", "setLed(500)" ,"leds" ) 
+								 }
+								if(LastSonarRobot<=20 && LastSonarRobot>=10){ forward("setLed", "setLed(150)" ,"leds" ) 
+								 }
+								if(LastSonarRobot<10){ forward("setLed", "setLed(0)" ,"leds" ) 
+								 }
 						}
 						if( checkMsgContent( Term.createTerm("sonarLeft(DISTANCE)"), Term.createTerm("sonarLeft(DISTANCE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList

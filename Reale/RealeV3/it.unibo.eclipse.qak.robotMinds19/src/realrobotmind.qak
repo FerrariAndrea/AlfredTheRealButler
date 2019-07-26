@@ -1,5 +1,6 @@
 System systemreal
-mqttBroker "192.168.43.61" : 1883
+//mqttBroker "192.168.43.61" : 1883 //CELLULARE
+mqttBroker "11.0.0.18" : 1883 //CASA
 
 //----------------------------SONARS
 Event  envCond        : envCond( CONDTYPE )        //from the environment 
@@ -174,7 +175,20 @@ QActor sonarhandler context ctxRobot {
 	//		emit polar : p( $D, 180  ) 
 			forward resourcemodel -m modelChange : modelChange(sonarRobot,$payloadArg(0))
  			["LastSonarRobot =  Integer.parseInt( payloadArg(0) )"] 	
- 			//	println("lastsonarrobot--> $LastSonarRobot")		
+ 			//	println("lastsonarrobot--> $LastSonarRobot")
+ 			if "LastSonarRobot>=50 "{
+ 				["val Off :Int = -1"]
+ 				forward leds -m setLed : setLed($Off)  
+ 			}
+ 			if "LastSonarRobot<50 && LastSonarRobot>20"{
+ 				forward leds -m setLed : setLed(500)  
+ 			}
+ 			if "LastSonarRobot<=20 && LastSonarRobot>=10"{		
+ 				forward leds -m setLed : setLed(150) 
+ 			}
+ 			if "LastSonarRobot<10"{		
+ 				forward leds -m setLed : setLed(0) 
+ 			}
  		}
  		//---------------------------------------------------------------SONAR Left
  		onMsg ( sonarLeft : sonarLeft( DISTANCE ) ){     
