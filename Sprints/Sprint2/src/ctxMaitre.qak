@@ -1,6 +1,7 @@
 System system4
 mqttBroker "localhost" : 1883
 
+
 //in futuro andrà sostituito con qualcosa di più articolato 
 //ad esempio un messaggio che dica all'Explorer in che posizione della mappa andare
 //e dopo ancora che dica all'explorer direttamente cosa fare (es: porta i piatti a lavare)
