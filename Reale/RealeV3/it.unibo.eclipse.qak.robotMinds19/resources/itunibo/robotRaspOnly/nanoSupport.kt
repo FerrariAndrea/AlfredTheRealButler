@@ -26,9 +26,9 @@ object nanoSupport {
 	val robot         = basicRobot.getBaseRobot()
  	
 	fun create(actor: ActorBasic, withSonar : Boolean = true){
-		println("nanoSupport CREATING $robot")
+		println("nanoSupport (MODDED) CREATING $robot")
 		if(withSonar){
-			sonarHCSR04Support.create( actor, " ")
+			//sonarHCSR04Support.create( actor, " ")
 			//QUI IL SUPPORTO DEGLI ALTRI SONAR (non tativo)
 			otherSonarsSupport.create(actor,true,true,false)
 			//sonarBelancerOnlySupport.create(actor)

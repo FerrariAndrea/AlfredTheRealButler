@@ -342,4 +342,24 @@ QActor flusher context ctxRobot {
 	}
 }
 
+QActor realsonar context ctxRobot{
+	["
+		val ActualTimer : Long = 50
+	"]
+	State s0 initial {	
+		println("Start realSonar")  
+		run surpluss.pollingSonar.instance()
+	}Transition t0  whenTimeVar  ActualTimer -> doNotifyAll
+	
+	State doNotifyAll{
+		["val Distance = surpluss.pollingSonar.askToSonar().toInt()"]
+		println("MY SONAR --------------> $Distance")
+		if"Distance>0"{			
+			emit sonarRobot : sonar($Distance)
+		}
+	}Transition t0  whenTimeVar  ActualTimer -> doNotifyAll
+	
+}
+
+
 

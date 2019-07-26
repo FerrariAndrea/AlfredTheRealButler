@@ -13,3 +13,4 @@ context(ctxdummy, "dummyhost",  "MQTT", "0" ).
   qactor( timer, ctxrobot, "it.unibo.timer.Timer").
   qactor( leds, ctxrobot, "it.unibo.leds.Leds").
   qactor( flusher, ctxrobot, "it.unibo.flusher.Flusher").
+  qactor( realsonar, ctxrobot, "it.unibo.realsonar.Realsonar").

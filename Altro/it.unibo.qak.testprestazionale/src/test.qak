@@ -1,0 +1,43 @@
+System testprestazionale
+mqttBroker "localhost" : 1883
+Event  notifyAll   : notifyAll(NUMBER) 
+
+
+Context ctx1 ip [host="dummyhost1" port=9999]-mqtt
+Context ctx2 ip [host="dummyhost2" port=9999]-mqtt
+
+
+
+QActor attore1 context ctx1{
+	["
+		val ActualTimer : Long = 50
+		var Count : Long = 0
+	"]
+	State s0 initial {
+		println("attore1 START")
+	}Transition t0  whenTimeVar  ActualTimer -> doNotifyAll
+	
+	State doNotifyAll{		
+		emit notifyAll : notifyAll($Count)
+		["Count+=1"]
+	}Transition t0  whenTimeVar  ActualTimer -> doNotifyAll
+	
+	
+}
+
+
+QActor attore2 context ctx2{
+	
+	
+	
+	State s0 initial {
+		println("attore2 START")
+	}Transition t0 whenEvent notifyAll      -> handleNotifyAll
+	
+	State handleNotifyAll{
+		onMsg( notifyAll : notifyAll( COUNT ) ) {
+			println("------------------->${payloadArg(0)}")
+		}
+	}Transition t0 whenEvent notifyAll      -> handleNotifyAll
+	
+}
