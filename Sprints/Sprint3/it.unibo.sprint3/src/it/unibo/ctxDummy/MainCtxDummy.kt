@@ -6,7 +6,11 @@ import kotlinx.coroutines.runBlocking
 
 fun main() = runBlocking {
 	QakContext.createContexts(
+<<<<<<< HEAD
+	        "dummyhost", this, "system2.pl", "sysRules.pl"
+=======
 	        "dummyhost", this, "system1.pl", "sysRules.pl"
+>>>>>>> 1de37b72c3c0f13944f37e9fa047a83b3b492b5e
 	)
 }
 

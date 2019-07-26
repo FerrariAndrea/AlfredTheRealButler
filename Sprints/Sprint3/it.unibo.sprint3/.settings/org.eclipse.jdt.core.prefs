@@ -1,6 +1,11 @@
 #
+<<<<<<< HEAD
+#Fri Jul 26 18:17:05 CEST 2019
+org.eclipse.jdt.core.compiler.problem.assertIdentifier=error
+=======
 #Fri Jul 26 17:55:21 CEST 2019
 org.eclipse.jdt.core.compiler.problem.enumIdentifier=error
+>>>>>>> 1de37b72c3c0f13944f37e9fa047a83b3b492b5e
 org.eclipse.jdt.core.compiler.codegen.targetPlatform=1.8
 eclipse.preferences.version=1
 org.eclipse.jdt.core.builder.resourceCopyExclusionFilter=*.kt
