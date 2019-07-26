@@ -15,7 +15,9 @@ class Sonarhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 	}
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
-		var LastSonarRobot : Int = 0
+		
+				var LastSonarRobot : Int = 0
+				var ForLedOldSonar : Int = 0
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -28,7 +30,14 @@ class Sonarhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 						if( checkMsgContent( Term.createTerm("sonar(DISTANCE)"), Term.createTerm("sonar(DISTANCE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								forward("modelChange", "modelChange(sonarRobot,${payloadArg(0)})" ,"resourcemodel" ) 
-								LastSonarRobot =  Integer.parseInt( payloadArg(0) )
+								
+												
+												LastSonarRobot = Integer.parseInt( payloadArg(0) )
+												val differenza = Math.abs(ForLedOldSonar-LastSonarRobot)
+								if(differenza>20){ 
+													ForLedOldSonar=LastSonarRobot
+								forward("setLed", "setLed(1,80)" ,"leds" ) 
+								 }
 						}
 						if( checkMsgContent( Term.createTerm("sonarLeft(DISTANCE)"), Term.createTerm("sonarLeft(DISTANCE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList

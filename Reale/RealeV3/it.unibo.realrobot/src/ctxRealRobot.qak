@@ -1,6 +1,6 @@
 System systemrobotreal
-mqttBroker "192.168.43.61" : 1883 //CELLULARE
-//mqttBroker "11.0.0.54" : 1883 //CASA
+//mqttBroker "192.168.43.61" : 1883 //CELLULARE
+mqttBroker "11.0.0.54" : 1883 //CASA
 
 //----------------------------SONARS
 Event  envCond        : envCond( CONDTYPE )        //from the environment 
@@ -13,6 +13,9 @@ Event  sonarRigth     : sonarRigth( DISTANCE )
 Dispatch onestep       : onestep(DURATION)
 Dispatch stepOk        : stepOk(V)		//TODO eliminate  V
 Dispatch stepFail      : stepFail(R,T) //R=ok | obstacle, T = time
+
+Dispatch onerotationstep   : onerotationstep(MOVE)
+Dispatch rotationOk        : rotationOk(STALL)
 
 //----------------------------PRINCIPALMENTE INTERNI
 Dispatch setTimer        : setTimer(DURATION)		//TODO eliminate  V
@@ -31,7 +34,7 @@ Dispatch lastSonarRobot : lastSonarRobot( DISATNCE )
 Dispatch compassReq : compassReq( V )//TODO eliminate  V
 Dispatch compassRes : compassRes( ORIENTATION )
 
-Dispatch setLed : setLed( CMD ) //-1 -> spento 0-> fisso >0-> blink
+Dispatch setLed : setLed(BLINKN,BLINKDELAY )//BLINKDELAY=-1 ->ledOFF  //BLINKDELAY=0 -> ledOn //BLINKDELAY>0 --> blink for BLINKN time
 
 
 
@@ -152,7 +155,10 @@ QActor basicrobot context ctxRobot{
 QActor sonarhandler context ctxRobot {
 
 
-	["var LastSonarRobot : Int = 0"]
+	["
+		var LastSonarRobot : Int = 0
+		var ForLedOldSonar : Int = 0
+	"]
 	State s0 initial {
 		println("Start Sonarhandler")		
 	}
@@ -174,23 +180,22 @@ QActor sonarhandler context ctxRobot {
 	//	[" val D = Integer.parseInt( payloadArg(0) ) * 5"] //AMPLIFY
 	//		emit polar : p( $D, 180  ) 
 			forward resourcemodel -m modelChange : modelChange(sonarRobot,$payloadArg(0))
- 			["LastSonarRobot =  Integer.parseInt( payloadArg(0) )"] 	
+ 			["
+				
+				LastSonarRobot = Integer.parseInt( payloadArg(0) )
+				val differenza = Math.abs(ForLedOldSonar-LastSonarRobot)
+			"] 	
  			//	println("lastsonarrobot--> $LastSonarRobot")
- 			/*
- 			if "LastSonarRobot>=50 "{
- 				["val Off :Int = -1"]
- 				forward leds -m setLed : setLed($Off)  
+ 			
+ 			
+ 			if "differenza>20"{ 				
+ 				["
+					ForLedOldSonar=LastSonarRobot
+				"]
+ 				forward leds -m setLed : setLed(1,80)  
  			}
- 			if "LastSonarRobot<50 && LastSonarRobot>20"{
- 				forward leds -m setLed : setLed(500)  
- 			}
- 			if "LastSonarRobot<=20 && LastSonarRobot>=10"{		
- 				forward leds -m setLed : setLed(150) 
- 			}
- 			if "LastSonarRobot<10"{		
- 				forward leds -m setLed : setLed(0) 
- 			}
- 			*/
+ 	
+ 			
  		}
  		//---------------------------------------------------------------SONAR Left
  		onMsg ( sonarLeft : sonarLeft( DISTANCE ) ){     
@@ -219,7 +224,138 @@ QActor sonarhandler context ctxRobot {
 }
 
 
-//Application move step
+
+QActor onerotateforward context ctxRobot {
+	["
+		val RotateTime = 50L
+		var RealMove = \"a\" 
+		var ActualMove =\"a\"
+		var Orientation =0L
+		var OrientationZero =0L
+		val ErroreConcesso = 5L
+	"]  
+	State s0 initial {	   		
+		println("Start onerotateforward")
+		delay 500
+		forward compass -m compassReq : compassReq(0)	
+	}Transition t0 whenMsg compassRes -> setOrientationZero
+	
+	State setOrientationZero{
+		onMsg( compassRes : compassRes(ORIENTATION) ) {
+				["OrientationZero = payloadArg(0).toLong()"]
+		}
+		println("OrientationZero set at --> $OrientationZero")
+	}Goto ready
+
+	State ready{
+	}Transition t0 whenMsg onerotationstep -> checkFirst
+	
+	State checkFirst{
+		//qui in futuro si possono controllare i vari sensori e dedurre uno stallo
+		["storeCurrentMessageForReply()"]		
+		onMsg( onerotationstep : onerotationstep(ORIENTATION) ) {
+			["RealMove = payloadArg(0)"]
+		}
+		forward compass -m compassReq : compassReq(0)			
+		// compassReq : compassReq( V )//TODO eliminate  V
+		//compassRes : compassRes( ORIENTATION )
+	}Transition t0 whenMsg compassRes -> doRotationForward
+ 
+	State doRotationForward{		  
+
+		onMsg( compassRes : compassRes(ORIENTATION) ) {
+			["Orientation = payloadArg(0).toLong()"]
+			if "RealMove==\"a\""{
+				["OrientationZero=OrientationZero-90"]
+				
+			}
+			if "RealMove==\"d\""{
+					["OrientationZero=OrientationZero+90"]
+			}
+			//se no mi referisco all prima orientazione in assoluto (OrientationZero)
+			
+			if"OrientationZero<0"{
+				["OrientationZero=360-OrientationZero"]
+			}
+			if"OrientationZero>360"{
+				["OrientationZero=OrientationZero-360"]
+			}
+			
+			
+		}
+		["val abs = Math.abs(OrientationZero-Orientation)>ErroreConcesso"]
+		
+	
+	}Goto miniRotate if "abs" else endDoRotationForward
+	
+	  State miniRotate{
+	  		["
+				val scarto1 =OrientationZero-Orientation
+				val scarto2 =-OrientationZero+Orientation
+			"]
+	  		
+	  		if"scarto>0"{
+					
+			}
+			forward mindrobot -m local_modelChanged : modelChanged(robot, w)
+			forward timer -m setTimer : setTimer( $StepTime )			
+			run itunibo.planner.plannerUtil.startTimer()
+	  }Goto miniRotate if "abs" else endDoRotationForward
+	
+	State endDoRotationForward{
+		println("---------------------------OK----->endDoMoveForward")
+		forward mindrobot -m local_modelChanged : modelChanged(robot,h)
+		//setp in avanti ok quindi salvo sulla kb
+		forward kb -m modelUpdate : modelUpdate(  robot,  w)  
+		["replyToCaller(\"stepOk\", \"stepOk(ok)\")"]	
+		//rotationOk        : rotationOk(STALL)
+	}
+	Goto ready
+	
+	//Substitute with an ad-hoc actor for a real robot
+	State handleSonarRobot{  //before than the step time
+		//printCurrentMessage		
+		
+ 		onMsg ( sonarRobot : sonar( DISTANCE ) ){     
+			["val distance = Integer.parseInt( payloadArg(0) ) 
+              FoundObstacle = (distance<DistanzaMinima) "]  
+              if "FoundObstacle"{
+	 			run itunibo.planner.moveUtils.setDuration(myself)
+              }
+              
+              println("handleSonarRobot-ONESTEP--------------------------------------------->$distance")
+   		}
+	}	
+	Goto stepFail if "FoundObstacle" else mustGoOn
+	
+	State stepFail{
+		forward timer -m resetTimer : resetTimer( reset )						
+		forward mindrobot -m local_modelChanged : modelChanged(robot,h)	
+		solve( wduration( TIME ) )
+		//["Duration=getDuration()"]
+		["Duration=getCurSol(\"TIME\").toString().toLong()"]		
+		//println("Actor: OneStepForward; State:stepfail -> $Duration")		
+			 	
+	}Goto goBackFromFail
+	
+	State goBackFromFail{
+	
+ 		forward resourcemodel -m modelChange : modelChange(robot,s)  
+ 		delayVar Duration 
+  		forward resourcemodel -m modelChange : modelChange(robot,h) 
+  		
+		["replyToCaller(\"stepFail\", \"stepFail(obstacle,$Duration) \")"]
+		
+	}Goto ready
+	
+	State mustGoOn{
+		      println("->mustGoOn")
+   		
+	}
+	Transition t0 whenEvent tickTimer  -> endDoMoveForward	
+					whenEvent sonarRobot  -> handleSonarRobot	
+}
+
 QActor onecellforward context ctxRobot {
 	["
 		var FoundObstacle = false
@@ -355,38 +491,67 @@ QActor timer context ctxRobot {
 	
 }
 
-/*
 QActor leds context ctxRobot {
+	["
+		var ActualCont : Long =0
+		var BlinkDelay : Long = 0
+		var BlinkNumber : Long = 0
+		val MinBlinkingDelay : Long = 50
+		var NeedBlink =false
+		val OnTiming :Long = 50 
+	"]
 	State s0 initial {	
 		println("Start leds")   
 		run surpluss.ledManagerSupport.instance()
 		delay 10
-		run surpluss.ledManagerSupport.frontLedBlink(250)
+		run surpluss.ledManagerSupport.frontLedOn()
 		delay 1000
 		run surpluss.ledManagerSupport.frontLedOff()
+		//in futuro qui in attesa del messaggio di start
+	}Goto waitingForCMD
+	
+	State waitingForCMD{
 		
-	}Transition t0 whenMsg setLed -> menageLed
-	
-	State menageLed{
-		onMsg ( setLed : setLed( CMD ) ){
-			["val Cmd = payloadArg(0).toLong() "]
-            if"Cmd<0"{
-            	run surpluss.ledManagerSupport.frontLedOff()
-            }
-			if "Cmd==0.toLong()"{
-            		run surpluss.ledManagerSupport.frontLedOn()            
-            }
-            if "Cmd>0"{
-            	run surpluss.ledManagerSupport.frontLedBlink(Cmd)            
-            }
+	}Transition t0 whenEvent  setLed -> handleSetLed
+					
+	State handleSetLed{
+		["NeedBlink = true"]
+		onMsg( setLed : setLed(BLINKN,BLINKDELAY ) ) {
+			["
+				ActualCont=0
+				BlinkNumber = payloadArg(0).toLong()
+				BlinkDelay  = payloadArg(1).toLong()
+			"]
+			if "BlinkDelay<0 || BlinkNumber<0"{
+				run surpluss.ledManagerSupport.frontLedOff()
+				["NeedBlink = false"]
+			}
+			if "BlinkDelay>=0 && BlinkDelay<MinBlinkingDelay"{
+				run surpluss.ledManagerSupport.frontLedOn()	
+				["NeedBlink = false"]		
+			}
+			println("$BlinkNumber  $BlinkDelay")
 		}
-	}Transition t0 whenMsg onestep -> menageLed
+	}Goto blinkOn if "NeedBlink" else waitingForCMD
 	
+	State blinkOn{
+		run surpluss.ledManagerSupport.frontLedOn()
+		["ActualCont=ActualCont+1"]	
+		
+	}Transition t0 whenTimeVar OnTiming -> blinkOff
+	
+	State blinkOff{
+		run surpluss.ledManagerSupport.frontLedOff()
+		["NeedBlink = (ActualCont<BlinkNumber)"]
+	}	
+	Goto needBlinkAgain if "NeedBlink" else waitingForCMD
+			
+	State needBlinkAgain{
+		
+	}Transition t0 whenTimeVar BlinkDelay -> blinkOn
+					//whenEvent  setLed -> handleSetLed
 	
 }
-* 
-*/
-
 
 QActor realforntsonar context ctxRobot{
 	["	
@@ -402,7 +567,7 @@ QActor realforntsonar context ctxRobot{
 		["val Distance = surpluss.pollingSonar.askToSonar().toInt()"]
 		if"Distance>0"{			
 			emit sonarRobot : sonar($Distance)
-			println("....>$Distance")
+			//println("------->$Distance")
 		}
 		
 	}

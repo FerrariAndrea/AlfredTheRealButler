@@ -21,7 +21,7 @@ class Compass ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sco
 						surpluss.compassSupport.instance(  )
 						println("Start compass")
 					}
-					 transition(edgeName="t022",targetState="handleCompass",cond=whenEvent("compassReq"))
+					 transition(edgeName="t032",targetState="handleCompass",cond=whenEvent("compassReq"))
 				}	 
 				state("handleCompass") { //this:State
 					action { //it:State
@@ -32,7 +32,7 @@ class Compass ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sco
 								replyToCaller("compassRes", "compassRes($Orientation)")
 						}
 					}
-					 transition(edgeName="t123",targetState="handleCompass",cond=whenEvent("compassReq"))
+					 transition(edgeName="t133",targetState="handleCompass",cond=whenEvent("compassReq"))
 				}	 
 			}
 		}

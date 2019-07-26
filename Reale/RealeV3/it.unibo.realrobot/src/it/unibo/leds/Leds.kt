@@ -15,32 +15,74 @@ class Leds ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope)
 	}
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
+		
+				var ActualCont : Long =0
+				var BlinkDelay : Long = 0
+				var BlinkNumber : Long = 0
+				val MinBlinkingDelay : Long = 50
+				var NeedBlink =false
+				val OnTiming :Long = 50 
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
 						println("Start leds")
 						surpluss.ledManagerSupport.instance(  )
 						delay(10) 
-						surpluss.ledManagerSupport.frontLedBlink( 250  )
+						surpluss.ledManagerSupport.frontLedOn(  )
 						delay(1000) 
 						surpluss.ledManagerSupport.frontLedOff(  )
 					}
-					 transition(edgeName="t018",targetState="menageLed",cond=whenDispatch("setLed"))
+					 transition( edgeName="goto",targetState="waitingForCMD", cond=doswitch() )
 				}	 
-				state("menageLed") { //this:State
+				state("waitingForCMD") { //this:State
 					action { //it:State
-						if( checkMsgContent( Term.createTerm("setLed(CMD)"), Term.createTerm("setLed(CMD)"), 
+					}
+					 transition(edgeName="t025",targetState="handleSetLed",cond=whenEvent("setLed"))
+				}	 
+				state("handleSetLed") { //this:State
+					action { //it:State
+						NeedBlink = true
+						if( checkMsgContent( Term.createTerm("setLed(BLINKN,BLINKDELAY)"), Term.createTerm("setLed(BLINKN,BLINKDELAY)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								val Cmd = payloadArg(0).toLong() 
-								if(Cmd<0){ surpluss.ledManagerSupport.frontLedOff(  )
+								
+												ActualCont=0
+												BlinkNumber = payloadArg(0).toLong()
+												BlinkDelay  = payloadArg(1).toLong()
+								if(BlinkDelay<0 || BlinkNumber<0){ surpluss.ledManagerSupport.frontLedOff(  )
+								NeedBlink = false
 								 }
-								if(Cmd==0.toLong()){ surpluss.ledManagerSupport.frontLedOn(  )
+								if(BlinkDelay>=0 && BlinkDelay<MinBlinkingDelay){ surpluss.ledManagerSupport.frontLedOn(  )
+								NeedBlink = false
 								 }
-								if(Cmd>0){ surpluss.ledManagerSupport.frontLedBlink( Cmd  )
-								 }
+								println("$BlinkNumber  $BlinkDelay")
 						}
 					}
-					 transition(edgeName="t019",targetState="menageLed",cond=whenDispatch("onestep"))
+					 transition( edgeName="goto",targetState="blinkOn", cond=doswitchGuarded({NeedBlink}) )
+					transition( edgeName="goto",targetState="waitingForCMD", cond=doswitchGuarded({! NeedBlink}) )
+				}	 
+				state("blinkOn") { //this:State
+					action { //it:State
+						surpluss.ledManagerSupport.frontLedOn(  )
+						ActualCont=ActualCont+1
+						stateTimer = TimerActor("timer_blinkOn", 
+							scope, context!!, "local_tout_leds_blinkOn", OnTiming )
+					}
+					 transition(edgeName="t026",targetState="blinkOff",cond=whenTimeout("local_tout_leds_blinkOn"))   
+				}	 
+				state("blinkOff") { //this:State
+					action { //it:State
+						surpluss.ledManagerSupport.frontLedOff(  )
+						NeedBlink = (ActualCont<BlinkNumber)
+					}
+					 transition( edgeName="goto",targetState="needBlinkAgain", cond=doswitchGuarded({NeedBlink}) )
+					transition( edgeName="goto",targetState="waitingForCMD", cond=doswitchGuarded({! NeedBlink}) )
+				}	 
+				state("needBlinkAgain") { //this:State
+					action { //it:State
+						stateTimer = TimerActor("timer_needBlinkAgain", 
+							scope, context!!, "local_tout_leds_needBlinkAgain", BlinkDelay )
+					}
+					 transition(edgeName="t027",targetState="blinkOn",cond=whenTimeout("local_tout_leds_needBlinkAgain"))   
 				}	 
 			}
 		}
