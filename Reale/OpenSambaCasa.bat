@@ -1,1 +1,0 @@
-start explorer "\\11.0.0.18\AnotherRobot\qak"

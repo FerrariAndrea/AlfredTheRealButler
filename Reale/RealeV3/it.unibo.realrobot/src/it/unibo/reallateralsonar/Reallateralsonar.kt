@@ -25,7 +25,7 @@ class Reallateralsonar ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 						stateTimer = TimerActor("timer_s0", 
 							scope, context!!, "local_tout_reallateralsonar_s0", ActualTimer )
 					}
-					 transition(edgeName="t022",targetState="doNotifyAll",cond=whenTimeout("local_tout_reallateralsonar_s0"))   
+					 transition(edgeName="t020",targetState="doNotifyAll",cond=whenTimeout("local_tout_reallateralsonar_s0"))   
 				}	 
 				state("doNotifyAll") { //this:State
 					action { //it:State
@@ -38,7 +38,7 @@ class Reallateralsonar ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 						stateTimer = TimerActor("timer_doNotifyAll", 
 							scope, context!!, "local_tout_reallateralsonar_doNotifyAll", ActualTimer )
 					}
-					 transition(edgeName="t123",targetState="doNotifyAll",cond=whenTimeout("local_tout_reallateralsonar_doNotifyAll"))   
+					 transition(edgeName="t121",targetState="doNotifyAll",cond=whenTimeout("local_tout_reallateralsonar_doNotifyAll"))   
 				}	 
 			}
 		}

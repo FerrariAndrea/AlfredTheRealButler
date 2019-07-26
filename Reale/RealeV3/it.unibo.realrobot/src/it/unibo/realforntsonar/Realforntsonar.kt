@@ -25,17 +25,18 @@ class Realforntsonar ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						stateTimer = TimerActor("timer_s0", 
 							scope, context!!, "local_tout_realforntsonar_s0", ActualTimer )
 					}
-					 transition(edgeName="t020",targetState="doNotifyAll",cond=whenTimeout("local_tout_realforntsonar_s0"))   
+					 transition(edgeName="t018",targetState="doNotifyAll",cond=whenTimeout("local_tout_realforntsonar_s0"))   
 				}	 
 				state("doNotifyAll") { //this:State
 					action { //it:State
 						val Distance = surpluss.pollingSonar.askToSonar().toInt()
 						if(Distance>0){ emit("sonarRobot", "sonar($Distance)" ) 
+						println("....>$Distance")
 						 }
 						stateTimer = TimerActor("timer_doNotifyAll", 
 							scope, context!!, "local_tout_realforntsonar_doNotifyAll", ActualTimer )
 					}
-					 transition(edgeName="t121",targetState="doNotifyAll",cond=whenTimeout("local_tout_realforntsonar_doNotifyAll"))   
+					 transition(edgeName="t119",targetState="doNotifyAll",cond=whenTimeout("local_tout_realforntsonar_doNotifyAll"))   
 				}	 
 			}
 		}

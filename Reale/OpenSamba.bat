@@ -1,1 +1,3 @@
-start explorer "\\192.168.43.15\AnotherRobot\qak"
+set /P var=< ip.txt
+
+start explorer "\\%var%\AnotherRobot\qak"

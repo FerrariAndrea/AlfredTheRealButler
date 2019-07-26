@@ -1,7 +1,7 @@
 %====================================================================================
 % systemrobotreal description   
 %====================================================================================
-mqttBroker("11.0.0.18", "1883").
+mqttBroker("192.168.43.61", "1883").
 context(ctxrobot, "localhost",  "MQTT", "0" ).
 context(ctxdummy, "dummyhost",  "MQTT", "0" ).
  qactor( kb, ctxdummy, "external").
@@ -12,7 +12,6 @@ context(ctxdummy, "dummyhost",  "MQTT", "0" ).
   qactor( sonarhandler, ctxrobot, "it.unibo.sonarhandler.Sonarhandler").
   qactor( onecellforward, ctxrobot, "it.unibo.onecellforward.Onecellforward").
   qactor( timer, ctxrobot, "it.unibo.timer.Timer").
-  qactor( leds, ctxrobot, "it.unibo.leds.Leds").
   qactor( realforntsonar, ctxrobot, "it.unibo.realforntsonar.Realforntsonar").
   qactor( reallateralsonar, ctxrobot, "it.unibo.reallateralsonar.Reallateralsonar").
   qactor( compass, ctxrobot, "it.unibo.compass.Compass").
