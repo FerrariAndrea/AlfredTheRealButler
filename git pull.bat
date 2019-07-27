@@ -1,2 +1,0 @@
-cmd
-git pull

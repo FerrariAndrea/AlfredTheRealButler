@@ -1,4 +1,4 @@
-package it.unibo.sprint1a
+package it.unibo.sprint2
 
 import org.junit.Before
 import kotlinx.coroutines.GlobalScope
