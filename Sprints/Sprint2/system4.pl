@@ -7,4 +7,5 @@ context(ctxdummy, "dummyhost",  "MQTT", "0" ).
  qactor( kb, ctxdummy, "external").
   qactor( explorer, ctxdummy, "external").
   qactor( resourcemodel, ctxdummy, "external").
+  qactor( onerotateforward, ctxdummy, "external").
   qactor( maitre, ctxmaitre, "it.unibo.maitre.Maitre").

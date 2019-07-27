@@ -123,20 +123,7 @@ QActor explorer context ctxExplorer{
 	State handleStepFail{ 
 		println("Actor: Explorer; State: handleStepFail; Payload: Fail step :(")
 		println("Actor: Explorer; State: handleStepFail; Payload: MAP when handleStepFail")
-			onMsg( stepFail:stepFail(R,D) ) {
-				["Tback=payloadArg(1).toString().toLong()  
-					 if( Tback > StepTime * 2 / 3 ) Tback = 0 else Tback=Tback/2
 		
-				"]
-					println("Actor: Explorer; State: handleStepFail; Payload: BACK TIME= $Tback over $StepTime")
-					if "Tback > 0 "{
-						["Curmove=\"s\""]
-				 		forward resourcemodel -m modelChange : modelChange(robot,$Curmove)  
-				 		delayVar Tback 
-				  		forward resourcemodel -m modelChange : modelChange(robot,h) 
-					}
-			}
-			
 		run itunibo.planner.plannerUtil.showMap()	
 		println("Actor: Explorer; State: handleStepFail; Payload: Replan and return at home.")
 		delay 500

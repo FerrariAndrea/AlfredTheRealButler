@@ -16,9 +16,9 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
-				val RotateTime = 50L
-				val CompleteRotateTime = 500L
-				val DelayForCompassReady=2L
+				val RotateTime = 20L
+				val CompleteRotateTime = 750L
+				val DelayForCompassReady=10L
 				var RealMove = "a" 		
 				//var ActualMove ="a"
 				var Orientation =0L
@@ -30,7 +30,6 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 				state("s0") { //this:State
 					action { //it:State
 						println("Start onerotateforward")
-						delay(500) 
 						forward("compassReq", "compassReq(0)" ,"compass" ) 
 					}
 					 transition(edgeName="t09",targetState="setOrientationZero",cond=whenDispatch("compassRes"))
@@ -79,7 +78,7 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 									 Abs = Math.abs(OrientationZero-Orientation)
 									 NeedRotate = Abs>ErroreConcesso
 					}
-					 transition( edgeName="goto",targetState="miniRotate", cond=doswitchGuarded({NeedRotate}) )
+					 transition( edgeName="goto",targetState="bigRotation", cond=doswitchGuarded({NeedRotate}) )
 					transition( edgeName="goto",targetState="endDoRotationForward", cond=doswitchGuarded({! NeedRotate}) )
 				}	 
 				state("bigRotation") { //this:State

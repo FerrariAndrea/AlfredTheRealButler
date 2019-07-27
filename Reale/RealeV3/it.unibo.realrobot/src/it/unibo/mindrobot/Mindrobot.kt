@@ -42,12 +42,6 @@ class Mindrobot ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
-				state("requestBelancer") { //this:State
-					action { //it:State
-						println("requestBelancer")
-					}
-					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
-				}	 
 				state("handleModelChanged") { //this:State
 					action { //it:State
 						if( checkMsgContent( Term.createTerm("modelChanged(TARGET,VALUE)"), Term.createTerm("modelChanged(robot,CMD)"), 

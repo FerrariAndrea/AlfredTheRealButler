@@ -29,7 +29,6 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				}	 
 				state("ready") { //this:State
 					action { //it:State
-						println("->ready")
 					}
 					 transition(edgeName="t014",targetState="checkFirst",cond=whenDispatch("onestep"))
 				}	 

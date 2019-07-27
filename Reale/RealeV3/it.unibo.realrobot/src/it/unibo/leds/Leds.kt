@@ -54,7 +54,6 @@ class Leds ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope)
 								if(BlinkDelay>=0 && BlinkDelay<MinBlinkingDelay){ surpluss.ledManagerSupport.frontLedOn(  )
 								NeedBlink = false
 								 }
-								println("$BlinkNumber  $BlinkDelay")
 						}
 					}
 					 transition( edgeName="goto",targetState="blinkOn", cond=doswitchGuarded({NeedBlink}) )

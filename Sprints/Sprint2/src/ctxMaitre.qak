@@ -11,6 +11,7 @@ Dispatch modelRequest : modelRequest( TARGET,PROP)
 Dispatch modelRobotResponse : modelRobotResponse( X,Y,O ) 
 Dispatch modelErrorResponse : modelErrorResponse( ERROR )
 
+Dispatch onerotationstep   : onerotationstep(MOVE)
 
 Dispatch modelChange  : modelChange( TARGET, VALUE )  //force a resource-model change
 
@@ -20,7 +21,7 @@ Context ctxDummy ip[host="dummyhost" port=9999] -mqtt
 ExternalQActor kb context ctxDummy
 ExternalQActor explorer context ctxDummy
 ExternalQActor resourcemodel context ctxDummy
-
+ExternalQActor onerotateforward context ctxDummy
 
 /*
  *  So far, Maitre just stends a moveForward command. 
@@ -37,8 +38,11 @@ QActor maitre context ctxMaitre {
 	State s0 initial {
 		println("Start maitre")
 	}
-	Goto go
+	Goto prova
+	State prova{
+		forward onerotateforward -m  onerotationstep :  onerotationstep( a ) 
 		
+	}
 	State go {		
 		println("Send Start to explorer ")	
 		forward explorer -m  testCmd :  testCmd( Start ) 

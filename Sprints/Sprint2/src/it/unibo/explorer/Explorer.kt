@@ -112,18 +112,6 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 					action { //it:State
 						println("Actor: Explorer; State: handleStepFail; Payload: Fail step :(")
 						println("Actor: Explorer; State: handleStepFail; Payload: MAP when handleStepFail")
-						if( checkMsgContent( Term.createTerm("stepFail(R,T)"), Term.createTerm("stepFail(R,D)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								Tback=payloadArg(1).toString().toLong()  
-													 if( Tback > StepTime * 2 / 3 ) Tback = 0 else Tback=Tback/2
-										
-								println("Actor: Explorer; State: handleStepFail; Payload: BACK TIME= $Tback over $StepTime")
-								if(Tback > 0 ){ Curmove="s"
-								forward("modelChange", "modelChange(robot,$Curmove)" ,"resourcemodel" ) 
-								delay(Tback)
-								forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
-								 }
-						}
 						itunibo.planner.plannerUtil.showMap(  )
 						println("Actor: Explorer; State: handleStepFail; Payload: Replan and return at home.")
 						delay(500) 

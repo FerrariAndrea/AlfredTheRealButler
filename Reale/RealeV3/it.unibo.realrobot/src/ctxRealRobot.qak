@@ -72,49 +72,7 @@ QActor mindrobot context ctxRobot{
 		
 	}
 	Goto waitCmd
-	
-	State requestBelancer{
-		println("requestBelancer")
-		//run itunibo.robotRaspOnly.sonarBelancerOnlySupport.requestValue()
-	}
-	Goto waitCmd
-	/*
-	//Transition t0 whenEvent sonarBelancer ->  riadrizza
-	
-	State riadrizza{
 		
-		["myagain = false"]
-		onMsg ( sonarBelancer : sonar( DIFFERENCE ) ){
-			["
-				var diff = Integer.parseInt( payloadArg(0) )								
-			"]
-			println("riadrizza--> $diff")
-			if "diff>2" {
-				["myagain = true"]
-				forward basicrobot -m robotCmd : robotCmd( a )			
-				delay 50
-				forward basicrobot -m robotCmd : robotCmd( h )
-			}
-			if "diff<-minDifferenceForBelance" {
-				["myagain = true"]
-				forward basicrobot -m robotCmd : robotCmd( d )	
-				delay 50
-				forward basicrobot -m robotCmd : robotCmd( h )
-			}
- 		}//onMsg
-	}
-	Goto waitCmd if "myagain" else requestBelancer
-	
-	State handleSonarRobot {
-		printCurrentMessage
- 		onMsg ( sonarRobot : sonar( DISTANCE ) ){
-			["obstacle = Integer.parseInt( payloadArg(0) ) < 20 "]
- 		}//onMsg 	 
-	}
-	Goto waitCmd
-	* 
-	*/
-	
 	State handleModelChanged {
 		//printCurrentMessage
 		onMsg ( local_modelChanged : modelChanged(robot,CMD) ){ 
@@ -227,9 +185,9 @@ QActor sonarhandler context ctxRobot {
 
 QActor onerotateforward context ctxRobot {
 	["
-		val RotateTime = 50L
-		val CompleteRotateTime = 500L
-		val DelayForCompassReady=2L
+		val RotateTime = 20L
+		val CompleteRotateTime = 750L
+		val DelayForCompassReady=10L
 		var RealMove = \"a\" 		
 		//var ActualMove =\"a\"
 		var Orientation =0L
@@ -240,7 +198,6 @@ QActor onerotateforward context ctxRobot {
 	"]  
 	State s0 initial {	   		
 		println("Start onerotateforward")
-		delay 500
 		forward compass -m compassReq : compassReq(0)	
 	}Transition t0 whenMsg compassRes -> setOrientationZero
 	
@@ -293,7 +250,7 @@ QActor onerotateforward context ctxRobot {
 		"]
 		
 	
-	}Goto miniRotate if "NeedRotate" else endDoRotationForward
+	}Goto bigRotation if "NeedRotate" else endDoRotationForward
 	
 	State bigRotation{
 		if "RealMove==\"a\""{
@@ -369,7 +326,6 @@ QActor onecellforward context ctxRobot {
 	}Goto ready
 	
 	State ready{
-		  println("->ready")
 	}Transition t0 whenMsg onestep -> checkFirst
 	
 	State checkFirst{
@@ -535,7 +491,6 @@ QActor leds context ctxRobot {
 				run surpluss.ledManagerSupport.frontLedOn()	
 				["NeedBlink = false"]		
 			}
-			println("$BlinkNumber  $BlinkDelay")
 		}
 	}Goto blinkOn if "NeedBlink" else waitingForCMD
 	
@@ -619,7 +574,6 @@ QActor compass context ctxRobot{
 		onMsg ( compassReq : compassReq( V ) ){     
 			["val Orientation = surpluss.compassSupport.askToCompass().toLong()"]
       		["replyToCaller(\"compassRes\", \"compassRes($Orientation)\")"]	
-	
        }
 	}
 	Transition t1  whenEvent  compassReq -> handleCompass	

@@ -27,13 +27,8 @@ object compassSupport {
 		
 				writer_compass.write("0\n")
 				writer_compass.flush()
-				var data = reader_compass.readLine()
-				if( data != null ){
-					return  "$data"  			
-				}else{
-					return  "null" 
-				}
-		
+				var data = reader_compass.readLine().split(".")[0]
+				return  "$data"  
 	
 	}
 	
