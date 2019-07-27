@@ -5,6 +5,8 @@ Dispatch modelChange  : modelChange( TARGET, VALUE )  //force a resource-model c
 Dispatch onestep       : onestep(DURATION)
 Dispatch stepOk        : stepOk(V)		//TODO eliminate  V
 Dispatch stepFail      : stepFail(R,T) //R=ok | obstacle, T = time
+Dispatch onerotationstep   : onerotationstep(MOVE)
+Dispatch rotationOk        : rotationOk(STALL)
 
 Dispatch testCmd  : testCmd( cmd )  //sent by kotlinTest
  
@@ -19,6 +21,7 @@ Context ctxDummy ip[host="dummyhost" port=9999] -mqtt
 ExternalQActor maitre context ctxDummy
 ExternalQActor resourcemodel context ctxDummy
 ExternalQActor onecellforward context ctxDummy
+ExternalQActor onerotateforward context ctxDummy
 /*
  *  The goal is to move the robot to the fridge and let it come back 
  *  Fridge Position is given *a priori*
@@ -28,11 +31,9 @@ QActor explorer context ctxExplorer{
 	["
 	var fridge_position_x = 6;
 	var fridge_position_y = 0;
-	var goingHome  = false  
-	var Tback      = 0L
+	var goingHome  = false
 	var stepCounter = 0 
-	var Curmove = \"\"
-	var curmoveIsForward = false
+	var Move = \"\"
 	var StepTime   = 350L	//for virtual
 	var RotateTime = 300L	//for virtual
 	var PauseTime  = 250L 
@@ -72,13 +73,11 @@ QActor explorer context ctxExplorer{
 		//solve( showMoves ) 
 		solve( retract( move(M) ) ) //consume a move
 		ifSolved {  
-			["Curmove = getCurSol(\"M\").toString() 
-              curmoveIsForward=(Curmove == \"w\")
-	        "]
-		} else { ["Curmove = \"\"; curmoveIsForward=false"]  }  
+			["Move = getCurSol(\"M\").toString()"]
+		} else { ["Move = \"\""]  }  
 		//println("executePlannedActions doing $Curmove")
  	}
-	Goto checkAndDoAction  if "(Curmove.length>0) " else goalOk 
+	Goto doTheMove  if "(Move.length>0) " else goalOk 
  	
  	State goalOk{		  
  		println("Actor: Explorer; State: goalOk; Payload: ON THE TARGET CELL !!!")
@@ -91,39 +90,26 @@ QActor explorer context ctxExplorer{
  	}	
  	Goto atHome if "goingHome" else backToHome
  	
- 	//Execute the move if it is a rotation or halt
-	State checkAndDoAction{	 }
-	Goto doForwardMove if "curmoveIsForward" else doTheMove
-	
+ 	
 	State doTheMove{
-  		forward resourcemodel -m modelChange : modelChange(robot,$Curmove) 
-		delayVar RotateTime //rotate 
-		forward resourcemodel -m modelChange : modelChange(robot,h) //stop
-		run itunibo.planner.moveUtils.doPlannedMove(myself, Curmove)
- 		delayVar PauseTime		
+		if "Move==\"a\" || Move==\"d\" " {//ROTATION			
+			forward onerotateforward -m onerotationstep : onerotationstep($Move)	
+		}else{// W			
+			forward onecellforward -m onestep : onestep($StepTime)	
+		}	
 	}
-	Goto executePlannedActions 
-	
-	//Delegate a forward move to onecellforward
-	State doForwardMove{
-		run itunibo.planner.plannerUtil.startTimer()
-		forward onecellforward -m onestep : onestep($StepTime)	
-	}
-	Transition t0   //whenMsg stopAppl -> stopApplication 
-					whenMsg stepOk   -> handleStepOk   
-					whenMsg stepFail -> handleStepFail 
-	 
-	//onecellforward has completed 
+	Transition t0   whenMsg stepOk   	-> handleStepOk   
+					whenMsg stepFail 	-> handleStepFail  
+					whenMsg rotationOk 	-> handleStepOk
+	 	
 	State handleStepOk{
-		run itunibo.planner.moveUtils.doPlannedMove(myself, "w")	
+		run itunibo.planner.moveUtils.doPlannedMove(myself, Move)	
 		delayVar PauseTime	
 	}
 	Goto executePlannedActions
 	
 	State handleStepFail{ 
 		println("Actor: Explorer; State: handleStepFail; Payload: Fail step :(")
-		println("Actor: Explorer; State: handleStepFail; Payload: MAP when handleStepFail")
-		
 		run itunibo.planner.plannerUtil.showMap()	
 		println("Actor: Explorer; State: handleStepFail; Payload: Replan and return at home.")
 		delay 500
@@ -155,19 +141,7 @@ QActor explorer context ctxExplorer{
  	} 
 	Goto executePlannedActions //doGoHomeActions 
 	
-	State doGoHomeActions{ 
- 		solve( retract( move(M) ) )
-		ifSolved {  
-			["Curmove = getCurSol(\"M\").toString() "] 
- 			run itunibo.planner.moveUtils.doPlannedMove(myself, @M)
- 			forward resourcemodel -m modelChange : modelChange(robot,$Curmove)
- 			if "Curmove == \"w\" " {  delayVar StepTime } else { delayVar RotateTime }
-			forward resourcemodel -m modelChange : modelChange(robot,h)
-		} else { ["Curmove = \"\" "] }
-  		if "Curmove !== \"w\" " {solve( dialog(F) )}//to CALIBRATE rotation time
-  		delayVar PauseTime		 
-  	}
-	Goto doGoHomeActions  if "(Curmove.length>0)" else atHome
+
 	
 	State atHome {  //reposition	
  		solve( direction(D) )
@@ -182,20 +156,19 @@ QActor explorer context ctxExplorer{
 	}
 	Goto rotateSouth
 	
-
 	State rotateSouth{
-		["Curmove=\"a\""]
+		["Move=\"a\""]
 		delayVar StepTime
-		forward resourcemodel -m modelChange : modelChange(robot,$Curmove) //
-   		run itunibo.planner.moveUtils.doPlannedMove(myself, Curmove)
-   		delayVar RotateTime
-		
-		forward resourcemodel -m modelChange : modelChange(robot,h)			
+		forward onerotateforward -m onerotationstep : onerotationstep($Move)//
+   		
+	}Transition t0	whenMsg rotationOk 	-> checkSouth
+
+	State checkSouth{
+		run itunibo.planner.moveUtils.doPlannedMove(myself, Move)	
 		solve( direction(D) )
 		["Direction = getCurSol(\"D\").toString() "]
 		println("Actor: Explorer; State: rotateSouth; Payload: $Direction")
 	}
-
 	Goto rotateSouth  if "(Direction!=\"downDir\")" else endOfJob
 	
 	State endOfJob{

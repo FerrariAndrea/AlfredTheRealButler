@@ -8,4 +8,5 @@ context(ctxdummy, "dummyhost",  "MQTT", "0" ).
   qactor( explorer, ctxdummy, "external").
   qactor( resourcemodel, ctxdummy, "external").
   qactor( onerotateforward, ctxdummy, "external").
+  qactor( mindrobot, ctxdummy, "external").
   qactor( maitre, ctxmaitre, "it.unibo.maitre.Maitre").

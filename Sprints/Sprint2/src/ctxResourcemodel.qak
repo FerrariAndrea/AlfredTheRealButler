@@ -42,18 +42,10 @@ QActor resourcemodel context ctxResourceModel {
 
 	State waitModelChange{ }
 	Transition t0 whenMsg modelChange -> changeModel
-	            //  whenMsg modelUpdate -> updateModel
+	              whenMsg modelUpdate -> updateModel
 		
-	/*
+
 	State updateModel  {
-		onMsg(  modelUpdate:  modelUpdate( TARGET, VALUE ) ) { 
-			["
-				var Target=payloadArg(0)
-				var Value=payloadArg(1)
-			"]
-			println("Resource Model -> Invio aggiornamento a KB: $Target , $Value")
-			forward kb -m  kbModelUpdate :  kbModelUpdate($Target , $Value ) 
-		}
 		onMsg( modelUpdate : modelUpdate(robot,V ) ) {
 			run itunibo.robot.resourceModelSupport.updateRobotModel( myself, payloadArg(1) )
 		}
@@ -62,19 +54,15 @@ QActor resourcemodel context ctxResourceModel {
 		}
 	}	
 	Goto  waitModelChange
-	*/
+	
 	State changeModel {
-		printCurrentMessage 
+		//printCurrentMessage 
 		//ROBOT MOVE
 		onMsg( modelChange : modelChange( robot,V ) ) { // V= w | ...
-			run itunibo.robot.resourceModelSupport.updateRobotModel( myself, payloadArg(1) )
+			//run itunibo.robot.resourceModelSupport.updateRobotModel( myself, payloadArg(1) )
 			forward mindrobot -m local_modelChanged : modelChanged(  robot,  $payloadArg(1))  //for the robotmind
 			//forward kb -m modelUpdate : modelUpdate(  robot,  $payloadArg(1))  //for kb
 		} 
-		//SONAR DATA  
-		onMsg( modelChange : modelChange( sonarRobot,V ) ) { // V= w | ...
-			run itunibo.robot.resourceModelSupport.updateSonarRobotModel( myself, payloadArg(1) )
-		}
 	}
 	Goto  waitModelChange
 }
@@ -124,7 +112,7 @@ QActor kb context ctxResourceModel{
 			if "Target==\"robot\""{
 				solve(updateRobotStateFromMove($Value))				
 			}
-			//println("----------->KB[$Target][$Value]")
+			println("----------->KB[$Target][$Value]")
 		
 		}	
 	}Transition t0  whenMsg   modelUpdate  -> handle

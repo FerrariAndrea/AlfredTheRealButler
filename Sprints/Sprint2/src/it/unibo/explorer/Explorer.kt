@@ -18,11 +18,9 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 		
 			var fridge_position_x = 6;
 			var fridge_position_y = 0;
-			var goingHome  = false  
-			var Tback      = 0L
+			var goingHome  = false
 			var stepCounter = 0 
-			var Curmove = ""
-			var curmoveIsForward = false
+			var Move = ""
 			var StepTime   = 350L	//for virtual
 			var RotateTime = 300L	//for virtual
 			var PauseTime  = 250L 
@@ -54,15 +52,14 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				state("executePlannedActions") { //this:State
 					action { //it:State
 						solve("retract(move(M))","") //set resVar	
-						if(currentSolution.isSuccess()) { Curmove = getCurSol("M").toString() 
-						              curmoveIsForward=(Curmove == "w")
+						if(currentSolution.isSuccess()) { Move = getCurSol("M").toString()
 						 }
 						else
-						{ Curmove = ""; curmoveIsForward=false
+						{ Move = ""
 						 }
 					}
-					 transition( edgeName="goto",targetState="checkAndDoAction", cond=doswitchGuarded({(Curmove.length>0) }) )
-					transition( edgeName="goto",targetState="goalOk", cond=doswitchGuarded({! (Curmove.length>0) }) )
+					 transition( edgeName="goto",targetState="doTheMove", cond=doswitchGuarded({(Move.length>0) }) )
+					transition( edgeName="goto",targetState="goalOk", cond=doswitchGuarded({! (Move.length>0) }) )
 				}	 
 				state("goalOk") { //this:State
 					action { //it:State
@@ -77,33 +74,21 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 					 transition( edgeName="goto",targetState="atHome", cond=doswitchGuarded({goingHome}) )
 					transition( edgeName="goto",targetState="backToHome", cond=doswitchGuarded({! goingHome}) )
 				}	 
-				state("checkAndDoAction") { //this:State
-					action { //it:State
-					}
-					 transition( edgeName="goto",targetState="doForwardMove", cond=doswitchGuarded({curmoveIsForward}) )
-					transition( edgeName="goto",targetState="doTheMove", cond=doswitchGuarded({! curmoveIsForward}) )
-				}	 
 				state("doTheMove") { //this:State
 					action { //it:State
-						forward("modelChange", "modelChange(robot,$Curmove)" ,"resourcemodel" ) 
-						delay(RotateTime)
-						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
-						itunibo.planner.moveUtils.doPlannedMove(myself ,Curmove )
-						delay(PauseTime)
-					}
-					 transition( edgeName="goto",targetState="executePlannedActions", cond=doswitch() )
-				}	 
-				state("doForwardMove") { //this:State
-					action { //it:State
-						itunibo.planner.plannerUtil.startTimer(  )
-						forward("onestep", "onestep($StepTime)" ,"onecellforward" ) 
+						if(Move=="a" || Move=="d" ){ forward("onerotationstep", "onerotationstep($Move)" ,"onerotateforward" ) 
+						 }
+						else
+						 { forward("onestep", "onestep($StepTime)" ,"onecellforward" ) 
+						  }
 					}
 					 transition(edgeName="t02",targetState="handleStepOk",cond=whenDispatch("stepOk"))
 					transition(edgeName="t03",targetState="handleStepFail",cond=whenDispatch("stepFail"))
+					transition(edgeName="t04",targetState="handleStepOk",cond=whenDispatch("rotationOk"))
 				}	 
 				state("handleStepOk") { //this:State
 					action { //it:State
-						itunibo.planner.moveUtils.doPlannedMove(myself ,"w" )
+						itunibo.planner.moveUtils.doPlannedMove(myself ,Move )
 						delay(PauseTime)
 					}
 					 transition( edgeName="goto",targetState="executePlannedActions", cond=doswitch() )
@@ -111,13 +96,12 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				state("handleStepFail") { //this:State
 					action { //it:State
 						println("Actor: Explorer; State: handleStepFail; Payload: Fail step :(")
-						println("Actor: Explorer; State: handleStepFail; Payload: MAP when handleStepFail")
 						itunibo.planner.plannerUtil.showMap(  )
 						println("Actor: Explorer; State: handleStepFail; Payload: Replan and return at home.")
 						delay(500) 
 						println("Waiting for testCmd...")
 					}
-					 transition(edgeName="t04",targetState="testPass_2",cond=whenDispatch("testCmd"))
+					 transition(edgeName="t05",targetState="testPass_2",cond=whenDispatch("testCmd"))
 				}	 
 				state("testPass_2") { //this:State
 					action { //it:State
@@ -139,29 +123,6 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 					}
 					 transition( edgeName="goto",targetState="executePlannedActions", cond=doswitch() )
 				}	 
-				state("doGoHomeActions") { //this:State
-					action { //it:State
-						solve("retract(move(M))","") //set resVar	
-						if(currentSolution.isSuccess()) { Curmove = getCurSol("M").toString() 
-						itunibo.planner.moveUtils.doPlannedMove(myself ,getCurSol("M").toString() )
-						forward("modelChange", "modelChange(robot,$Curmove)" ,"resourcemodel" ) 
-						if(Curmove == "w" ){ delay(StepTime)
-						 }
-						else
-						 { delay(RotateTime)
-						  }
-						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
-						 }
-						else
-						{ Curmove = "" 
-						 }
-						if(Curmove !== "w" ){ solve("dialog(F)","") //set resVar	
-						 }
-						delay(PauseTime)
-					}
-					 transition( edgeName="goto",targetState="doGoHomeActions", cond=doswitchGuarded({(Curmove.length>0)}) )
-					transition( edgeName="goto",targetState="atHome", cond=doswitchGuarded({! (Curmove.length>0)}) )
-				}	 
 				state("atHome") { //this:State
 					action { //it:State
 						solve("direction(D)","") //set resVar	
@@ -176,12 +137,15 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				}	 
 				state("rotateSouth") { //this:State
 					action { //it:State
-						Curmove="a"
+						Move="a"
 						delay(StepTime)
-						forward("modelChange", "modelChange(robot,$Curmove)" ,"resourcemodel" ) 
-						itunibo.planner.moveUtils.doPlannedMove(myself ,Curmove )
-						delay(RotateTime)
-						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
+						forward("onerotationstep", "onerotationstep($Move)" ,"onerotateforward" ) 
+					}
+					 transition(edgeName="t06",targetState="checkSouth",cond=whenDispatch("rotationOk"))
+				}	 
+				state("checkSouth") { //this:State
+					action { //it:State
+						itunibo.planner.moveUtils.doPlannedMove(myself ,Move )
 						solve("direction(D)","") //set resVar	
 						Direction = getCurSol("D").toString() 
 						println("Actor: Explorer; State: rotateSouth; Payload: $Direction")

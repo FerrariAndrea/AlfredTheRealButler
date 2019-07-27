@@ -43,14 +43,9 @@ Context ctxDummy ip[host="dummyhost" port=9999] -mqtt //as ctdResourceModel and 
 
 ExternalQActor kb context ctxDummy
 ExternalQActor resourcemodel context ctxDummy
-ExternalQActor maitre context ctxDummy
 
 QActor mindrobot context ctxRobot{
-	["
-	var obstacle = false
-	val minDifferenceForBelance = 2
-	var myagain = false
-	"]
+	["var obstacle = false"]
 	
 	State s0 initial {
 		println("Start mindrobot")		
@@ -137,7 +132,7 @@ QActor sonarhandler context ctxRobot {
  		onMsg ( sonarRobot : sonar( DISTANCE ) ){     
 	//	[" val D = Integer.parseInt( payloadArg(0) ) * 5"] //AMPLIFY
 	//		emit polar : p( $D, 180  ) 
-			forward resourcemodel -m modelChange : modelChange(sonarRobot,$payloadArg(0))
+			forward resourcemodel -m modelUpdate : modelUpdate(sonarRobot,$payloadArg(0))
  			["
 				
 				LastSonarRobot = Integer.parseInt( payloadArg(0) )
@@ -186,13 +181,13 @@ QActor sonarhandler context ctxRobot {
 QActor onerotateforward context ctxRobot {
 	["
 		val RotateTime = 20L
-		val CompleteRotateTime = 750L
-		val DelayForCompassReady=10L
+		val CompleteRotateTime = 500L
+		val DelayForCompassReady=100L
+		val ErroreConcesso = 0L
+		//------------------------
 		var RealMove = \"a\" 		
-		//var ActualMove =\"a\"
 		var Orientation =0L
-		var OrientationZero =0L
-		val ErroreConcesso = 5L
+		var OrientationZero =0L		
 		var Abs =0L
 		var NeedRotate =false
 	"]  
@@ -236,12 +231,12 @@ QActor onerotateforward context ctxRobot {
 			//se no mi referisco all prima orientazione in assoluto (OrientationZero)
 			
 			if"OrientationZero<0"{
-				["OrientationZero=360-OrientationZero"]
+				["OrientationZero=360+OrientationZero"]
 			}
 			if"OrientationZero>360"{
 				["OrientationZero=OrientationZero-360"]
 			}
-			
+				
 			
 		}
 		["
@@ -253,15 +248,22 @@ QActor onerotateforward context ctxRobot {
 	}Goto bigRotation if "NeedRotate" else endDoRotationForward
 	
 	State bigRotation{
+		
 		if "RealMove==\"a\""{
-	  			forward mindrobot -m local_modelChanged : modelChanged(robot, a)
+	  			//forward mindrobot -m local_modelChanged : modelChanged(robot, a)	  			
+				forward resourcemodel -m modelChange : modelChange(robot,a)
 	  			delayVar CompleteRotateTime
-	  			forward mindrobot -m local_modelChanged : modelChanged(robot, h)
+	  			//forward mindrobot -m local_modelChanged : modelChanged(robot, h)
+	  			forward resourcemodel -m modelChange : modelChange(robot,h)	  			
+	  			println("bigRotation-->a finish")
 	  	}
 		if "RealMove==\"d\""{
-			forward mindrobot -m local_modelChanged : modelChanged(robot, d)
+			//forward mindrobot -m local_modelChanged : modelChanged(robot, d)
+			forward resourcemodel -m modelChange : modelChange(robot,d)	  			
 			delayVar CompleteRotateTime
-	 		forward mindrobot -m local_modelChanged : modelChanged(robot, h)
+	 		//forward mindrobot -m local_modelChanged : modelChanged(robot, h)
+	 		forward resourcemodel -m modelChange : modelChange(robot,h)	  			
+	 		println("bigRotation-->d finish")
 		}
 		
   		delayVar DelayForCompassReady	
@@ -277,6 +279,7 @@ QActor onerotateforward context ctxRobot {
 			 Abs = Math.abs(OrientationZero-Orientation)
 			 NeedRotate = Abs>ErroreConcesso
 		"]
+		println("handleCompassRes--------------->Abs[$Abs] Orientation[$Orientation]")
 	}Goto miniRotate if "NeedRotate" else endDoRotationForward
 	
 	  State miniRotate{
@@ -284,16 +287,20 @@ QActor onerotateforward context ctxRobot {
 				val Inv = Math.abs(360-Abs)
 				var Min = Abs
 				if(Inv<Abs){Min=Inv}
-				val Arotate = (Orientation+Min)==OrientationZero || (360-Orientation+Min)==OrientationZero
+				val Arotate = (Orientation-Min)==OrientationZero || (360-Orientation-Min)==OrientationZero
 			"]
+			println("Arotate[$Arotate], ActualOrientation[$Orientation], needOrientation[$OrientationZero]")
 			if"Arotate"{
-					forward mindrobot -m local_modelChanged : modelChanged(robot, a)	  		
+					//forward mindrobot -m local_modelChanged : modelChanged(robot, a)
+					forward resourcemodel -m modelChange : modelChange(robot,a)	  				  		
 			}else{
-					forward mindrobot -m local_modelChanged : modelChanged(robot, d)	  		
+					//forward mindrobot -m local_modelChanged : modelChanged(robot, d)
+					forward resourcemodel -m modelChange : modelChange(robot,d)	  			  		
 			}	
 	  			
 	  		delayVar RotateTime
-	  		forward mindrobot -m local_modelChanged : modelChanged(robot, h)
+	  		//forward mindrobot -m local_modelChanged : modelChanged(robot, h)
+	  		forward resourcemodel -m modelChange : modelChange(robot,h)	  			
 	  		delayVar DelayForCompassReady	
 	  		forward compass -m compassReq : compassReq(0) 					
 	  }Transition t0 whenMsg compassRes -> handleCompassRes
@@ -361,7 +368,8 @@ QActor onecellforward context ctxRobot {
 	State doMoveForward{		  
 			println("-->doMoveForward")
 			//["startTimer()"] <<<<<-----------------NON VA
-			forward mindrobot -m local_modelChanged : modelChanged(robot, w)
+			//forward mindrobot -m local_modelChanged : modelChanged(robot, w)
+			forward resourcemodel -m modelChange : modelChange(robot,w)	  			
 			forward timer -m setTimer : setTimer( $StepTime )			
 			run itunibo.planner.plannerUtil.startTimer()
 	} 
@@ -371,7 +379,8 @@ QActor onecellforward context ctxRobot {
   
 	State endDoMoveForward{
 		println("---------------------------OK----->endDoMoveForward")
-		forward mindrobot -m local_modelChanged : modelChanged(robot,h)
+		//forward mindrobot -m local_modelChanged : modelChanged(robot,h)		
+		forward resourcemodel -m modelChange : modelChange(robot,h)
 		//setp in avanti ok quindi salvo sulla kb
 		forward kb -m modelUpdate : modelUpdate(  robot,  w)  
 		//aggiusto la rotta
@@ -401,7 +410,8 @@ QActor onecellforward context ctxRobot {
 	
 	State stepFail{
 		forward timer -m resetTimer : resetTimer( reset )						
-		forward mindrobot -m local_modelChanged : modelChanged(robot,h)	
+		//forward mindrobot -m local_modelChanged : modelChanged(robot,h)		
+		forward resourcemodel -m modelChange : modelChange(robot,h)
 		solve( wduration( TIME ) )
 		//["Duration=getDuration()"]
 		["Duration=getCurSol(\"TIME\").toString().toLong()"]		

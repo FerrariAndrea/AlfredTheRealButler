@@ -15,16 +15,24 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 	}
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
-		var foundObstacle = false; var StepTime = 0L; var Duration : Int =0
+		var foundObstacle = false; var StepTime = 0L; var Duration : Long =0
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
-						foundObstacle = false 
+						println("Start onecellforward")
+					}
+					 transition( edgeName="goto",targetState="ready", cond=doswitch() )
+				}	 
+				state("ready") { //this:State
+					action { //it:State
+						
+									foundObstacle = false 
 					}
 					 transition(edgeName="t06",targetState="doMoveForward",cond=whenDispatch("onestep"))
 				}	 
 				state("doMoveForward") { //this:State
 					action { //it:State
+						storeCurrentMessageForReply()
 						if( checkMsgContent( Term.createTerm("onestep(DURATION)"), Term.createTerm("onestep(TIME)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								StepTime = payloadArg(0).toLong()
@@ -40,30 +48,39 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				state("endDoMoveForward") { //this:State
 					action { //it:State
 						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
-						forward("stepOk", "stepOk(ok)" ,"explorer" ) 
+						forward("modelUpdate", "modelUpdate(robot,w)" ,"kb" ) 
+						replyToCaller("stepOk", "stepOk(ok)")
 					}
-					 transition( edgeName="goto",targetState="s0", cond=doswitch() )
+					 transition( edgeName="goto",targetState="ready", cond=doswitch() )
 				}	 
 				state("handleSonarRobot") { //this:State
 					action { //it:State
 						itunibo.planner.moveUtils.setDuration(myself)
-						println("$name in ${currentState.stateName} | $currentMsg")
 						if( checkMsgContent( Term.createTerm("sonar(DISTANCE)"), Term.createTerm("sonar(DISTANCE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								val distance = Integer.parseInt( payloadArg(0) ) 
-								              foundObstacle = (distance<20) 
+								              foundObstacle = (distance<10) 
 						}
 					}
 					 transition( edgeName="goto",targetState="stepFail", cond=doswitchGuarded({foundObstacle}) )
-					transition( edgeName="goto",targetState="s0", cond=doswitchGuarded({! foundObstacle}) )
+					transition( edgeName="goto",targetState="ready", cond=doswitchGuarded({! foundObstacle}) )
 				}	 
 				state("stepFail") { //this:State
 					action { //it:State
-						println("Actor: OneStepForward; stepFail Duration=$Duration ")
+						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
 						solve("wduration(TIME)","") //set resVar	
-						forward("stepFail", "stepFail(obstacle,${getCurSol("TIME").toString()})" ,"explorer" ) 
+						Duration=getCurSol("TIME").toString().toLong()
 					}
-					 transition( edgeName="goto",targetState="s0", cond=doswitch() )
+					 transition( edgeName="goto",targetState="goBackFromFail", cond=doswitch() )
+				}	 
+				state("goBackFromFail") { //this:State
+					action { //it:State
+						forward("modelChange", "modelChange(robot,s)" ,"resourcemodel" ) 
+						delay(Duration)
+						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
+						replyToCaller("stepFail", "stepFail(obstacle,$Duration) ")
+					}
+					 transition( edgeName="goto",targetState="ready", cond=doswitch() )
 				}	 
 			}
 		}

@@ -17,13 +17,13 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
 				val RotateTime = 20L
-				val CompleteRotateTime = 750L
-				val DelayForCompassReady=10L
+				val CompleteRotateTime = 500L
+				val DelayForCompassReady=100L
+				val ErroreConcesso = 0L
+				//------------------------
 				var RealMove = "a" 		
-				//var ActualMove ="a"
 				var Orientation =0L
-				var OrientationZero =0L
-				val ErroreConcesso = 5L
+				var OrientationZero =0L		
 				var Abs =0L
 				var NeedRotate =false
 		return { //this:ActionBasciFsm
@@ -69,7 +69,7 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 								 }
 								if(RealMove=="d"){ OrientationZero=OrientationZero+90
 								 }
-								if(OrientationZero<0){ OrientationZero=360-OrientationZero
+								if(OrientationZero<0){ OrientationZero=360+OrientationZero
 								 }
 								if(OrientationZero>360){ OrientationZero=OrientationZero-360
 								 }
@@ -83,13 +83,15 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 				}	 
 				state("bigRotation") { //this:State
 					action { //it:State
-						if(RealMove=="a"){ forward("local_modelChanged", "modelChanged(robot,a)" ,"mindrobot" ) 
+						if(RealMove=="a"){ forward("modelChange", "modelChange(robot,a)" ,"resourcemodel" ) 
 						delay(CompleteRotateTime)
-						forward("local_modelChanged", "modelChanged(robot,h)" ,"mindrobot" ) 
+						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
+						println("bigRotation-->a finish")
 						 }
-						if(RealMove=="d"){ forward("local_modelChanged", "modelChanged(robot,d)" ,"mindrobot" ) 
+						if(RealMove=="d"){ forward("modelChange", "modelChange(robot,d)" ,"resourcemodel" ) 
 						delay(CompleteRotateTime)
-						forward("local_modelChanged", "modelChanged(robot,h)" ,"mindrobot" ) 
+						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
+						println("bigRotation-->d finish")
 						 }
 						delay(DelayForCompassReady)
 						forward("compassReq", "compassReq(0)" ,"compass" ) 
@@ -105,6 +107,7 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 						
 									 Abs = Math.abs(OrientationZero-Orientation)
 									 NeedRotate = Abs>ErroreConcesso
+						println("handleCompassRes--------------->Abs[$Abs] Orientation[$Orientation]")
 					}
 					 transition( edgeName="goto",targetState="miniRotate", cond=doswitchGuarded({NeedRotate}) )
 					transition( edgeName="goto",targetState="endDoRotationForward", cond=doswitchGuarded({! NeedRotate}) )
@@ -115,14 +118,15 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 										val Inv = Math.abs(360-Abs)
 										var Min = Abs
 										if(Inv<Abs){Min=Inv}
-										val Arotate = (Orientation+Min)==OrientationZero || (360-Orientation+Min)==OrientationZero
-						if(Arotate){ forward("local_modelChanged", "modelChanged(robot,a)" ,"mindrobot" ) 
+										val Arotate = (Orientation-Min)==OrientationZero || (360-Orientation-Min)==OrientationZero
+						println("Arotate[$Arotate], ActualOrientation[$Orientation], needOrientation[$OrientationZero]")
+						if(Arotate){ forward("modelChange", "modelChange(robot,a)" ,"resourcemodel" ) 
 						 }
 						else
-						 { forward("local_modelChanged", "modelChanged(robot,d)" ,"mindrobot" ) 
+						 { forward("modelChange", "modelChange(robot,d)" ,"resourcemodel" ) 
 						  }
 						delay(RotateTime)
-						forward("local_modelChanged", "modelChanged(robot,h)" ,"mindrobot" ) 
+						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
 						delay(DelayForCompassReady)
 						forward("compassReq", "compassReq(0)" ,"compass" ) 
 					}

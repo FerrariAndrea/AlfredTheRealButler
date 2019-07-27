@@ -21,8 +21,8 @@ class Kb ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope){
 						println("Start kb")
 						solve("consult('robotPosResolver.pl')","") //set resVar	
 					}
-					 transition(edgeName="t01",targetState="handle",cond=whenDispatch("modelUpdate"))
-					transition(edgeName="t02",targetState="handle",cond=whenDispatch("modelRequest"))
+					 transition(edgeName="t02",targetState="handle",cond=whenDispatch("modelUpdate"))
+					transition(edgeName="t03",targetState="handle",cond=whenDispatch("modelRequest"))
 				}	 
 				state("handle") { //this:State
 					action { //it:State
@@ -52,10 +52,11 @@ class Kb ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope){
 												
 								if(Target=="robot"){ solve("updateRobotStateFromMove($Value)","") //set resVar	
 								 }
+								println("----------->KB[$Target][$Value]")
 						}
 					}
-					 transition(edgeName="t03",targetState="handle",cond=whenDispatch("modelUpdate"))
-					transition(edgeName="t04",targetState="handle",cond=whenDispatch("modelRequest"))
+					 transition(edgeName="t04",targetState="handle",cond=whenDispatch("modelUpdate"))
+					transition(edgeName="t05",targetState="handle",cond=whenDispatch("modelRequest"))
 				}	 
 			}
 		}

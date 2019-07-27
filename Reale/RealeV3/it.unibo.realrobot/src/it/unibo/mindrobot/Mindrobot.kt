@@ -15,10 +15,7 @@ class Mindrobot ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 	}
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
-		
-			var obstacle = false
-			val minDifferenceForBelance = 2
-			var myagain = false
+		var obstacle = false
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State

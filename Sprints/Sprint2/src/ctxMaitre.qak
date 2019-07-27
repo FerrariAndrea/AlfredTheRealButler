@@ -22,7 +22,7 @@ ExternalQActor kb context ctxDummy
 ExternalQActor explorer context ctxDummy
 ExternalQActor resourcemodel context ctxDummy
 ExternalQActor onerotateforward context ctxDummy
-
+ExternalQActor mindrobot context ctxDummy
 /*
  *  So far, Maitre just stends a moveForward command. 
  *  In the future we'll use a web-app to send commands to the resource model.
@@ -38,11 +38,8 @@ QActor maitre context ctxMaitre {
 	State s0 initial {
 		println("Start maitre")
 	}
-	Goto prova
-	State prova{
-		forward onerotateforward -m  onerotationstep :  onerotationstep( a ) 
-		
-	}
+	Goto go
+	
 	State go {		
 		println("Send Start to explorer ")	
 		forward explorer -m  testCmd :  testCmd( Start ) 

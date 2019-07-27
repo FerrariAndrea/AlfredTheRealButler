@@ -40,9 +40,9 @@ object nanoSupport {
 		var command : IBaseRobotCommand = BaseRobotStop(SPEED_LOW )
 		when( cmd ){
 			"msg(w)" -> command = BaseRobotForward( SPEED_LOW )
-			"msg(s)" -> command = BaseRobotBackward(SPEED_HIGH )
-			"msg(a)" -> command = BaseRobotLeft(SPEED_MEDIUM )//SPEED_MEDIUM
-			"msg(d)" -> command = BaseRobotRight(SPEED_MEDIUM )//SPEED_MEDIUM
+			"msg(s)" -> command = BaseRobotBackward(SPEED_LOW )
+			"msg(a)" -> command = BaseRobotRight(SPEED_MEDIUM )//Ho dovuto invertire destra e sinistra
+			"msg(d)" -> command = BaseRobotLeft(SPEED_MEDIUM )//Ho dovuto invertire destra e sinistra
 			"msg(h)" -> command = BaseRobotStop(SPEED_LOW )
 		}
 		robot.execute(command)

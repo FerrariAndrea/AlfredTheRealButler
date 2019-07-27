@@ -68,7 +68,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				state("doMoveForward") { //this:State
 					action { //it:State
 						println("-->doMoveForward")
-						forward("local_modelChanged", "modelChanged(robot,w)" ,"mindrobot" ) 
+						forward("modelChange", "modelChange(robot,w)" ,"resourcemodel" ) 
 						forward("setTimer", "setTimer($StepTime)" ,"timer" ) 
 						itunibo.planner.plannerUtil.startTimer(  )
 					}
@@ -78,7 +78,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				state("endDoMoveForward") { //this:State
 					action { //it:State
 						println("---------------------------OK----->endDoMoveForward")
-						forward("local_modelChanged", "modelChanged(robot,h)" ,"mindrobot" ) 
+						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
 						forward("modelUpdate", "modelUpdate(robot,w)" ,"kb" ) 
 						forward("onerotationstep", "onerotationstep(Z)" ,"onerotateforward" ) 
 					}
@@ -107,7 +107,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				state("stepFail") { //this:State
 					action { //it:State
 						forward("resetTimer", "resetTimer(reset)" ,"timer" ) 
-						forward("local_modelChanged", "modelChanged(robot,h)" ,"mindrobot" ) 
+						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
 						solve("wduration(TIME)","") //set resVar	
 						Duration=getCurSol("TIME").toString().toLong()
 					}

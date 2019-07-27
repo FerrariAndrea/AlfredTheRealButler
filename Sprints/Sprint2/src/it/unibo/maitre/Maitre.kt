@@ -22,12 +22,7 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 					action { //it:State
 						println("Start maitre")
 					}
-					 transition( edgeName="goto",targetState="prova", cond=doswitch() )
-				}	 
-				state("prova") { //this:State
-					action { //it:State
-						forward("onerotationstep", "onerotationstep(a)" ,"onerotateforward" ) 
-					}
+					 transition( edgeName="goto",targetState="go", cond=doswitch() )
 				}	 
 				state("go") { //this:State
 					action { //it:State
