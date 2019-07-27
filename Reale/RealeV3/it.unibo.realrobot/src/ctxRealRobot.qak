@@ -228,11 +228,15 @@ QActor sonarhandler context ctxRobot {
 QActor onerotateforward context ctxRobot {
 	["
 		val RotateTime = 50L
-		var RealMove = \"a\" 
-		var ActualMove =\"a\"
+		val CompleteRotateTime = 500L
+		val DelayForCompassReady=2L
+		var RealMove = \"a\" 		
+		//var ActualMove =\"a\"
 		var Orientation =0L
 		var OrientationZero =0L
 		val ErroreConcesso = 5L
+		var Abs =0L
+		var NeedRotate =false
 	"]  
 	State s0 initial {	   		
 		println("Start onerotateforward")
@@ -283,77 +287,74 @@ QActor onerotateforward context ctxRobot {
 			
 			
 		}
-		["val abs = Math.abs(OrientationZero-Orientation)>ErroreConcesso"]
+		["
+			 Abs = Math.abs(OrientationZero-Orientation)
+			 NeedRotate = Abs>ErroreConcesso
+		"]
 		
 	
-	}Goto miniRotate if "abs" else endDoRotationForward
+	}Goto miniRotate if "NeedRotate" else endDoRotationForward
+	
+	State bigRotation{
+		if "RealMove==\"a\""{
+	  			forward mindrobot -m local_modelChanged : modelChanged(robot, a)
+	  			delayVar CompleteRotateTime
+	  			forward mindrobot -m local_modelChanged : modelChanged(robot, h)
+	  	}
+		if "RealMove==\"d\""{
+			forward mindrobot -m local_modelChanged : modelChanged(robot, d)
+			delayVar CompleteRotateTime
+	 		forward mindrobot -m local_modelChanged : modelChanged(robot, h)
+		}
+		
+  		delayVar DelayForCompassReady	
+  		forward compass -m compassReq : compassReq(0) 
+	}Transition t0 whenMsg compassRes -> handleCompassRes
+	
+		
+	State handleCompassRes{
+		onMsg( compassRes : compassRes(ORIENTATION) ) {
+			["Orientation = payloadArg(0).toLong()"]			
+		}
+		["
+			 Abs = Math.abs(OrientationZero-Orientation)
+			 NeedRotate = Abs>ErroreConcesso
+		"]
+	}Goto miniRotate if "NeedRotate" else endDoRotationForward
 	
 	  State miniRotate{
-	  		["
-				val scarto1 =OrientationZero-Orientation
-				val scarto2 =-OrientationZero+Orientation
+			["
+				val Inv = Math.abs(360-Abs)
+				var Min = Abs
+				if(Inv<Abs){Min=Inv}
+				val Arotate = (Orientation+Min)==OrientationZero || (360-Orientation+Min)==OrientationZero
 			"]
-	  		
-	  		if"scarto>0"{
-					
-			}
-			forward mindrobot -m local_modelChanged : modelChanged(robot, w)
-			forward timer -m setTimer : setTimer( $StepTime )			
-			run itunibo.planner.plannerUtil.startTimer()
-	  }Goto miniRotate if "abs" else endDoRotationForward
-	
+			if"Arotate"{
+					forward mindrobot -m local_modelChanged : modelChanged(robot, a)	  		
+			}else{
+					forward mindrobot -m local_modelChanged : modelChanged(robot, d)	  		
+			}	
+	  			
+	  		delayVar RotateTime
+	  		forward mindrobot -m local_modelChanged : modelChanged(robot, h)
+	  		delayVar DelayForCompassReady	
+	  		forward compass -m compassReq : compassReq(0) 					
+	  }Transition t0 whenMsg compassRes -> handleCompassRes
+	  
+
 	State endDoRotationForward{
-		println("---------------------------OK----->endDoMoveForward")
-		forward mindrobot -m local_modelChanged : modelChanged(robot,h)
-		//setp in avanti ok quindi salvo sulla kb
-		forward kb -m modelUpdate : modelUpdate(  robot,  w)  
-		["replyToCaller(\"stepOk\", \"stepOk(ok)\")"]	
-		//rotationOk        : rotationOk(STALL)
+		//Rotation ok quindi salvo sulla kb
+		if "RealMove==\"a\""{
+	  		forward kb -m modelUpdate : modelUpdate(  robot,  a)
+	  	}
+		if "RealMove==\"d\""{
+			forward kb -m modelUpdate : modelUpdate(  robot, d)
+		}  		
+		["replyToCaller(\"rotationOk\", \"rotationOk(0)\")"]
 	}
 	Goto ready
 	
-	//Substitute with an ad-hoc actor for a real robot
-	State handleSonarRobot{  //before than the step time
-		//printCurrentMessage		
-		
- 		onMsg ( sonarRobot : sonar( DISTANCE ) ){     
-			["val distance = Integer.parseInt( payloadArg(0) ) 
-              FoundObstacle = (distance<DistanzaMinima) "]  
-              if "FoundObstacle"{
-	 			run itunibo.planner.moveUtils.setDuration(myself)
-              }
-              
-              println("handleSonarRobot-ONESTEP--------------------------------------------->$distance")
-   		}
-	}	
-	Goto stepFail if "FoundObstacle" else mustGoOn
 	
-	State stepFail{
-		forward timer -m resetTimer : resetTimer( reset )						
-		forward mindrobot -m local_modelChanged : modelChanged(robot,h)	
-		solve( wduration( TIME ) )
-		//["Duration=getDuration()"]
-		["Duration=getCurSol(\"TIME\").toString().toLong()"]		
-		//println("Actor: OneStepForward; State:stepfail -> $Duration")		
-			 	
-	}Goto goBackFromFail
-	
-	State goBackFromFail{
-	
- 		forward resourcemodel -m modelChange : modelChange(robot,s)  
- 		delayVar Duration 
-  		forward resourcemodel -m modelChange : modelChange(robot,h) 
-  		
-		["replyToCaller(\"stepFail\", \"stepFail(obstacle,$Duration) \")"]
-		
-	}Goto ready
-	
-	State mustGoOn{
-		      println("->mustGoOn")
-   		
-	}
-	Transition t0 whenEvent tickTimer  -> endDoMoveForward	
-					whenEvent sonarRobot  -> handleSonarRobot	
 }
 
 QActor onecellforward context ctxRobot {
@@ -417,10 +418,14 @@ QActor onecellforward context ctxRobot {
 		forward mindrobot -m local_modelChanged : modelChanged(robot,h)
 		//setp in avanti ok quindi salvo sulla kb
 		forward kb -m modelUpdate : modelUpdate(  robot,  w)  
-		["replyToCaller(\"stepOk\", \"stepOk(ok)\")"]	
+		//aggiusto la rotta
+		forward onerotateforward -m onerotationstep : onerotationstep(Z) 
 		
-	}
-	Goto ready
+	}Transition t0 whenEvent rotationOk  -> endCorrezioneRotta	
+	
+	State endCorrezioneRotta{
+			["replyToCaller(\"stepOk\", \"stepOk(ok)\")"]		
+	}Goto ready
 	
 	//Substitute with an ad-hoc actor for a real robot
 	State handleSonarRobot{  //before than the step time

@@ -16,12 +16,16 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
-				val RotateTime = 100L
-				var RealMove = "a" 
-				var ActualMove ="a"
+				val RotateTime = 50L
+				val CompleteRotateTime = 500L
+				val DelayForCompassReady=2L
+				var RealMove = "a" 		
+				//var ActualMove ="a"
 				var Orientation =0L
 				var OrientationZero =0L
 				val ErroreConcesso = 5L
+				var Abs =0L
+				var NeedRotate =false
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -71,67 +75,69 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 								if(OrientationZero>360){ OrientationZero=OrientationZero-360
 								 }
 						}
-						val abs = Math.abs(OrientationZero-Orientation)
+						
+									 Abs = Math.abs(OrientationZero-Orientation)
+									 NeedRotate = Abs>ErroreConcesso
 					}
-					 transition(edgeName="t012",targetState="endDoMoveForward",cond=whenEvent("tickTimer"))
-					transition(edgeName="t013",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
+					 transition( edgeName="goto",targetState="miniRotate", cond=doswitchGuarded({NeedRotate}) )
+					transition( edgeName="goto",targetState="endDoRotationForward", cond=doswitchGuarded({! NeedRotate}) )
+				}	 
+				state("bigRotation") { //this:State
+					action { //it:State
+						if(RealMove=="a"){ forward("local_modelChanged", "modelChanged(robot,a)" ,"mindrobot" ) 
+						delay(CompleteRotateTime)
+						forward("local_modelChanged", "modelChanged(robot,h)" ,"mindrobot" ) 
+						 }
+						if(RealMove=="d"){ forward("local_modelChanged", "modelChanged(robot,d)" ,"mindrobot" ) 
+						delay(CompleteRotateTime)
+						forward("local_modelChanged", "modelChanged(robot,h)" ,"mindrobot" ) 
+						 }
+						delay(DelayForCompassReady)
+						forward("compassReq", "compassReq(0)" ,"compass" ) 
+					}
+					 transition(edgeName="t012",targetState="handleCompassRes",cond=whenDispatch("compassRes"))
+				}	 
+				state("handleCompassRes") { //this:State
+					action { //it:State
+						if( checkMsgContent( Term.createTerm("compassRes(ORIENTATION)"), Term.createTerm("compassRes(ORIENTATION)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								Orientation = payloadArg(0).toLong()
+						}
+						
+									 Abs = Math.abs(OrientationZero-Orientation)
+									 NeedRotate = Abs>ErroreConcesso
+					}
+					 transition( edgeName="goto",targetState="miniRotate", cond=doswitchGuarded({NeedRotate}) )
+					transition( edgeName="goto",targetState="endDoRotationForward", cond=doswitchGuarded({! NeedRotate}) )
 				}	 
 				state("miniRotate") { //this:State
 					action { //it:State
-						val abs = Math.abs(OrientationZero-Orientation)
-						if(>ErroreConcesso){  }
-						forward("local_modelChanged", "modelChanged(robot,w)" ,"mindrobot" ) 
-						forward("setTimer", "setTimer($StepTime)" ,"timer" ) 
-						itunibo.planner.plannerUtil.startTimer(  )
-					}
-				}	 
-				state("endDoMoveForward") { //this:State
-					action { //it:State
-						println("---------------------------OK----->endDoMoveForward")
+						
+										val Inv = Math.abs(360-Abs)
+										var Min = Abs
+										if(Inv<Abs){Min=Inv}
+										val Arotate = (Orientation+Min)==OrientationZero || (360-Orientation+Min)==OrientationZero
+						if(Arotate){ forward("local_modelChanged", "modelChanged(robot,a)" ,"mindrobot" ) 
+						 }
+						else
+						 { forward("local_modelChanged", "modelChanged(robot,d)" ,"mindrobot" ) 
+						  }
+						delay(RotateTime)
 						forward("local_modelChanged", "modelChanged(robot,h)" ,"mindrobot" ) 
-						forward("modelUpdate", "modelUpdate(robot,w)" ,"kb" ) 
-						replyToCaller("stepOk", "stepOk(ok)")
+						delay(DelayForCompassReady)
+						forward("compassReq", "compassReq(0)" ,"compass" ) 
+					}
+					 transition(edgeName="t013",targetState="handleCompassRes",cond=whenDispatch("compassRes"))
+				}	 
+				state("endDoRotationForward") { //this:State
+					action { //it:State
+						if(RealMove=="a"){ forward("modelUpdate", "modelUpdate(robot,a)" ,"kb" ) 
+						 }
+						if(RealMove=="d"){ forward("modelUpdate", "modelUpdate(robot,d)" ,"kb" ) 
+						 }
+						replyToCaller("rotationOk", "rotationOk(0)")
 					}
 					 transition( edgeName="goto",targetState="ready", cond=doswitch() )
-				}	 
-				state("handleSonarRobot") { //this:State
-					action { //it:State
-						if( checkMsgContent( Term.createTerm("sonar(DISTANCE)"), Term.createTerm("sonar(DISTANCE)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								val distance = Integer.parseInt( payloadArg(0) ) 
-								              FoundObstacle = (distance<DistanzaMinima) 
-								if(FoundObstacle){ itunibo.planner.moveUtils.setDuration(myself)
-								 }
-								println("handleSonarRobot-ONESTEP--------------------------------------------->$distance")
-						}
-					}
-					 transition( edgeName="goto",targetState="stepFail", cond=doswitchGuarded({FoundObstacle}) )
-					transition( edgeName="goto",targetState="mustGoOn", cond=doswitchGuarded({! FoundObstacle}) )
-				}	 
-				state("stepFail") { //this:State
-					action { //it:State
-						forward("resetTimer", "resetTimer(reset)" ,"timer" ) 
-						forward("local_modelChanged", "modelChanged(robot,h)" ,"mindrobot" ) 
-						solve("wduration(TIME)","") //set resVar	
-						Duration=getCurSol("TIME").toString().toLong()
-					}
-					 transition( edgeName="goto",targetState="goBackFromFail", cond=doswitch() )
-				}	 
-				state("goBackFromFail") { //this:State
-					action { //it:State
-						forward("modelChange", "modelChange(robot,s)" ,"resourcemodel" ) 
-						delay(Duration)
-						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
-						replyToCaller("stepFail", "stepFail(obstacle,$Duration) ")
-					}
-					 transition( edgeName="goto",targetState="ready", cond=doswitch() )
-				}	 
-				state("mustGoOn") { //this:State
-					action { //it:State
-						println("->mustGoOn")
-					}
-					 transition(edgeName="t014",targetState="endDoMoveForward",cond=whenEvent("tickTimer"))
-					transition(edgeName="t015",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
 				}	 
 			}
 		}

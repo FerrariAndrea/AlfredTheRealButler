@@ -31,7 +31,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 					action { //it:State
 						println("->ready")
 					}
-					 transition(edgeName="t016",targetState="checkFirst",cond=whenDispatch("onestep"))
+					 transition(edgeName="t014",targetState="checkFirst",cond=whenDispatch("onestep"))
 				}	 
 				state("checkFirst") { //this:State
 					action { //it:State
@@ -46,7 +46,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						forward("internalReq", "internalReq(lastSonarRobot)" ,"sonarhandler" ) 
 						println("----------------WAITING")
 					}
-					 transition(edgeName="t017",targetState="waitingForcheckFirstSonar",cond=whenEvent("lastSonarRobot"))
+					 transition(edgeName="t015",targetState="waitingForcheckFirstSonar",cond=whenEvent("lastSonarRobot"))
 				}	 
 				state("waitingForcheckFirstSonar") { //this:State
 					action { //it:State
@@ -73,14 +73,20 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						forward("setTimer", "setTimer($StepTime)" ,"timer" ) 
 						itunibo.planner.plannerUtil.startTimer(  )
 					}
-					 transition(edgeName="t018",targetState="endDoMoveForward",cond=whenEvent("tickTimer"))
-					transition(edgeName="t019",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
+					 transition(edgeName="t016",targetState="endDoMoveForward",cond=whenEvent("tickTimer"))
+					transition(edgeName="t017",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
 				}	 
 				state("endDoMoveForward") { //this:State
 					action { //it:State
 						println("---------------------------OK----->endDoMoveForward")
 						forward("local_modelChanged", "modelChanged(robot,h)" ,"mindrobot" ) 
 						forward("modelUpdate", "modelUpdate(robot,w)" ,"kb" ) 
+						forward("onerotationstep", "onerotationstep(Z)" ,"onerotateforward" ) 
+					}
+					 transition(edgeName="t018",targetState="endCorrezioneRotta",cond=whenEvent("rotationOk"))
+				}	 
+				state("endCorrezioneRotta") { //this:State
+					action { //it:State
 						replyToCaller("stepOk", "stepOk(ok)")
 					}
 					 transition( edgeName="goto",targetState="ready", cond=doswitch() )
@@ -121,8 +127,8 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 					action { //it:State
 						println("->mustGoOn")
 					}
-					 transition(edgeName="t020",targetState="endDoMoveForward",cond=whenEvent("tickTimer"))
-					transition(edgeName="t021",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
+					 transition(edgeName="t019",targetState="endDoMoveForward",cond=whenEvent("tickTimer"))
+					transition(edgeName="t020",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
 				}	 
 			}
 		}
