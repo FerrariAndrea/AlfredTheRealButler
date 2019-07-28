@@ -1,0 +1,201 @@
+System system3
+mqttBroker "localhost" : 1883
+
+Dispatch modelChange  : modelChange( TARGET, VALUE )  //force a resource-model change
+Dispatch onestep       : onestep(DURATION)
+Dispatch stepOk        : stepOk(V)		//TODO eliminate  V
+Dispatch stepFail      : stepFail(R,T) //R=ok | obstacle, T = time
+Dispatch onerotationstep   : onerotationstep(MOVE)
+Dispatch rotationOk        : rotationOk(STALL)
+
+Dispatch testCmd  : testCmd( cmd )  //sent by kotlinTest
+Dispatch moveTo  : moveTo( X,Y )  //i payload sono inutili ad ora
+
+Event  sonarRobot     : sonar( DISTANCE )	     //from  sonar on robot 
+
+
+
+Context ctxExplorer ip[host="localhost" port=8039] -mqtt
+Context ctxDummy ip[host="dummyhost" port=9999] -mqtt 
+
+
+ExternalQActor maitre context ctxDummy
+ExternalQActor resourcemodel context ctxDummy
+ExternalQActor onecellforward context ctxDummy
+ExternalQActor onerotateforward context ctxDummy
+/*
+ *  The goal is to move the robot to the fridge and let it come back 
+ *  Fridge Position is given *a priori*
+ */
+
+QActor explorer context ctxExplorer{     
+	["
+	var fridge_position_x = 6;
+	var fridge_position_y = 0;
+	var goingHome  = false
+	var stepCounter = 0 
+	var Move = \"\"
+	var StepTime   = 350L	//for virtual
+	var RotateTime = 300L	//for virtual
+	var PauseTime  = 250L 
+	var Direction = \"\" 
+	"]	
+	State s0 initial {	
+		println("Actor: Explorer; State: initial")
+	    solve( consult("moves.pl")	 )
+		run itunibo.planner.plannerUtil.initAI()
+		println("Actor: Explorer; State: handleStepFail; Payload: INITIAL MAP")
+ 		run itunibo.planner.plannerUtil.showMap()
+ 		println("Waiting for testCmd...")
+ 	}
+	//Goto  goToTheFridge
+	Transition t0  whenEvent   moveTo  -> goToPosition
+	
+	/*
+	 * 1)Go to the Fridge
+	 */
+	 State goToPosition{
+	 	
+	 	onMsg(   moveTo:  moveTo(X,Y) ) { 
+			
+			["
+				var X=payloadArg(0)
+				var Y=payloadArg(1)
+				//var O=payloadArg(2)
+			"]
+			
+		println("TEST TEST TEST - POSITION RICERCATA: $X, $Y")	
+		
+		solve( direction(D) )   
+   		println("Actor: Explorer; State: goToPosition; Payload: direction at start: ${getCurSol(\"D\").toString()}")
+		run itunibo.planner.plannerUtil.showMap()		
+		run itunibo.planner.plannerUtil.setGoal(X,Y)
+		["goingHome=false"]	
+		run itunibo.planner.moveUtils.doPlan( myself )
+		}
+ 	} 	
+ 	
+ 	Goto executePlannedActions  if "itunibo.planner.moveUtils.existPlan()" else endOfJob 
+ 	
+	 
+	State goToTheFridge{
+ 		solve( direction(D) )   
+   		println("Actor: Explorer; State: goToTheFridge; Payload: direction at start: ${getCurSol(\"D\").toString()}")
+		run itunibo.planner.plannerUtil.showMap()		
+		run itunibo.planner.plannerUtil.setGoal(fridge_position_x,fridge_position_y) // (6,0) should be Fridge Position
+		["goingHome=false"]	
+		run itunibo.planner.moveUtils.doPlan( myself )
+ 	} 	
+ 	
+ 	
+	Goto executePlannedActions  if "itunibo.planner.moveUtils.existPlan()" else endOfJob 
+	/*
+	 * 2) Execute the planned action, with attention to w the actions are stored in the actor-kb as a sequence of facts: move(M)
+	 */
+	
+	State executePlannedActions{ 
+		//solve( showMoves ) 
+		solve( retract( move(M) ) ) //consume a move
+		ifSolved {  
+			["Move = getCurSol(\"M\").toString()"]
+		} else { ["Move = \"\""]  }  
+		//println("executePlannedActions doing $Curmove")
+ 	}
+	Goto doTheMove  if "(Move.length>0) " else goalOk 
+ 	
+ 	State goalOk{		  
+ 		println("Actor: Explorer; State: goalOk; Payload: ON THE TARGET CELL !!!")
+ 		println("Waiting for testCmd...")
+ 	} 	
+ 	Transition t0  whenMsg   testCmd  -> testPass_1
+ 	
+ 	State testPass_1{		  
+ 		//aggiunto per fermare il robot e dare il tempo al test kotlin di capire la sua posizione
+ 	}	
+ 	Goto atHome if "goingHome" else backToHome
+ 	
+ 	
+	State doTheMove{
+		if "Move==\"a\" || Move==\"d\" " {//ROTATION			
+			forward onerotateforward -m onerotationstep : onerotationstep($Move)	
+		}else{// W			
+			forward onecellforward -m onestep : onestep($StepTime)	
+		}	
+	}
+	Transition t0   whenMsg stepOk   	-> handleStepOk   
+					whenMsg stepFail 	-> handleStepFail  
+					whenMsg rotationOk 	-> handleStepOk
+	 	
+	State handleStepOk{
+		run itunibo.planner.moveUtils.doPlannedMove(myself, Move)	
+		delayVar PauseTime	
+	}
+	Goto executePlannedActions
+	
+	State handleStepFail{ 
+		println("Actor: Explorer; State: handleStepFail; Payload: Fail step :(")
+		run itunibo.planner.plannerUtil.showMap()	
+		println("Actor: Explorer; State: handleStepFail; Payload: Replan and return at home.")
+		delay 500
+		println("Waiting for testCmd...")
+	}
+	Transition t0  whenMsg   testCmd  -> testPass_2
+	//Goto backToHome
+	State testPass_2{		  
+ 		//aggiunto per fermare il robot e dare il tempo al test kotlin di capire la sua posizione
+ 	}	
+ 	Goto backToHome
+/*
+ * Exploration step done: go back to home
+ * If we use the planner - setGoal(0,0) - then the robot could 
+ * find an obstacle in the return path
+ */	 
+	 
+	State backToHome{
+		println("Actor: Explorer; State: backToHome")
+ 		solve( direction(D) )
+   		println("Actor: Explorer; State: backToHome; Payload: ${getCurSol(\"D\").toString()}")
+ 		println("Actor: Explorer; State: backToHome; Payload: MAP BEFORE backToHome")
+		run itunibo.planner.plannerUtil.showMap()	
+		solve( retractall( move(_) ))		//clean the actor kb
+ 		run itunibo.planner.plannerUtil.setGoal(0,0)
+ 		["goingHome=true"]
+ 		run itunibo.planner.moveUtils.doPlan( myself )
+ 		run itunibo.planner.moveUtils.existPlan()//non so se sia negessario
+ 	} 
+	Goto executePlannedActions //doGoHomeActions 
+	
+
+	
+	State atHome {  //reposition	
+ 		solve( direction(D) )
+ 		["Direction = getCurSol(\"D\").toString() "]
+		println( @D ) 
+		["
+		val map = itunibo.planner.plannerUtil.getMap() 
+		println(map)
+		"] 		
+   		println("Actor: Explorer; State: atHome; Payload: direction at home: ${getCurSol(\"D\").toString()}")
+   	
+	}
+	Goto rotateSouth
+	
+	State rotateSouth{
+		["Move=\"a\""]
+		delayVar StepTime
+		forward onerotateforward -m onerotationstep : onerotationstep($Move)//
+   		
+	}Transition t0	whenMsg rotationOk 	-> checkSouth
+
+	State checkSouth{
+		run itunibo.planner.moveUtils.doPlannedMove(myself, Move)	
+		solve( direction(D) )
+		["Direction = getCurSol(\"D\").toString() "]
+		println("Actor: Explorer; State: rotateSouth; Payload: $Direction")
+	}
+	Goto rotateSouth  if "(Direction!=\"downDir\")" else endOfJob
+	
+	State endOfJob{
+		println("END")
+	}
+}	
