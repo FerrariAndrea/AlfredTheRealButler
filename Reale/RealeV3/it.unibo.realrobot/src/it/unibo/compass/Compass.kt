@@ -29,7 +29,7 @@ class Compass ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sco
 				state("calibration") { //this:State
 					action { //it:State
 						forward("modelChange", "modelChange(robot,sa)" ,"resourcemodel" ) 
-						delay(50) 
+						delay(100) 
 						val calibration_x_y =surpluss.compassSupport.calibrateCompass()
 						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
 						println("Compass calibration done: $calibration_x_y")

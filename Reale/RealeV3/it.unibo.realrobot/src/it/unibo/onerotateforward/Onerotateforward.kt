@@ -16,9 +16,9 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
-				val RotateTime = 10L
+				val RotateTime = 50L
 				val CompleteRotateTime = 300L
-				val DelayForCompassReady=1L
+				val DelayForCompassReady=50L
 				val ErroreConcesso = 2L
 				//------------------------
 				var RealMove = "a" 		
@@ -126,7 +126,7 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 					action { //it:State
 						
 											var temp_d =0L
-											var temp_a =0L			
+											var temp_a =0L	
 						if(Orientation>OrientationZero){ 
 											temp_a =Orientation-OrientationZero
 											temp_d =360-temp_a			
@@ -140,10 +140,10 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 						if(temp_a>temp_d){ Arotate=false
 						 }
 						println("Arotate[$Arotate], ActualOrientation[$Orientation], needOrientation[$OrientationZero]")
-						if(Arotate){ forward("modelChange", "modelChange(robot,a)" ,"resourcemodel" ) 
+						if(Arotate){ forward("modelChange", "modelChange(robot,ma)" ,"resourcemodel" ) 
 						 }
 						else
-						 { forward("modelChange", "modelChange(robot,d)" ,"resourcemodel" ) 
+						 { forward("modelChange", "modelChange(robot,md)" ,"resourcemodel" ) 
 						  }
 						delay(RotateTime)
 						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 

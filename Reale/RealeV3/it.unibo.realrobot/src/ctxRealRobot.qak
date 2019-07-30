@@ -183,9 +183,9 @@ QActor sonarhandler context ctxRobot {
 
 QActor onerotateforward context ctxRobot {
 	["
-		val RotateTime = 10L
+		val RotateTime = 50L
 		val CompleteRotateTime = 300L
-		val DelayForCompassReady=1L
+		val DelayForCompassReady=50L
 		val ErroreConcesso = 2L
 		//------------------------
 		var RealMove = \"a\" 		
@@ -293,7 +293,7 @@ QActor onerotateforward context ctxRobot {
 	  State miniRotate{
 				["
 					var temp_d =0L
-					var temp_a =0L			
+					var temp_a =0L	
 				"]
 			if"Orientation>OrientationZero"{
 				["
@@ -313,12 +313,11 @@ QActor onerotateforward context ctxRobot {
 			println("Arotate[$Arotate], ActualOrientation[$Orientation], needOrientation[$OrientationZero]")
 			if"Arotate"{
 					//forward mindrobot -m local_modelChanged : modelChanged(robot, a)
-					forward resourcemodel -m modelChange : modelChange(robot,a)	  				  		
+					forward resourcemodel -m modelChange : modelChange(robot,ma)	  				  		
 			}else{
 					//forward mindrobot -m local_modelChanged : modelChanged(robot, d)
-					forward resourcemodel -m modelChange : modelChange(robot,d)	  			  		
-			}	
-	  			
+					forward resourcemodel -m modelChange : modelChange(robot,md)	  			  		
+			}
 	  		delayVar RotateTime
 	  		//forward mindrobot -m local_modelChanged : modelChanged(robot, h)
 	  		forward resourcemodel -m modelChange : modelChange(robot,h)					
@@ -603,7 +602,7 @@ QActor compass context ctxRobot{
 	State calibration{
 		forward resourcemodel -m modelChange : modelChange(robot,sa) 
 		//forward basicrobot -m robotCmd : robotCmd( sa)	
-		delay 50
+		delay 100
 		 ["val calibration_x_y =surpluss.compassSupport.calibrateCompass()"]
 		 //forward basicrobot -m robotCmd : robotCmd( h )	
 		 	forward resourcemodel -m modelChange : modelChange(robot,h) 
