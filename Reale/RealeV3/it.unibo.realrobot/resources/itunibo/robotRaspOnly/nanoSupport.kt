@@ -44,7 +44,14 @@ object nanoSupport {
 			"msg(a)" -> command = BaseRobotRight(SPEED_MEDIUM )//Ho dovuto invertire destra e sinistra
 			"msg(d)" -> command = BaseRobotLeft(SPEED_MEDIUM )//Ho dovuto invertire destra e sinistra
 			"msg(h)" -> command = BaseRobotStop(SPEED_LOW )
+			
+			"msg(sa)" -> command = BaseRobotRight(SPEED_HIGH )//Ho dovuto invertire destra e sinistra
+			"msg(sd)" -> command = BaseRobotLeft(SPEED_HIGH )//Ho dovuto invertire destra e sinistra
+			"msg(ma)" -> command = BaseRobotRight(SPEED_MEDIUM )//Ho dovuto invertire destra e sinistra
+			"msg(md)" -> command = BaseRobotLeft(SPEED_MEDIUM )//Ho dovuto invertire destra e sinistra
+			
 		}
 		robot.execute(command)
 	}
+	
 }

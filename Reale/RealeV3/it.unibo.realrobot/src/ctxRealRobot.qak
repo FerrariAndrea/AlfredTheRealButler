@@ -36,6 +36,7 @@ Dispatch compassRes : compassRes( ORIENTATION )
 
 Dispatch setLed : setLed(BLINKN,BLINKDELAY )//BLINKDELAY=-1 ->ledOFF  //BLINKDELAY=0 -> ledOn //BLINKDELAY>0 --> blink for BLINKN time
 
+Dispatch claibrationMsg : claibrationMsg( arg ) //TODO eliminate  V
 
 
 Context ctxRobot ip[host="localhost" port=8038] -mqtt
@@ -71,9 +72,9 @@ QActor mindrobot context ctxRobot{
 	State handleModelChanged {
 		//printCurrentMessage
 		onMsg ( local_modelChanged : modelChanged(robot,CMD) ){ 
+			//println("handleModelChanged-->${payloadArg(1)}")			
 			forward basicrobot -m robotCmd : robotCmd( $payloadArg(1) )	
 			forward resourcemodel -m modelUpdate : modelUpdate(robot,$payloadArg(1)) //... then update the model
-				
 		}	
 	}
 	Goto waitCmd
@@ -92,12 +93,14 @@ QActor basicrobot context ctxRobot{
 	}
 	Goto waitCmd
 	
-	State waitCmd{  } //robotCmd comes from a console OUTSIDE this (sub)system
+	State waitCmd{ 
+	} //robotCmd comes from a console OUTSIDE this (sub)system
 	Transition t0  whenMsg   robotCmd  -> handleRobotCmd
 	
 	State handleRobotCmd{ //does not handle alarms 
 		//printCurrentMessage 
 		onMsg( robotCmd : robotCmd( MOVE ) ) { 
+			//println("handleRobotCmd-->${payloadArg(0)}")	
 			//MOVE = w | a | s | d | h
 			run itunibo.robot.robotSupport.move( "msg(${payloadArg(0)})" ) 
 			}			
@@ -180,22 +183,26 @@ QActor sonarhandler context ctxRobot {
 
 QActor onerotateforward context ctxRobot {
 	["
-		val RotateTime = 20L
-		val CompleteRotateTime = 500L
-		val DelayForCompassReady=100L
-		val ErroreConcesso = 0L
+		val RotateTime = 50L
+		val CompleteRotateTime = 300L
+		val DelayForCompassReady=50L
+		val ErroreConcesso = 2L
 		//------------------------
 		var RealMove = \"a\" 		
 		var Orientation =0L
-		var OrientationZero =0L		
+		var OrientationZero =0L	
 		var Abs =0L
 		var NeedRotate =false
 	"]  
 	State s0 initial {	   		
 		println("Start onerotateforward")
+	}Transition t0 whenMsg claibrationMsg -> calibrateOrientation
+	
+	State calibrateOrientation{		
+		println("Onerotateforward CalibrateOrientation start.")
 		forward compass -m compassReq : compassReq(0)	
 	}Transition t0 whenMsg compassRes -> setOrientationZero
-	
+		
 	State setOrientationZero{
 		onMsg( compassRes : compassRes(ORIENTATION) ) {
 				["OrientationZero = payloadArg(0).toLong()"]
@@ -245,7 +252,7 @@ QActor onerotateforward context ctxRobot {
 		"]
 		
 	
-	}Goto bigRotation if "NeedRotate" else endDoRotationForward
+	}Goto bigRotation if "NeedRotate" else correggi
 	
 	State bigRotation{
 		
@@ -265,11 +272,12 @@ QActor onerotateforward context ctxRobot {
 	 		forward resourcemodel -m modelChange : modelChange(robot,h)	  			
 	 		println("bigRotation-->d finish")
 		}
-		
-  		delayVar DelayForCompassReady	
+	}Goto correggi
+	
+	State correggi{
+		delayVar DelayForCompassReady	
   		forward compass -m compassReq : compassReq(0) 
 	}Transition t0 whenMsg compassRes -> handleCompassRes
-	
 		
 	State handleCompassRes{
 		onMsg( compassRes : compassRes(ORIENTATION) ) {
@@ -279,31 +287,41 @@ QActor onerotateforward context ctxRobot {
 			 Abs = Math.abs(OrientationZero-Orientation)
 			 NeedRotate = Abs>ErroreConcesso
 		"]
-		println("handleCompassRes--------------->Abs[$Abs] Orientation[$Orientation]")
+		//println("handleCompassRes--------------->Abs[$Abs] Orientation[$Orientation]")
 	}Goto miniRotate if "NeedRotate" else endDoRotationForward
 	
 	  State miniRotate{
-			["
-				val Inv = Math.abs(360-Abs)
-				var Min = Abs
-				if(Inv<Abs){Min=Inv}
-				val Arotate = (Orientation-Min)==OrientationZero || (360-Orientation-Min)==OrientationZero
-			"]
+				["
+					var temp_d =0L
+					var temp_a =0L	
+				"]
+			if"Orientation>OrientationZero"{
+				["
+					temp_a =Orientation-OrientationZero
+					temp_d =360-temp_a			
+				"]
+			}else{
+				["
+					temp_d =OrientationZero-Orientation
+					temp_a =360-temp_d			
+				"]
+			}
+			["var Arotate=true"]
+			if"temp_a>temp_d"{
+				["Arotate=false"]
+			}
 			println("Arotate[$Arotate], ActualOrientation[$Orientation], needOrientation[$OrientationZero]")
 			if"Arotate"{
 					//forward mindrobot -m local_modelChanged : modelChanged(robot, a)
-					forward resourcemodel -m modelChange : modelChange(robot,a)	  				  		
+					forward resourcemodel -m modelChange : modelChange(robot,ma)	  				  		
 			}else{
 					//forward mindrobot -m local_modelChanged : modelChanged(robot, d)
-					forward resourcemodel -m modelChange : modelChange(robot,d)	  			  		
-			}	
-	  			
+					forward resourcemodel -m modelChange : modelChange(robot,md)	  			  		
+			}
 	  		delayVar RotateTime
 	  		//forward mindrobot -m local_modelChanged : modelChanged(robot, h)
-	  		forward resourcemodel -m modelChange : modelChange(robot,h)	  			
-	  		delayVar DelayForCompassReady	
-	  		forward compass -m compassReq : compassReq(0) 					
-	  }Transition t0 whenMsg compassRes -> handleCompassRes
+	  		forward resourcemodel -m modelChange : modelChange(robot,h)					
+	  }Goto correggi
 	  
 
 	State endDoRotationForward{
@@ -575,9 +593,21 @@ QActor compass context ctxRobot{
 	State s0 initial {	
 		run surpluss.compassSupport.instance()
 		println("Start compass") 
+		println("!!!!!!!! WARNING Compass waiting for calibration 2s !!!!!!!")
+		delay 2000 
+		println("!!!!!!!!!!!!!!! WARNING COMPASS CALIBRATION !!!!!!!!!!!!!!!") 		
 	}
-	Transition t0  whenEvent compassReq  -> handleCompass
+	Goto calibration
 		
+	State calibration{
+		forward resourcemodel -m modelChange : modelChange(robot,sa) 
+		//forward basicrobot -m robotCmd : robotCmd( sa)	
+		delay 100
+		 ["val calibration_x_y =surpluss.compassSupport.calibrateCompass()"]
+		 //forward basicrobot -m robotCmd : robotCmd( h )	
+		 	forward resourcemodel -m modelChange : modelChange(robot,h) 
+		 println("Compass calibration done: $calibration_x_y") 
+	}Transition t0  whenEvent compassReq  -> handleCompass
 	
 	State handleCompass{
 		["storeCurrentMessageForReply()"]			
