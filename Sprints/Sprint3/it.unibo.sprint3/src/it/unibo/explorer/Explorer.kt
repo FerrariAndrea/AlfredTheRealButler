@@ -33,19 +33,18 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						itunibo.planner.plannerUtil.initAI(  )
 						println("Actor: Explorer; State: handleStepFail; Payload: INITIAL MAP")
 						itunibo.planner.plannerUtil.showMap(  )
-						println("Waiting for testCmd...")
+						println("Waiting for mission...")
 					}
-					 transition(edgeName="t00",targetState="goToPosition",cond=whenEvent("moveTo"))
+					 transition(edgeName="t00",targetState="goToPosition",cond=whenEvent("goTo"))
 				}	 
 				state("goToPosition") { //this:State
 					action { //it:State
-						if( checkMsgContent( Term.createTerm("moveTo(X,Y)"), Term.createTerm("moveTo(X,Y)"), 
+						if( checkMsgContent( Term.createTerm("goTo(X,Y)"), Term.createTerm("moveTo(X,Y)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								
-												var X=payloadArg(0)
-												var Y=payloadArg(1)
-												//var O=payloadArg(2)
-								println("TEST TEST TEST - POSITION RICERCATA: $X, $Y")
+												var X = payloadArg(0).toInt()
+												var Y = payloadArg(1).toInt()
+												//var O = payloadArg(2)
 								solve("direction(D)","") //set resVar	
 								println("Actor: Explorer; State: goToPosition; Payload: direction at start: ${getCurSol("D").toString()}")
 								itunibo.planner.plannerUtil.showMap(  )
@@ -53,18 +52,6 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 								goingHome=false
 								itunibo.planner.moveUtils.doPlan(myself)
 						}
-					}
-					 transition( edgeName="goto",targetState="executePlannedActions", cond=doswitchGuarded({itunibo.planner.moveUtils.existPlan()}) )
-					transition( edgeName="goto",targetState="endOfJob", cond=doswitchGuarded({! itunibo.planner.moveUtils.existPlan()}) )
-				}	 
-				state("goToTheFridge") { //this:State
-					action { //it:State
-						solve("direction(D)","") //set resVar	
-						println("Actor: Explorer; State: goToTheFridge; Payload: direction at start: ${getCurSol("D").toString()}")
-						itunibo.planner.plannerUtil.showMap(  )
-						itunibo.planner.plannerUtil.setGoal( fridge_position_x, fridge_position_y  )
-						goingHome=false
-						itunibo.planner.moveUtils.doPlan(myself)
 					}
 					 transition( edgeName="goto",targetState="executePlannedActions", cond=doswitchGuarded({itunibo.planner.moveUtils.existPlan()}) )
 					transition( edgeName="goto",targetState="endOfJob", cond=doswitchGuarded({! itunibo.planner.moveUtils.existPlan()}) )
@@ -83,13 +70,7 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				}	 
 				state("goalOk") { //this:State
 					action { //it:State
-						println("Actor: Explorer; State: goalOk; Payload: ON THE TARGET CELL !!!")
-						println("Waiting for testCmd...")
-					}
-					 transition(edgeName="t01",targetState="testPass_1",cond=whenDispatch("testCmd"))
-				}	 
-				state("testPass_1") { //this:State
-					action { //it:State
+						println("Actor: Explorer; State: goalOk; Payload: ON THE TARGET CELL !!! Status: goingHome = $goingHome")
 					}
 					 transition( edgeName="goto",targetState="atHome", cond=doswitchGuarded({goingHome}) )
 					transition( edgeName="goto",targetState="backToHome", cond=doswitchGuarded({! goingHome}) )
@@ -102,9 +83,9 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						 { forward("onestep", "onestep($StepTime)" ,"onecellforward" ) 
 						  }
 					}
-					 transition(edgeName="t02",targetState="handleStepOk",cond=whenDispatch("stepOk"))
-					transition(edgeName="t03",targetState="handleStepFail",cond=whenDispatch("stepFail"))
-					transition(edgeName="t04",targetState="handleStepOk",cond=whenDispatch("rotationOk"))
+					 transition(edgeName="t01",targetState="handleStepOk",cond=whenDispatch("stepOk"))
+					transition(edgeName="t02",targetState="handleStepFail",cond=whenDispatch("stepFail"))
+					transition(edgeName="t03",targetState="handleStepOk",cond=whenDispatch("rotationOk"))
 				}	 
 				state("handleStepOk") { //this:State
 					action { //it:State
@@ -119,12 +100,6 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						itunibo.planner.plannerUtil.showMap(  )
 						println("Actor: Explorer; State: handleStepFail; Payload: Replan and return at home.")
 						delay(500) 
-						println("Waiting for testCmd...")
-					}
-					 transition(edgeName="t05",targetState="testPass_2",cond=whenDispatch("testCmd"))
-				}	 
-				state("testPass_2") { //this:State
-					action { //it:State
 					}
 					 transition( edgeName="goto",targetState="backToHome", cond=doswitch() )
 				}	 
@@ -161,7 +136,7 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						delay(StepTime)
 						forward("onerotationstep", "onerotationstep($Move)" ,"onerotateforward" ) 
 					}
-					 transition(edgeName="t06",targetState="checkSouth",cond=whenDispatch("rotationOk"))
+					 transition(edgeName="t04",targetState="checkSouth",cond=whenDispatch("rotationOk"))
 				}	 
 				state("checkSouth") { //this:State
 					action { //it:State
@@ -175,7 +150,7 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				}	 
 				state("endOfJob") { //this:State
 					action { //it:State
-						println("END")
+						println("EXPLORER: END")
 					}
 				}	 
 			}

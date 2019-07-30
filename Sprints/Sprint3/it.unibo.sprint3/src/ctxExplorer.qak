@@ -8,16 +8,13 @@ Dispatch stepFail      : stepFail(R,T) //R=ok | obstacle, T = time
 Dispatch onerotationstep   : onerotationstep(MOVE)
 Dispatch rotationOk        : rotationOk(STALL)
 
-Dispatch testCmd  : testCmd( cmd )  //sent by kotlinTest
-Dispatch moveTo  : moveTo( X,Y )  //i payload sono inutili ad ora
+Dispatch goTo  : goTo( X,Y )
+Dispatch testCmd: testCmd(cmd)
 
 Event  sonarRobot     : sonar( DISTANCE )	     //from  sonar on robot 
 
-
-
 Context ctxExplorer ip[host="localhost" port=8039] -mqtt
 Context ctxDummy ip[host="dummyhost" port=9999] -mqtt 
-
 
 ExternalQActor maitre context ctxDummy
 ExternalQActor resourcemodel context ctxDummy
@@ -46,26 +43,24 @@ QActor explorer context ctxExplorer{
 		run itunibo.planner.plannerUtil.initAI()
 		println("Actor: Explorer; State: handleStepFail; Payload: INITIAL MAP")
  		run itunibo.planner.plannerUtil.showMap()
- 		println("Waiting for testCmd...")
+ 		println("Waiting for mission...")
  	}
 	//Goto  goToTheFridge
-	Transition t0  whenEvent   moveTo  -> goToPosition
+	Transition t0  whenEvent   goTo  -> goToPosition
 	
 	/*
-	 * 1)Go to the Fridge
+	 * 1)Maitre send position to Explorer 
 	 */
 	 State goToPosition{
 	 	
-	 	onMsg(   moveTo:  moveTo(X,Y) ) { 
+	 	onMsg(   goTo:  moveTo(X,Y) ) { 
 			
 			["
-				var X=payloadArg(0)
-				var Y=payloadArg(1)
-				//var O=payloadArg(2)
+				var X = payloadArg(0).toInt()
+				var Y = payloadArg(1).toInt()
+				//var O = payloadArg(2)
 			"]
-			
-		println("TEST TEST TEST - POSITION RICERCATA: $X, $Y")	
-		
+				
 		solve( direction(D) )   
    		println("Actor: Explorer; State: goToPosition; Payload: direction at start: ${getCurSol(\"D\").toString()}")
 		run itunibo.planner.plannerUtil.showMap()		
@@ -74,20 +69,7 @@ QActor explorer context ctxExplorer{
 		run itunibo.planner.moveUtils.doPlan( myself )
 		}
  	} 	
- 	
- 	Goto executePlannedActions  if "itunibo.planner.moveUtils.existPlan()" else endOfJob 
- 	
-	 
-	State goToTheFridge{
- 		solve( direction(D) )   
-   		println("Actor: Explorer; State: goToTheFridge; Payload: direction at start: ${getCurSol(\"D\").toString()}")
-		run itunibo.planner.plannerUtil.showMap()		
-		run itunibo.planner.plannerUtil.setGoal(fridge_position_x,fridge_position_y) // (6,0) should be Fridge Position
-		["goingHome=false"]	
-		run itunibo.planner.moveUtils.doPlan( myself )
- 	} 	
- 	
- 	
+  		
 	Goto executePlannedActions  if "itunibo.planner.moveUtils.existPlan()" else endOfJob 
 	/*
 	 * 2) Execute the planned action, with attention to w the actions are stored in the actor-kb as a sequence of facts: move(M)
@@ -104,21 +86,14 @@ QActor explorer context ctxExplorer{
 	Goto doTheMove  if "(Move.length>0) " else goalOk 
  	
  	State goalOk{		  
- 		println("Actor: Explorer; State: goalOk; Payload: ON THE TARGET CELL !!!")
- 		println("Waiting for testCmd...")
- 	} 	
- 	Transition t0  whenMsg   testCmd  -> testPass_1
- 	
- 	State testPass_1{		  
- 		//aggiunto per fermare il robot e dare il tempo al test kotlin di capire la sua posizione
- 	}	
- 	Goto atHome if "goingHome" else backToHome
+ 		println("Actor: Explorer; State: goalOk; Payload: ON THE TARGET CELL !!! Status: goingHome = $goingHome")
+ 	} 	Goto atHome if "goingHome" else backToHome
  	
  	
 	State doTheMove{
 		if "Move==\"a\" || Move==\"d\" " {//ROTATION			
 			forward onerotateforward -m onerotationstep : onerotationstep($Move)	
-		}else{// W			
+		} else{ // W			
 			forward onecellforward -m onestep : onestep($StepTime)	
 		}	
 	}
@@ -137,14 +112,9 @@ QActor explorer context ctxExplorer{
 		run itunibo.planner.plannerUtil.showMap()	
 		println("Actor: Explorer; State: handleStepFail; Payload: Replan and return at home.")
 		delay 500
-		println("Waiting for testCmd...")
-	}
-	Transition t0  whenMsg   testCmd  -> testPass_2
-	//Goto backToHome
-	State testPass_2{		  
- 		//aggiunto per fermare il robot e dare il tempo al test kotlin di capire la sua posizione
- 	}	
+	}	
  	Goto backToHome
+ 	
 /*
  * Exploration step done: go back to home
  * If we use the planner - setGoal(0,0) - then the robot could 
@@ -164,8 +134,6 @@ QActor explorer context ctxExplorer{
  		run itunibo.planner.moveUtils.existPlan()//non so se sia negessario
  	} 
 	Goto executePlannedActions //doGoHomeActions 
-	
-
 	
 	State atHome {  //reposition	
  		solve( direction(D) )
@@ -196,6 +164,6 @@ QActor explorer context ctxExplorer{
 	Goto rotateSouth  if "(Direction!=\"downDir\")" else endOfJob
 	
 	State endOfJob{
-		println("END")
+		println("EXPLORER: END")
 	}
 }	

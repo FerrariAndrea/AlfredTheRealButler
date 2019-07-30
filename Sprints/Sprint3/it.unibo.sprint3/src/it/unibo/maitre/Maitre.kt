@@ -16,7 +16,7 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
-				var iter =0
+				var iter = 0
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -27,37 +27,19 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				state("go") { //this:State
 					action { //it:State
 						
-									var goalXPosition = 0
-									var goalYPosition = 3
-						println("Send Goal Position to explorer ")
-						forward("moveTo", "moveTo(3,5)" ,"explorer" ) 
+									var GoalXPosition = 0
+									var GoalYPosition = 3
+						println("Send Goal (X,Y):($GoalXPosition,$GoalYPosition) to explorer ")
+						forward("goTo", "goTo($GoalXPosition,$GoalYPosition)" ,"explorer" ) 
 						delay(6500) 
 						forward("modelRequest", "modelRequest(robot,location)" ,"kb" ) 
-						println("Waiting response ")
+						println("Waiting for response")
 					}
 					 transition(edgeName="t00",targetState="handleResponse",cond=whenDispatch("modelRobotResponse"))
 					transition(edgeName="t01",targetState="handleResponse",cond=whenDispatch("modelErrorResponse"))
 				}	 
-				state("next") { //this:State
-					action { //it:State
-						if(iter==1){ println("Send Next to explorer (iter1) ")
-						forward("testCmd", "testCmd(Next)" ,"explorer" ) 
-						delay(6500) 
-						 }
-						if(iter==2){ println("Send Next to explorer (iter2) ")
-						forward("testCmd", "testCmd(Next)" ,"explorer" ) 
-						delay(6500) 
-						 }
-						forward("modelRequest", "modelRequest(robot,location)" ,"kb" ) 
-						println("Waiting response ")
-					}
-					 transition(edgeName="t02",targetState="handleResponse",cond=whenDispatch("modelRobotResponse"))
-					transition(edgeName="t03",targetState="handleResponse",cond=whenDispatch("modelErrorResponse"))
-				}	 
 				state("handleResponse") { //this:State
 					action { //it:State
-						
-										iter = iter+1
 						if( checkMsgContent( Term.createTerm("modelRobotResponse(X,Y,O)"), Term.createTerm("modelRobotResponse(X,Y,O)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								
@@ -71,7 +53,7 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 								println("Errore-->Impossibile ottenere la posizione attuale del robot.")
 						}
 					}
-					 transition( edgeName="goto",targetState="next", cond=doswitchGuarded({(iter<=2)}) )
+					 transition( edgeName="goto",targetState="end", cond=doswitchGuarded({(iter<=2)}) )
 					transition( edgeName="goto",targetState="end", cond=doswitchGuarded({! (iter<=2)}) )
 				}	 
 				state("end") { //this:State
