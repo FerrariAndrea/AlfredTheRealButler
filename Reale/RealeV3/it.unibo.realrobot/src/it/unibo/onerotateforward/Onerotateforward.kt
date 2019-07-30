@@ -16,23 +16,29 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
-				val RotateTime = 20L
-				val CompleteRotateTime = 500L
-				val DelayForCompassReady=100L
-				val ErroreConcesso = 0L
+				val RotateTime = 10L
+				val CompleteRotateTime = 300L
+				val DelayForCompassReady=1L
+				val ErroreConcesso = 2L
 				//------------------------
 				var RealMove = "a" 		
 				var Orientation =0L
-				var OrientationZero =0L		
+				var OrientationZero =0L	
 				var Abs =0L
 				var NeedRotate =false
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
 						println("Start onerotateforward")
+					}
+					 transition(edgeName="t09",targetState="calibrateOrientation",cond=whenDispatch("claibrationMsg"))
+				}	 
+				state("calibrateOrientation") { //this:State
+					action { //it:State
+						println("Onerotateforward CalibrateOrientation start.")
 						forward("compassReq", "compassReq(0)" ,"compass" ) 
 					}
-					 transition(edgeName="t09",targetState="setOrientationZero",cond=whenDispatch("compassRes"))
+					 transition(edgeName="t010",targetState="setOrientationZero",cond=whenDispatch("compassRes"))
 				}	 
 				state("setOrientationZero") { //this:State
 					action { //it:State
@@ -47,7 +53,7 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 				state("ready") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t010",targetState="checkFirst",cond=whenDispatch("onerotationstep"))
+					 transition(edgeName="t011",targetState="checkFirst",cond=whenDispatch("onerotationstep"))
 				}	 
 				state("checkFirst") { //this:State
 					action { //it:State
@@ -58,7 +64,7 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 						}
 						forward("compassReq", "compassReq(0)" ,"compass" ) 
 					}
-					 transition(edgeName="t011",targetState="doRotationForward",cond=whenDispatch("compassRes"))
+					 transition(edgeName="t012",targetState="doRotationForward",cond=whenDispatch("compassRes"))
 				}	 
 				state("doRotationForward") { //this:State
 					action { //it:State
@@ -79,7 +85,7 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 									 NeedRotate = Abs>ErroreConcesso
 					}
 					 transition( edgeName="goto",targetState="bigRotation", cond=doswitchGuarded({NeedRotate}) )
-					transition( edgeName="goto",targetState="endDoRotationForward", cond=doswitchGuarded({! NeedRotate}) )
+					transition( edgeName="goto",targetState="correggi", cond=doswitchGuarded({! NeedRotate}) )
 				}	 
 				state("bigRotation") { //this:State
 					action { //it:State
@@ -93,10 +99,15 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
 						println("bigRotation-->d finish")
 						 }
+					}
+					 transition( edgeName="goto",targetState="correggi", cond=doswitch() )
+				}	 
+				state("correggi") { //this:State
+					action { //it:State
 						delay(DelayForCompassReady)
 						forward("compassReq", "compassReq(0)" ,"compass" ) 
 					}
-					 transition(edgeName="t012",targetState="handleCompassRes",cond=whenDispatch("compassRes"))
+					 transition(edgeName="t013",targetState="handleCompassRes",cond=whenDispatch("compassRes"))
 				}	 
 				state("handleCompassRes") { //this:State
 					action { //it:State
@@ -107,7 +118,6 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 						
 									 Abs = Math.abs(OrientationZero-Orientation)
 									 NeedRotate = Abs>ErroreConcesso
-						println("handleCompassRes--------------->Abs[$Abs] Orientation[$Orientation]")
 					}
 					 transition( edgeName="goto",targetState="miniRotate", cond=doswitchGuarded({NeedRotate}) )
 					transition( edgeName="goto",targetState="endDoRotationForward", cond=doswitchGuarded({! NeedRotate}) )
@@ -115,10 +125,20 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 				state("miniRotate") { //this:State
 					action { //it:State
 						
-										val Inv = Math.abs(360-Abs)
-										var Min = Abs
-										if(Inv<Abs){Min=Inv}
-										val Arotate = (Orientation-Min)==OrientationZero || (360-Orientation-Min)==OrientationZero
+											var temp_d =0L
+											var temp_a =0L			
+						if(Orientation>OrientationZero){ 
+											temp_a =Orientation-OrientationZero
+											temp_d =360-temp_a			
+						 }
+						else
+						 { 
+						 					temp_d =OrientationZero-Orientation
+						 					temp_a =360-temp_d			
+						  }
+						var Arotate=true
+						if(temp_a>temp_d){ Arotate=false
+						 }
 						println("Arotate[$Arotate], ActualOrientation[$Orientation], needOrientation[$OrientationZero]")
 						if(Arotate){ forward("modelChange", "modelChange(robot,a)" ,"resourcemodel" ) 
 						 }
@@ -127,10 +147,8 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 						  }
 						delay(RotateTime)
 						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
-						delay(DelayForCompassReady)
-						forward("compassReq", "compassReq(0)" ,"compass" ) 
 					}
-					 transition(edgeName="t013",targetState="handleCompassRes",cond=whenDispatch("compassRes"))
+					 transition( edgeName="goto",targetState="correggi", cond=doswitch() )
 				}	 
 				state("endDoRotationForward") { //this:State
 					action { //it:State

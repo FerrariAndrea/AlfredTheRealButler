@@ -22,10 +22,18 @@ object compassSupport {
 	}
 
 	
+	fun calibrateCompass( ): String{
+		
+				writer_compass.write("0\n")
+				writer_compass.flush()
+				var data = reader_compass.readLine()
+				return  "$data"  
+	
+	}
 	
 	fun askToCompass( ): String{
 		
-				writer_compass.write("0\n")
+				writer_compass.write("1\n")
 				writer_compass.flush()
 				var data = reader_compass.readLine().split(".")[0]
 				return  "$data"  
