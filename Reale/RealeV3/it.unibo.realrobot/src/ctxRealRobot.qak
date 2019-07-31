@@ -243,7 +243,6 @@ QActor onerotateforward context ctxRobot {
 			
 			if "RealMove==\"a\""{
 				["OrientationZero=Orientation-90"]
-				
 			}
 			if "RealMove==\"d\""{
 					["OrientationZero=Orientation+90"]
