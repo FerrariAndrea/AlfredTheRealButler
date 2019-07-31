@@ -16,15 +16,19 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
-				var iter = 0
+			var RepeatAction = 1
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
 						println("Start maitre")
 					}
-					 transition( edgeName="goto",targetState="go", cond=doswitch() )
 				}	 
-				state("go") { //this:State
+				state("readyForAction") { //this:State
+					action { //it:State
+					}
+					 transition( edgeName="goto",targetState="goToPosition", cond=doswitch() )
+				}	 
+				state("goToPosition") { //this:State
 					action { //it:State
 						
 									var GoalXPosition = 0
@@ -53,8 +57,8 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 								println("Errore-->Impossibile ottenere la posizione attuale del robot.")
 						}
 					}
-					 transition( edgeName="goto",targetState="end", cond=doswitchGuarded({(iter<=2)}) )
-					transition( edgeName="goto",targetState="end", cond=doswitchGuarded({! (iter<=2)}) )
+					 transition( edgeName="goto",targetState="goToPosition", cond=doswitchGuarded({(RepeatAction > 0)}) )
+					transition( edgeName="goto",targetState="end", cond=doswitchGuarded({! (RepeatAction > 0)}) )
 				}	 
 				state("end") { //this:State
 					action { //it:State

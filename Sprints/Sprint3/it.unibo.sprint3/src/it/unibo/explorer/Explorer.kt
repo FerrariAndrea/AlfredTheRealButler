@@ -24,7 +24,8 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 			var StepTime   = 350L	//for virtual
 			var RotateTime = 300L	//for virtual
 			var PauseTime  = 250L 
-			var Direction = "" 
+			var Direction = ""
+			var RepeatAction = 1
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -33,7 +34,12 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						itunibo.planner.plannerUtil.initAI(  )
 						println("Actor: Explorer; State: handleStepFail; Payload: INITIAL MAP")
 						itunibo.planner.plannerUtil.showMap(  )
-						println("Waiting for mission...")
+					}
+					 transition( edgeName="goto",targetState="readyForAction", cond=doswitch() )
+				}	 
+				state("readyForAction") { //this:State
+					action { //it:State
+						println("Waiting for mission... Please send an action!")
 					}
 					 transition(edgeName="t00",targetState="goToPosition",cond=whenEvent("goTo"))
 				}	 
@@ -70,10 +76,10 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				}	 
 				state("goalOk") { //this:State
 					action { //it:State
-						println("Actor: Explorer; State: goalOk; Payload: ON THE TARGET CELL !!! Status: goingHome = $goingHome")
+						println("Explorer: on the target cell!")
 					}
 					 transition( edgeName="goto",targetState="atHome", cond=doswitchGuarded({goingHome}) )
-					transition( edgeName="goto",targetState="backToHome", cond=doswitchGuarded({! goingHome}) )
+					transition( edgeName="goto",targetState="goHome", cond=doswitchGuarded({! goingHome}) )
 				}	 
 				state("doTheMove") { //this:State
 					action { //it:State
@@ -101,9 +107,9 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						println("Actor: Explorer; State: handleStepFail; Payload: Replan and return at home.")
 						delay(500) 
 					}
-					 transition( edgeName="goto",targetState="backToHome", cond=doswitch() )
+					 transition( edgeName="goto",targetState="goHome", cond=doswitch() )
 				}	 
-				state("backToHome") { //this:State
+				state("goHome") { //this:State
 					action { //it:State
 						println("Actor: Explorer; State: backToHome")
 						solve("direction(D)","") //set resVar	
@@ -150,7 +156,14 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				}	 
 				state("endOfJob") { //this:State
 					action { //it:State
-						println("EXPLORER: END")
+						println("Explorer: EndOfJob, go to ReadyForAction")
+					}
+					 transition( edgeName="goto",targetState="readyForAction", cond=doswitchGuarded({(RepeatAction > 0)}) )
+					transition( edgeName="goto",targetState="end", cond=doswitchGuarded({! (RepeatAction > 0)}) )
+				}	 
+				state("end") { //this:State
+					action { //it:State
+						println("Explorer: END")
 					}
 				}	 
 			}

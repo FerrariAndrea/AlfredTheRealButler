@@ -33,14 +33,30 @@ ExternalQActor mindrobot context ctxDummy
 
 QActor maitre context ctxMaitre {
 	["
-		var iter = 0
+	var RepeatAction = 1
 	"]
+	
 	State s0 initial {
 		println("Start maitre")
 	}
-	Goto go
 	
-	State go {
+	State readyForAction {
+		
+	} 
+	
+	//TODO NON SCRITTE, MA CI DOVRANNO ESSERE
+	//Goto goToFridge
+	//Goto goToDishwasher
+	//Goto goToTable
+	//Goto goToPantry
+	//TODO CHE POI IN FUTURO CI ASTRARREMO ANCORA DI PIU' ED AVREMO
+	//Goto addFood
+	//Goto clearRoom
+	//Goto prepareRoom
+	
+	Goto goToPosition
+	
+	State goToPosition {
 		["
 			var GoalXPosition = 0
 			var GoalYPosition = 3
@@ -63,12 +79,12 @@ QActor maitre context ctxMaitre {
 				var Y=payloadArg(1)
 				var O=payloadArg(2)
 			"] 
-			println("----->Actual robot Pos: $X $Y $O")	
+			println("----->Actual robot Pos: $X $Y $O")
 		}
 		onMsg(  modelErrorResponse:  modelErrorResponse(ERRORE ) ) { 
 			println("Errore-->Impossibile ottenere la posizione attuale del robot.")	
 		}
-	} Goto end  if "(iter<=2)" else end
+	} Goto goToPosition if "(RepeatAction > 0)" else end
 	
 		
 	State end{

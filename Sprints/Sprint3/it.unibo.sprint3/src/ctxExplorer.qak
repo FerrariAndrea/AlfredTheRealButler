@@ -35,7 +35,8 @@ QActor explorer context ctxExplorer{
 	var StepTime   = 350L	//for virtual
 	var RotateTime = 300L	//for virtual
 	var PauseTime  = 250L 
-	var Direction = \"\" 
+	var Direction = \"\"
+	var RepeatAction = 1
 	"]	
 	State s0 initial {	
 		println("Actor: Explorer; State: initial")
@@ -43,15 +44,15 @@ QActor explorer context ctxExplorer{
 		run itunibo.planner.plannerUtil.initAI()
 		println("Actor: Explorer; State: handleStepFail; Payload: INITIAL MAP")
  		run itunibo.planner.plannerUtil.showMap()
- 		println("Waiting for mission...")
+ 	} Goto readyForAction
+ 	
+ 	State readyForAction {
+ 		println("Waiting for mission... Please send an action!")
  	}
-	//Goto  goToTheFridge
+ 	
 	Transition t0  whenEvent   goTo  -> goToPosition
 	
-	/*
-	 * 1)Maitre send position to Explorer 
-	 */
-	 State goToPosition{
+	State goToPosition{
 	 	
 	 	onMsg(   goTo:  goTo(X,Y) ) { 
 			
@@ -71,9 +72,6 @@ QActor explorer context ctxExplorer{
  	} 	
   		
 	Goto executePlannedActions  if "itunibo.planner.moveUtils.existPlan()" else endOfJob 
-	/*
-	 * 2) Execute the planned action, with attention to w the actions are stored in the actor-kb as a sequence of facts: move(M)
-	 */
 	
 	State executePlannedActions{ 
 		//solve( showMoves ) 
@@ -81,14 +79,12 @@ QActor explorer context ctxExplorer{
 		ifSolved {  
 			["Move = getCurSol(\"M\").toString()"]
 		} else { ["Move = \"\""]  }  
-		//println("executePlannedActions doing $Curmove")
  	}
 	Goto doTheMove  if "(Move.length>0) " else goalOk 
  	
  	State goalOk{		  
- 		println("Actor: Explorer; State: goalOk; Payload: ON THE TARGET CELL !!! Status: goingHome = $goingHome")
- 	} 	Goto atHome if "goingHome" else backToHome
- 	
+ 		println("Explorer: on the target cell!")
+ 	} Goto atHome if "goingHome" else goHome
  	
 	State doTheMove{
 		if "Move==\"a\" || Move==\"d\" " {//ROTATION			
@@ -113,7 +109,7 @@ QActor explorer context ctxExplorer{
 		println("Actor: Explorer; State: handleStepFail; Payload: Replan and return at home.")
 		delay 500
 	}	
- 	Goto backToHome
+ 	Goto goHome
  	
 /*
  * Exploration step done: go back to home
@@ -121,7 +117,7 @@ QActor explorer context ctxExplorer{
  * find an obstacle in the return path
  */	 
 	 
-	State backToHome{
+	State goHome{
 		println("Actor: Explorer; State: backToHome")
  		solve( direction(D) )
    		println("Actor: Explorer; State: backToHome; Payload: ${getCurSol(\"D\").toString()}")
@@ -131,7 +127,7 @@ QActor explorer context ctxExplorer{
  		run itunibo.planner.plannerUtil.setGoal(0,0)
  		["goingHome=true"]
  		run itunibo.planner.moveUtils.doPlan( myself )
- 		run itunibo.planner.moveUtils.existPlan()//non so se sia necessario
+ 		run itunibo.planner.moveUtils.existPlan() //is it necessary?
  	} 
 	Goto executePlannedActions //doGoHomeActions 
 	
@@ -164,6 +160,10 @@ QActor explorer context ctxExplorer{
 	Goto rotateSouth  if "(Direction!=\"downDir\")" else endOfJob
 	
 	State endOfJob{
-		println("EXPLORER: END")
+		println("Explorer: EndOfJob, go to ReadyForAction")
+	} Goto readyForAction if "(RepeatAction > 0)" else end
+	
+	State end {
+		println("Explorer: END")
 	}
 }	
