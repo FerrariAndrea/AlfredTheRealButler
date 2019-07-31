@@ -39,7 +39,7 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				}	 
 				state("goToPosition") { //this:State
 					action { //it:State
-						if( checkMsgContent( Term.createTerm("goTo(X,Y)"), Term.createTerm("moveTo(X,Y)"), 
+						if( checkMsgContent( Term.createTerm("goTo(X,Y)"), Term.createTerm("goTo(X,Y)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								
 												var X = payloadArg(0).toInt()
