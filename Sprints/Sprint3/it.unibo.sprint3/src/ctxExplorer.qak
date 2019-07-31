@@ -53,7 +53,7 @@ QActor explorer context ctxExplorer{
 	 */
 	 State goToPosition{
 	 	
-	 	onMsg(   goTo:  moveTo(X,Y) ) { 
+	 	onMsg(   goTo:  goTo(X,Y) ) { 
 			
 			["
 				var X = payloadArg(0).toInt()
@@ -131,7 +131,7 @@ QActor explorer context ctxExplorer{
  		run itunibo.planner.plannerUtil.setGoal(0,0)
  		["goingHome=true"]
  		run itunibo.planner.moveUtils.doPlan( myself )
- 		run itunibo.planner.moveUtils.existPlan()//non so se sia negessario
+ 		run itunibo.planner.moveUtils.existPlan()//non so se sia necessario
  	} 
 	Goto executePlannedActions //doGoHomeActions 
 	
