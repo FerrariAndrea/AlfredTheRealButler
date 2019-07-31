@@ -44,18 +44,23 @@ object nanoSupport {
 			"msg(a)" -> command = BaseRobotRight(SPEED_MEDIUM )//Ho dovuto invertire destra e sinistra
 			"msg(d)" -> command = BaseRobotLeft(SPEED_MEDIUM )//Ho dovuto invertire destra e sinistra
 			"msg(h)" -> command = BaseRobotStop(SPEED_LOW )
-			
-			"msg(sa)" -> command = BaseRobotRight(SPEED_HIGH )//Ho dovuto invertire destra e sinistra
-			"msg(sd)" -> command = BaseRobotLeft(SPEED_HIGH )//Ho dovuto invertire destra e sinistra
-			"msg(ma)" -> command = BaseRobotRight(SPEED_MEDIUM )//Ho dovuto invertire destra e sinistra
-			"msg(md)" -> command = BaseRobotLeft(SPEED_MEDIUM )//Ho dovuto invertire destra e sinistra
-			
+			"msg(c)" -> command = BaseRobotRight(SPEED_MEDIUM)
+			"msg(ma)" ->{
+							robot.execute(BaseRobotRight(SPEED_MEDIUM))
+							Thread.sleep(80)
+							//si ferma gia con la riga 61
+							//robot.execute( BaseRobotStop(SPEED_LOW ))
+			}
+			"msg(md)" ->{
+							robot.execute(BaseRobotLeft(SPEED_MEDIUM))
+							Thread.sleep(80)
+							//si ferma gia con la riga 61
+							//robot.execute( BaseRobotStop(SPEED_LOW ))
+			}
 		}
 		robot.execute(command)
-		if(cmd=="msg(ma)" || cmd=="msg(md)" ){
-			Thread.sleep(80)
-			robot.execute( BaseRobotStop(SPEED_LOW ))
-		}
+		
+		
 	}
 	
 }

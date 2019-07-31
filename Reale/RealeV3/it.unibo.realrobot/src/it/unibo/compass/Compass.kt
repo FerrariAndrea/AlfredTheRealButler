@@ -28,24 +28,29 @@ class Compass ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sco
 				}	 
 				state("calibration") { //this:State
 					action { //it:State
-						forward("robotCmd", "robotCmd(sa)" ,"basicrobot" ) 
+						forward("robotCmd", "robotCmd(c)" ,"basicrobot" ) 
 						delay(100) 
 						val calibration_x_y =surpluss.compassSupport.calibrateCompass()
 						forward("robotCmd", "robotCmd(h)" ,"basicrobot" ) 
 						println("Compass calibration done: $calibration_x_y")
 					}
-					 transition(edgeName="t028",targetState="handleCompass",cond=whenEvent("compassReq"))
+					 transition(edgeName="t029",targetState="handleCompass",cond=whenEvent("compassReq"))
 				}	 
 				state("handleCompass") { //this:State
 					action { //it:State
 						storeCurrentMessageForReply()
 						if( checkMsgContent( Term.createTerm("compassReq(V)"), Term.createTerm("compassReq(V)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								val Orientation = surpluss.compassSupport.askToCompass().toLong()
-								replyToCaller("compassRes", "compassRes($Orientation)")
+								if(payloadArg(0)=="fix"){ val Ris = surpluss.compassSupport.fixCompass()
+								replyToCaller("compassRes", "compassRes($Ris)")
+								 }
+								else
+								 { val Orientation = surpluss.compassSupport.askToCompass().toLong()
+								 replyToCaller("compassRes", "compassRes($Orientation)")
+								  }
 						}
 					}
-					 transition(edgeName="t129",targetState="handleCompass",cond=whenEvent("compassReq"))
+					 transition(edgeName="t130",targetState="handleCompass",cond=whenEvent("compassReq"))
 				}	 
 			}
 		}

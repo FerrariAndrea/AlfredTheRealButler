@@ -30,7 +30,14 @@ object compassSupport {
 				return  "$data"  
 	
 	}
+	fun fixCompass( ): String{
+		
+				writer_compass.write("2\n")
+				writer_compass.flush()
+				var data = reader_compass.readLine()
+				return  "$data"  
 	
+	}
 	fun askToCompass( ): String{
 		
 				writer_compass.write("1\n")

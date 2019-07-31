@@ -184,8 +184,7 @@ QActor sonarhandler context ctxRobot {
 QActor onerotateforward context ctxRobot {
 	["
 		//val RotateTime = 50L
-		val CompleteRotateTime = 300L
-		val DelayForCompassReady=50L
+		val CompleteRotateTime = 400L
 		val ErroreConcesso = 1L
 		//------------------------
 		var RealMove = \"a\" 		
@@ -221,10 +220,19 @@ QActor onerotateforward context ctxRobot {
 		onMsg( onerotationstep : onerotationstep(ORIENTATION) ) {
 			["RealMove = payloadArg(0)"]
 		}
-		forward compass -m compassReq : compassReq(0)			
-		// compassReq : compassReq( V )//TODO eliminate  V
-		//compassRes : compassRes( ORIENTATION )
-	}Transition t0 whenMsg compassRes -> doRotationForward
+	}Goto startFixCompass
+ 	
+ 	State startFixCompass{
+ 		forward compass -m compassReq : compassReq(fix)	
+ 	}Transition t0 whenMsg compassRes -> endFixCompass
+ 	
+ 	State endFixCompass{
+ 		onMsg( compassRes : compassRes(RIS) ) {
+			println("COMPAS-FIX---> ${payloadArg(0)}")			
+		}
+ 		forward compass -m compassReq : compassReq(0)	
+ 	}Transition t0 whenMsg compassRes -> doRotationForward
+ 	
  
 	State doRotationForward{
 		onMsg( compassRes : compassRes(ORIENTATION) ) {
@@ -278,7 +286,6 @@ QActor onerotateforward context ctxRobot {
 	}Goto correggi
 	
 	State correggi{
-		delayVar DelayForCompassReady	
   		forward compass -m compassReq : compassReq(0) 
 	}Transition t0 whenMsg compassRes -> handleCompassRes
 		
@@ -290,7 +297,7 @@ QActor onerotateforward context ctxRobot {
 			 Abs = Math.abs(OrientationZero-Orientation)
 			 NeedRotate = Abs>ErroreConcesso
 		"]
-		println("handleCompassRes--------------->Abs[$Abs] ATTUALE[$Orientation] NEED[OrientationZero]")
+		println("handleCompassRes--------------->Abs[$Abs] ATTUALE[$Orientation] NEED[$OrientationZero]")
 	}Goto miniRotate if "NeedRotate" else endDoRotationForward
 	
 	  State miniRotate{
@@ -605,7 +612,7 @@ QActor compass context ctxRobot{
 		
 	State calibration{
 		//forward resourcemodel -m modelChange : modelChange(robot,sa) 
-		forward basicrobot -m robotCmd : robotCmd( sa)	
+		forward basicrobot -m robotCmd : robotCmd(c)	
 		delay 100
 		 ["val calibration_x_y =surpluss.compassSupport.calibrateCompass()"]
 		 forward basicrobot -m robotCmd : robotCmd( h )	
@@ -615,9 +622,15 @@ QActor compass context ctxRobot{
 	
 	State handleCompass{
 		["storeCurrentMessageForReply()"]			
-		onMsg ( compassReq : compassReq( V ) ){     
-			["val Orientation = surpluss.compassSupport.askToCompass().toLong()"]
-      		["replyToCaller(\"compassRes\", \"compassRes($Orientation)\")"]	
+		onMsg ( compassReq : compassReq( V ) ){  
+			if "payloadArg(0)==\"fix\""{
+					["val Ris = surpluss.compassSupport.fixCompass()"]
+      				["replyToCaller(\"compassRes\", \"compassRes($Ris)\")"]
+			} else{
+					["val Orientation = surpluss.compassSupport.askToCompass().toLong()"]
+      				["replyToCaller(\"compassRes\", \"compassRes($Orientation)\")"]
+			}
+			
        }
 	}
 	Transition t1  whenEvent  compassReq -> handleCompass	
