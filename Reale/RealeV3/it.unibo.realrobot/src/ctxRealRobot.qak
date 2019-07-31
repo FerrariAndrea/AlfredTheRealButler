@@ -36,7 +36,7 @@ Dispatch compassRes : compassRes( ORIENTATION )
 
 Dispatch setLed : setLed(BLINKN,BLINKDELAY )//BLINKDELAY=-1 ->ledOFF  //BLINKDELAY=0 -> ledOn //BLINKDELAY>0 --> blink for BLINKN time
 
-Dispatch claibrationMsg : claibrationMsg( arg ) //TODO eliminate  V
+//Dispatch claibrationMsg : claibrationMsg( arg ) //TODO eliminate  V
 
 
 Context ctxRobot ip[host="localhost" port=8038] -mqtt
@@ -196,8 +196,9 @@ QActor onerotateforward context ctxRobot {
 	"]  
 	State s0 initial {	   		
 		println("Start onerotateforward")
-	}Transition t0 whenMsg claibrationMsg -> calibrateOrientation
-	
+	}//Transition t0 whenMsg claibrationMsg -> calibrateOrientation
+	Goto ready
+	/*
 	State calibrateOrientation{		
 		println("Onerotateforward CalibrateOrientation start.")
 		forward compass -m compassReq : compassReq(0)	
@@ -209,7 +210,8 @@ QActor onerotateforward context ctxRobot {
 		}
 		println("OrientationZero set at --> $OrientationZero")
 	}Goto ready
-
+	*/
+	
 	State ready{
 	}Transition t0 whenMsg onerotationstep -> checkFirst
 	
@@ -224,16 +226,15 @@ QActor onerotateforward context ctxRobot {
 		//compassRes : compassRes( ORIENTATION )
 	}Transition t0 whenMsg compassRes -> doRotationForward
  
-	State doRotationForward{		  
-
+	State doRotationForward{
 		onMsg( compassRes : compassRes(ORIENTATION) ) {
 			["Orientation = payloadArg(0).toLong()"]
 			if "RealMove==\"a\""{
-				["OrientationZero=OrientationZero-90"]
+				["OrientationZero=Orientation-90"]
 				
 			}
 			if "RealMove==\"d\""{
-					["OrientationZero=OrientationZero+90"]
+					["OrientationZero=Orientation+90"]
 			}
 			//se no mi referisco all prima orientazione in assoluto (OrientationZero)
 			
@@ -242,9 +243,7 @@ QActor onerotateforward context ctxRobot {
 			}
 			if"OrientationZero>360"{
 				["OrientationZero=OrientationZero-360"]
-			}
-				
-			
+			}			
 		}
 		["
 			 Abs = Math.abs(OrientationZero-Orientation)

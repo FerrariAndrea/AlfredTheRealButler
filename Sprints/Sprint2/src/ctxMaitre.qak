@@ -16,7 +16,7 @@ Dispatch onerotationstep   : onerotationstep(MOVE)
 Dispatch modelChange  : modelChange( TARGET, VALUE )  //force a resource-model change
 
 
-Dispatch claibrationMsg : claibrationMsg( ARG )//per il reale
+//Dispatch claibrationMsg : claibrationMsg( ARG )//per il reale
 
 Context ctxMaitre ip[host="localhost" port=8035] -mqtt
 Context ctxDummy ip[host="dummyhost" port=9999] -mqtt 
@@ -41,8 +41,8 @@ QActor maitre context ctxMaitre {
 	State s0 initial {
 		println("Start maitre")
 		
-		forward onerotateforward -m  claibrationMsg :  claibrationMsg( Start )//per il reale 
-		delay 100
+		//forward onerotateforward -m  claibrationMsg :  claibrationMsg( Start )//per il reale 
+		//delay 100
 	}
 	Goto go
 	

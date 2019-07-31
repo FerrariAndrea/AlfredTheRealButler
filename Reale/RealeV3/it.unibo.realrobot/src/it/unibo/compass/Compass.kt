@@ -34,7 +34,7 @@ class Compass ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sco
 						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
 						println("Compass calibration done: $calibration_x_y")
 					}
-					 transition(edgeName="t031",targetState="handleCompass",cond=whenEvent("compassReq"))
+					 transition(edgeName="t029",targetState="handleCompass",cond=whenEvent("compassReq"))
 				}	 
 				state("handleCompass") { //this:State
 					action { //it:State
@@ -45,7 +45,7 @@ class Compass ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sco
 								replyToCaller("compassRes", "compassRes($Orientation)")
 						}
 					}
-					 transition(edgeName="t132",targetState="handleCompass",cond=whenEvent("compassReq"))
+					 transition(edgeName="t130",targetState="handleCompass",cond=whenEvent("compassReq"))
 				}	 
 			}
 		}

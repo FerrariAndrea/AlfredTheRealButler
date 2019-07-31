@@ -21,8 +21,6 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				state("s0") { //this:State
 					action { //it:State
 						println("Start maitre")
-						forward("claibrationMsg", "claibrationMsg(Start)" ,"onerotateforward" ) 
-						delay(100) 
 					}
 					 transition( edgeName="goto",targetState="go", cond=doswitch() )
 				}	 

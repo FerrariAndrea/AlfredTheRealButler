@@ -31,29 +31,12 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 					action { //it:State
 						println("Start onerotateforward")
 					}
-					 transition(edgeName="t09",targetState="calibrateOrientation",cond=whenDispatch("claibrationMsg"))
-				}	 
-				state("calibrateOrientation") { //this:State
-					action { //it:State
-						println("Onerotateforward CalibrateOrientation start.")
-						forward("compassReq", "compassReq(0)" ,"compass" ) 
-					}
-					 transition(edgeName="t010",targetState="setOrientationZero",cond=whenDispatch("compassRes"))
-				}	 
-				state("setOrientationZero") { //this:State
-					action { //it:State
-						if( checkMsgContent( Term.createTerm("compassRes(ORIENTATION)"), Term.createTerm("compassRes(ORIENTATION)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								OrientationZero = payloadArg(0).toLong()
-						}
-						println("OrientationZero set at --> $OrientationZero")
-					}
 					 transition( edgeName="goto",targetState="ready", cond=doswitch() )
 				}	 
 				state("ready") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t011",targetState="checkFirst",cond=whenDispatch("onerotationstep"))
+					 transition(edgeName="t09",targetState="checkFirst",cond=whenDispatch("onerotationstep"))
 				}	 
 				state("checkFirst") { //this:State
 					action { //it:State
@@ -64,16 +47,16 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 						}
 						forward("compassReq", "compassReq(0)" ,"compass" ) 
 					}
-					 transition(edgeName="t012",targetState="doRotationForward",cond=whenDispatch("compassRes"))
+					 transition(edgeName="t010",targetState="doRotationForward",cond=whenDispatch("compassRes"))
 				}	 
 				state("doRotationForward") { //this:State
 					action { //it:State
 						if( checkMsgContent( Term.createTerm("compassRes(ORIENTATION)"), Term.createTerm("compassRes(ORIENTATION)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								Orientation = payloadArg(0).toLong()
-								if(RealMove=="a"){ OrientationZero=OrientationZero-90
+								if(RealMove=="a"){ OrientationZero=Orientation-90
 								 }
-								if(RealMove=="d"){ OrientationZero=OrientationZero+90
+								if(RealMove=="d"){ OrientationZero=Orientation+90
 								 }
 								if(OrientationZero<0){ OrientationZero=360+OrientationZero
 								 }
@@ -107,7 +90,7 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 						delay(DelayForCompassReady)
 						forward("compassReq", "compassReq(0)" ,"compass" ) 
 					}
-					 transition(edgeName="t013",targetState="handleCompassRes",cond=whenDispatch("compassRes"))
+					 transition(edgeName="t011",targetState="handleCompassRes",cond=whenDispatch("compassRes"))
 				}	 
 				state("handleCompassRes") { //this:State
 					action { //it:State
