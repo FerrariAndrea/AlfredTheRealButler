@@ -16,10 +16,10 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
-				val RotateTime = 50L
+				//val RotateTime = 50L
 				val CompleteRotateTime = 300L
 				val DelayForCompassReady=50L
-				val ErroreConcesso = 2L
+				val ErroreConcesso = 1L
 				//------------------------
 				var RealMove = "a" 		
 				var Orientation =0L
@@ -53,7 +53,9 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 					action { //it:State
 						if( checkMsgContent( Term.createTerm("compassRes(ORIENTATION)"), Term.createTerm("compassRes(ORIENTATION)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								Orientation = payloadArg(0).toLong()
+								
+												Orientation = payloadArg(0).toLong()
+												OrientationZero=Orientation //questo va tolto se si vuole correggere la rotta ad ogni onestep
 								if(RealMove=="a"){ OrientationZero=Orientation-90
 								 }
 								if(RealMove=="d"){ OrientationZero=Orientation+90
@@ -75,12 +77,10 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 						if(RealMove=="a"){ forward("modelChange", "modelChange(robot,a)" ,"resourcemodel" ) 
 						delay(CompleteRotateTime)
 						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
-						println("bigRotation-->a finish")
 						 }
 						if(RealMove=="d"){ forward("modelChange", "modelChange(robot,d)" ,"resourcemodel" ) 
 						delay(CompleteRotateTime)
 						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
-						println("bigRotation-->d finish")
 						 }
 					}
 					 transition( edgeName="goto",targetState="correggi", cond=doswitch() )
@@ -101,6 +101,7 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 						
 									 Abs = Math.abs(OrientationZero-Orientation)
 									 NeedRotate = Abs>ErroreConcesso
+						println("handleCompassRes--------------->Abs[$Abs] ATTUALE[$Orientation] NEED[OrientationZero]")
 					}
 					 transition( edgeName="goto",targetState="miniRotate", cond=doswitchGuarded({NeedRotate}) )
 					transition( edgeName="goto",targetState="endDoRotationForward", cond=doswitchGuarded({! NeedRotate}) )
@@ -122,14 +123,11 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 						var Arotate=true
 						if(temp_a>temp_d){ Arotate=false
 						 }
-						println("Arotate[$Arotate], ActualOrientation[$Orientation], needOrientation[$OrientationZero]")
 						if(Arotate){ forward("modelChange", "modelChange(robot,ma)" ,"resourcemodel" ) 
 						 }
 						else
 						 { forward("modelChange", "modelChange(robot,md)" ,"resourcemodel" ) 
 						  }
-						delay(RotateTime)
-						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
 					}
 					 transition( edgeName="goto",targetState="correggi", cond=doswitch() )
 				}	 

@@ -28,13 +28,13 @@ class Compass ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sco
 				}	 
 				state("calibration") { //this:State
 					action { //it:State
-						forward("modelChange", "modelChange(robot,sa)" ,"resourcemodel" ) 
+						forward("robotCmd", "robotCmd(sa)" ,"basicrobot" ) 
 						delay(100) 
 						val calibration_x_y =surpluss.compassSupport.calibrateCompass()
-						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
+						forward("robotCmd", "robotCmd(h)" ,"basicrobot" ) 
 						println("Compass calibration done: $calibration_x_y")
 					}
-					 transition(edgeName="t029",targetState="handleCompass",cond=whenEvent("compassReq"))
+					 transition(edgeName="t028",targetState="handleCompass",cond=whenEvent("compassReq"))
 				}	 
 				state("handleCompass") { //this:State
 					action { //it:State
@@ -45,7 +45,7 @@ class Compass ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sco
 								replyToCaller("compassRes", "compassRes($Orientation)")
 						}
 					}
-					 transition(edgeName="t130",targetState="handleCompass",cond=whenEvent("compassReq"))
+					 transition(edgeName="t129",targetState="handleCompass",cond=whenEvent("compassReq"))
 				}	 
 			}
 		}

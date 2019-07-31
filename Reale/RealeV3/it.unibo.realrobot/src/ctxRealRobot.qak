@@ -183,10 +183,10 @@ QActor sonarhandler context ctxRobot {
 
 QActor onerotateforward context ctxRobot {
 	["
-		val RotateTime = 50L
+		//val RotateTime = 50L
 		val CompleteRotateTime = 300L
 		val DelayForCompassReady=50L
-		val ErroreConcesso = 2L
+		val ErroreConcesso = 1L
 		//------------------------
 		var RealMove = \"a\" 		
 		var Orientation =0L
@@ -228,7 +228,11 @@ QActor onerotateforward context ctxRobot {
  
 	State doRotationForward{
 		onMsg( compassRes : compassRes(ORIENTATION) ) {
-			["Orientation = payloadArg(0).toLong()"]
+			["
+				Orientation = payloadArg(0).toLong()
+				OrientationZero=Orientation //questo va tolto se si vuole correggere la rotta ad ogni onestep
+			"]
+			
 			if "RealMove==\"a\""{
 				["OrientationZero=Orientation-90"]
 				
@@ -261,7 +265,7 @@ QActor onerotateforward context ctxRobot {
 	  			delayVar CompleteRotateTime
 	  			//forward mindrobot -m local_modelChanged : modelChanged(robot, h)
 	  			forward resourcemodel -m modelChange : modelChange(robot,h)	  			
-	  			println("bigRotation-->a finish")
+	  			
 	  	}
 		if "RealMove==\"d\""{
 			//forward mindrobot -m local_modelChanged : modelChanged(robot, d)
@@ -269,7 +273,7 @@ QActor onerotateforward context ctxRobot {
 			delayVar CompleteRotateTime
 	 		//forward mindrobot -m local_modelChanged : modelChanged(robot, h)
 	 		forward resourcemodel -m modelChange : modelChange(robot,h)	  			
-	 		println("bigRotation-->d finish")
+	 	
 		}
 	}Goto correggi
 	
@@ -286,7 +290,7 @@ QActor onerotateforward context ctxRobot {
 			 Abs = Math.abs(OrientationZero-Orientation)
 			 NeedRotate = Abs>ErroreConcesso
 		"]
-		//println("handleCompassRes--------------->Abs[$Abs] Orientation[$Orientation]")
+		println("handleCompassRes--------------->Abs[$Abs] ATTUALE[$Orientation] NEED[OrientationZero]")
 	}Goto miniRotate if "NeedRotate" else endDoRotationForward
 	
 	  State miniRotate{
@@ -309,7 +313,7 @@ QActor onerotateforward context ctxRobot {
 			if"temp_a>temp_d"{
 				["Arotate=false"]
 			}
-			println("Arotate[$Arotate], ActualOrientation[$Orientation], needOrientation[$OrientationZero]")
+			//println("Arotate[$Arotate], ActualOrientation[$Orientation], needOrientation[$OrientationZero]")
 			if"Arotate"{
 					//forward mindrobot -m local_modelChanged : modelChanged(robot, a)
 					forward resourcemodel -m modelChange : modelChange(robot,ma)	  				  		
@@ -317,9 +321,9 @@ QActor onerotateforward context ctxRobot {
 					//forward mindrobot -m local_modelChanged : modelChanged(robot, d)
 					forward resourcemodel -m modelChange : modelChange(robot,md)	  			  		
 			}
-	  		delayVar RotateTime
+	  		//delayVar RotateTime
 	  		//forward mindrobot -m local_modelChanged : modelChanged(robot, h)
-	  		forward resourcemodel -m modelChange : modelChange(robot,h)					
+	  		//forward resourcemodel -m modelChange : modelChange(robot,h)					
 	  }Goto correggi
 	  
 
@@ -401,9 +405,10 @@ QActor onecellforward context ctxRobot {
 		//setp in avanti ok quindi salvo sulla kb
 		forward kb -m modelUpdate : modelUpdate(  robot,  w)  
 		//aggiusto la rotta
-		forward onerotateforward -m onerotationstep : onerotationstep(Z) 
+		//forward onerotateforward -m onerotationstep : onerotationstep(Z) 
 		
-	}Transition t0 whenEvent rotationOk  -> endCorrezioneRotta	
+	}//Transition t0 whenEvent rotationOk  -> endCorrezioneRotta	
+	Goto endCorrezioneRotta
 	
 	State endCorrezioneRotta{
 			["replyToCaller(\"stepOk\", \"stepOk(ok)\")"]		
@@ -599,12 +604,12 @@ QActor compass context ctxRobot{
 	Goto calibration
 		
 	State calibration{
-		forward resourcemodel -m modelChange : modelChange(robot,sa) 
-		//forward basicrobot -m robotCmd : robotCmd( sa)	
+		//forward resourcemodel -m modelChange : modelChange(robot,sa) 
+		forward basicrobot -m robotCmd : robotCmd( sa)	
 		delay 100
 		 ["val calibration_x_y =surpluss.compassSupport.calibrateCompass()"]
-		 //forward basicrobot -m robotCmd : robotCmd( h )	
-		 	forward resourcemodel -m modelChange : modelChange(robot,h) 
+		 forward basicrobot -m robotCmd : robotCmd( h )	
+		// 	forward resourcemodel -m modelChange : modelChange(robot,h) 
 		 println("Compass calibration done: $calibration_x_y") 
 	}Transition t0  whenEvent compassReq  -> handleCompass
 	

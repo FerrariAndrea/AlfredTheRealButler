@@ -52,6 +52,10 @@ object nanoSupport {
 			
 		}
 		robot.execute(command)
+		if(cmd=="msg(ma)" || cmd=="msg(md)" ){
+			Thread.sleep(80)
+			robot.execute( BaseRobotStop(SPEED_LOW ))
+		}
 	}
 	
 }

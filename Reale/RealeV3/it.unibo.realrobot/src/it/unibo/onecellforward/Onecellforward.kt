@@ -80,9 +80,8 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						println("---------------------------OK----->endDoMoveForward")
 						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
 						forward("modelUpdate", "modelUpdate(robot,w)" ,"kb" ) 
-						forward("onerotationstep", "onerotationstep(Z)" ,"onerotateforward" ) 
 					}
-					 transition(edgeName="t016",targetState="endCorrezioneRotta",cond=whenEvent("rotationOk"))
+					 transition( edgeName="goto",targetState="endCorrezioneRotta", cond=doswitch() )
 				}	 
 				state("endCorrezioneRotta") { //this:State
 					action { //it:State
@@ -126,8 +125,8 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 					action { //it:State
 						println("->mustGoOn")
 					}
-					 transition(edgeName="t017",targetState="endDoMoveForward",cond=whenEvent("tickTimer"))
-					transition(edgeName="t018",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
+					 transition(edgeName="t016",targetState="endDoMoveForward",cond=whenEvent("tickTimer"))
+					transition(edgeName="t017",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
 				}	 
 			}
 		}
