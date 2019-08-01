@@ -66,6 +66,7 @@ app.get('/appl', function(req, res) {
 /*
  * ====================== COMMANDS ================
  */
+	app.post("/test", function(req, res,next) { superHandlePostMove("test","moving forward", req,res,next); });	
 	app.post("/w", function(req, res,next) { handlePostMove("w","moving forward", req,res,next); });	
 	app.post("/s", function(req, res,next) { handlePostMove("s","moving backward",req,res,next); });
 	app.post("/a", function(req, res,next) { handlePostMove("a","moving left",    req,res,next); });	
@@ -82,11 +83,20 @@ app.get('/appl', function(req, res) {
   		next();
  	});		
 
+
 function handlePostMove( cmd, msg, req, res, next ){
 		result = "Web server done: " + cmd
  		delegate( cmd, msg, req, res);	
   		next();
+}
+
+//SuperHandlePostMove and SuperDelegate are made by Luca C.
+function superHandlePostMove( cmd, msg, req, res, next ){
+	result = "Web server done: " + cmd
+	 superDelegate( cmd, msg, req, res);	
+	  next();
 } 	
+
 //=================== UTILITIES =========================
 
 var result = "";
@@ -96,6 +106,14 @@ app.setIoSocket = function( iosock ){
  	mqttUtils.setIoSocket(iosock);
 	console.log("app SETIOSOCKET io=" + io);
 }
+
+function superDelegate( cmd, newState, req, res ){
+	//publishMsgToRobotmind(cmd);                  //interaction with the robotmind 
+   //publishEmitUserCmd(cmd);                     //interaction with the basicrobot
+   //publishMsgToResourceModel("robot",cmd);	    //for hexagonal mind
+   //changeResourceModelCoap(cmd);		            //for hexagonal mind RESTful m2m
+   publishMsgToExplorer(cmd)
+} 
 
 function delegate( cmd, newState, req, res ){
  	//publishMsgToRobotmind(cmd);                  //interaction with the robotmind 
@@ -112,7 +130,16 @@ function delegateForAppl( cmd, req, res, next ){
 /*
  * ============ TO THE BUSINESS LOGIC =======
  */
- 
+
+
+// We are going to communicate only with the Explorer so we're most likely to use only this method
+// Note: So far it goes ALWAYS to (3,0). CMD is IGNORED, needs to be modified so that the method can be used to do many things.
+var publishMsgToExplorer = function( cmd ){  
+	var msgstr = "msg(goTo,dispatch,js,explorer,goTo(3,0),1)"  ;  
+	console.log("publishMsgToExplorer forward> "+ msgstr);
+	mqttUtils.publish( msgstr, "unibo/qak/explorer" );
+}
+
 var publishMsgToRobotmind = function( cmd ){  
   	var msgstr = "msg(robotCmd,dispatch,js,robotmind,robotCmd("+cmd +"),1)"  ;  
   	console.log("publishMsgToRobotmind forward> "+ msgstr);

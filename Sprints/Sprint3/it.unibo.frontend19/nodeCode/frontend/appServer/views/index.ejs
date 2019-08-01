@@ -36,51 +36,67 @@
 
 <br></br>
 <center>
-			<table>
+	<table>
+			<!-- FIRST ROW -->
 					<tr>
 						<td></td>
 						<td align="center">
 							<form action="/w" method="post">
-							  	<input type="submit" style="font-size:30px;" value="PREPARE" >
+							  	<input type="submit" style="font-size:20px;" value="PREPARE" >
 							</form>
 						</td>
+					</tr>
 
+
+			<!-- INVISIBLE ROW -->
+					<tr>
+						<tr><td align="center"><span style="opacity:0;">This sentence is invisible</span></td>		
 					</tr>
-					<tr><td align="center"><span style="opacity:0;">This sentence is invisible</span></td>
-					</tr>
+
+
+			<!-- SECOND ROW -->
+					<tr>
 						<td align="center">
-							<form action="/a" method="post">
-							  	<input type="submit" style="font-size:25px;margin: 10px"  value="ADD CRESCENTINA" >
-							</form>
-						</td>
-						<td align="center">
-							<form action="/a" method="post">
-							  	<input type="submit" style="font-size:25px;margin: 10px"  value="ADD PIZZA" >
-							</form>
-						</td>
-						<td align="center">
-							<form action="/a" method="post">
-							  	<input type="submit" style="font-size:25px;margin: 10px"  value="ADD MOZZARELLA" >
+							<form action="/test" method="post">
+								<font size="1" color="black">
+							  		<input type="submit" style="font-size:20px;"  value="ADD PIZZA [SetGoal(3,0)]"  >
+							  	</font>
 							</form>
 						</td>
 						<td></td>
-					</tr>
-					<tr><td align="center"><span style="opacity:0;">This sentence is invisible</span></td>
-
-					<tr>
-							<td></td>
-
 						<td align="center">
-							<form action="/d" method="post">
-							  	<input type="submit" style="font-size:30px;" value="CLEAR"  >
+							<form action="/h" method="post">
+								<font size="1" color="black">
+							  		<input type="submit" style="font-size:20px;"  value="ADD CRESCENTINA"  >
+							  	</font>
 							</form>
 						</td>
 					</tr>
-					<tr><td align="center"><span style="opacity:0;">This sentence is invisible</span></td>
+			
+			<!-- INVISIBLE ROW -->
+			<tr>
+					<tr><td align="center"><span style="opacity:0;">This sentence is invisible</span></td>		
+			</tr>
 
+
+			<!-- THIRD ROW -->
 					<tr>
-							<td></td>
+						<td></td>
+						<td align="center">
+							<form action="/d" method="post">
+							  	<input type="submit" style="font-size:20px;" value="CLEAR"  >
+							</form>
+						</td>
+					</tr>
 
+			<!-- INVISIBLE ROW -->
+			<tr>
+					<tr><td align="center"><span style="opacity:0;">This sentence is invisible</span></td>		
+			</tr>
+
+
+			<!-- FOURTH ROW -->
+					<tr>
 						<td align="center">
 							<form action="/h" method="post">
 								<font size="3" color="red">
@@ -89,10 +105,15 @@
 							</form>
 						</td>
 						<td></td>
-
+						<td align="center">
+							<form action="/h" method="post">
+								<font size="3" color="red">
+							  		<input type="submit" style="font-size:40px;"  value="RESUME"  >
+							  	</font>
+							</form>
+						</td>
 					</tr>
-					
-				</table>
+	</table>
 </center>
 </div>
 
@@ -107,7 +128,6 @@
 		 <ul>
 			<li>Crescentine: K1</li>
 			<li>Pizze: K2</li>
-			<li>Mozzarelle: K3</li>
 		 </ul>
   	</div>
 	<div>
