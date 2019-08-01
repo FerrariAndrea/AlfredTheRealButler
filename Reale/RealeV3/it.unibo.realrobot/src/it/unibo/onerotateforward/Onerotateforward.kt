@@ -18,22 +18,25 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 		
 				//val RotateTime = 50L
 				val CompleteRotateTime = 400L
-				val ErroreConcesso = 1L
+				val ErroreConcesso : Int = 1
+				val SogliaDiScarto : Int = 20 //per evitare errori dovuti ad esempio al tavolo in mezzo alla stanza
+				
 				//------------------------
-				var RealMove = "a" 		
-				var Orientation =0L
-				var OrientationZero =0L	
-				var Abs =0L
-				var NeedRotate =false
+				var RealMove = "a" 
+				//for calibration:
+				var SonarD :Int =-1
+				var SonarA :Int =-1
+				var SonarW :Int =-1
+				var SonarDAfter :Int =-1
+				var SonarAAfter :Int =-1
+				var SonarWAfter :Int =-1
+				var Arotate = false
+				var NeedCalibration = true
+				var NeedCorrezione =false
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
 						println("Start onerotateforward")
-					}
-					 transition( edgeName="goto",targetState="ready", cond=doswitch() )
-				}	 
-				state("ready") { //this:State
-					action { //it:State
 					}
 					 transition(edgeName="t09",targetState="checkFirst",cond=whenDispatch("onerotationstep"))
 				}	 
@@ -43,50 +46,41 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 						if( checkMsgContent( Term.createTerm("onerotationstep(MOVE)"), Term.createTerm("onerotationstep(ORIENTATION)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								RealMove = payloadArg(0)
+								if(RealMove=="a" ||  RealMove=="d"){ SonarD=-1;SonarA=-1;SonarW=-1;
+								 }
 						}
 					}
-					 transition( edgeName="goto",targetState="startFixCompass", cond=doswitch() )
+					 transition(edgeName="t110",targetState="calibration",cond=whenEvent("sonarRobot"))
+					transition(edgeName="t111",targetState="calibration",cond=whenEvent("sonarLeft"))
+					transition(edgeName="t112",targetState="calibration",cond=whenEvent("sonarRigth"))
 				}	 
-				state("startFixCompass") { //this:State
+				state("calibration") { //this:State
 					action { //it:State
-						forward("compassReq", "compassReq(fix)" ,"compass" ) 
-					}
-					 transition(edgeName="t010",targetState="endFixCompass",cond=whenDispatch("compassRes"))
-				}	 
-				state("endFixCompass") { //this:State
-					action { //it:State
-						if( checkMsgContent( Term.createTerm("compassRes(ORIENTATION)"), Term.createTerm("compassRes(RIS)"), 
+						if( checkMsgContent( Term.createTerm("sonar(DISTANCE)"), Term.createTerm("sonar(DISTANCE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								println("COMPAS-FIX---> ${payloadArg(0)}")
+								SonarW=Integer.parseInt( payloadArg(0) )
 						}
-						forward("compassReq", "compassReq(0)" ,"compass" ) 
+						if( checkMsgContent( Term.createTerm("sonar(DISTANCE)"), Term.createTerm("sonar(DISTANCE)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								SonarA=Integer.parseInt( payloadArg(0) )
+						}
+						if( checkMsgContent( Term.createTerm("sonarRigth(DISTANCE)"), Term.createTerm("sonarRigth(DISTANCE)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								SonarD=Integer.parseInt( payloadArg(0) )
+						}
+						NeedCalibration=(SonarD<0 || SonarA<0 || SonarW<0)
 					}
-					 transition(edgeName="t011",targetState="doRotationForward",cond=whenDispatch("compassRes"))
+					 transition( edgeName="goto",targetState="calibrationAgaint", cond=doswitchGuarded({NeedCalibration}) )
+					transition( edgeName="goto",targetState="doRotationForward", cond=doswitchGuarded({! NeedCalibration}) )
+				}	 
+				state("calibrationAgaint") { //this:State
+					action { //it:State
+					}
+					 transition(edgeName="t113",targetState="calibration",cond=whenEvent("sonarRobot"))
+					transition(edgeName="t114",targetState="calibration",cond=whenEvent("sonarLeft"))
+					transition(edgeName="t115",targetState="calibration",cond=whenEvent("sonarRigth"))
 				}	 
 				state("doRotationForward") { //this:State
-					action { //it:State
-						if( checkMsgContent( Term.createTerm("compassRes(ORIENTATION)"), Term.createTerm("compassRes(ORIENTATION)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								
-												Orientation = payloadArg(0).toLong()
-												OrientationZero=Orientation //questo va tolto se si vuole correggere la rotta ad ogni onestep
-								if(RealMove=="a"){ OrientationZero=Orientation-90
-								 }
-								if(RealMove=="d"){ OrientationZero=Orientation+90
-								 }
-								if(OrientationZero<0){ OrientationZero=360+OrientationZero
-								 }
-								if(OrientationZero>360){ OrientationZero=OrientationZero-360
-								 }
-						}
-						
-									 Abs = Math.abs(OrientationZero-Orientation)
-									 NeedRotate = Abs>ErroreConcesso
-					}
-					 transition( edgeName="goto",targetState="bigRotation", cond=doswitchGuarded({NeedRotate}) )
-					transition( edgeName="goto",targetState="correggi", cond=doswitchGuarded({! NeedRotate}) )
-				}	 
-				state("bigRotation") { //this:State
 					action { //it:State
 						if(RealMove=="a"){ forward("modelChange", "modelChange(robot,a)" ,"resourcemodel" ) 
 						delay(CompleteRotateTime)
@@ -96,53 +90,74 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 						delay(CompleteRotateTime)
 						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
 						 }
+						SonarDAfter=-1;SonarAAfter=-1;SonarWAfter-1;
 					}
-					 transition( edgeName="goto",targetState="correggi", cond=doswitch() )
+					 transition(edgeName="t116",targetState="calibrationAfter",cond=whenEvent("sonarRobot"))
+					transition(edgeName="t117",targetState="calibrationAfter",cond=whenEvent("sonarLeft"))
+					transition(edgeName="t118",targetState="calibrationAfter",cond=whenEvent("sonarRigth"))
+				}	 
+				state("calibrationAfter") { //this:State
+					action { //it:State
+						if( checkMsgContent( Term.createTerm("sonar(DISTANCE)"), Term.createTerm("sonar(DISTANCE)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								SonarWAfter=Integer.parseInt( payloadArg(0) )
+						}
+						if( checkMsgContent( Term.createTerm("sonar(DISTANCE)"), Term.createTerm("sonar(DISTANCE)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								SonarAAfter=Integer.parseInt( payloadArg(0) )
+						}
+						if( checkMsgContent( Term.createTerm("sonarRigth(DISTANCE)"), Term.createTerm("sonarRigth(DISTANCE)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								SonarDAfter=Integer.parseInt( payloadArg(0) )
+						}
+						NeedCalibration=(SonarDAfter<0 || SonarAAfter<0 || SonarWAfter<0)
+					}
+					 transition( edgeName="goto",targetState="calibrationAfterAgaint", cond=doswitchGuarded({NeedCalibration}) )
+					transition( edgeName="goto",targetState="correggi", cond=doswitchGuarded({! NeedCalibration}) )
+				}	 
+				state("calibrationAfterAgaint") { //this:State
+					action { //it:State
+					}
+					 transition(edgeName="t119",targetState="calibrationAfter",cond=whenEvent("sonarRobot"))
+					transition(edgeName="t120",targetState="calibrationAfter",cond=whenEvent("sonarLeft"))
+					transition(edgeName="t121",targetState="calibrationAfter",cond=whenEvent("sonarRigth"))
 				}	 
 				state("correggi") { //this:State
 					action { //it:State
-						forward("compassReq", "compassReq(0)" ,"compass" ) 
+						NeedCorrezione =false
+						if(RealMove=="d"){ Arotate=false;NeedCorrezione=(Math.abs(SonarD-SonarWAfter)>ErroreConcesso ||  Math.abs(SonarW-SonarAAfter)<ErroreConcesso )
+						 }
+						else
+						 { if(RealMove=="a"){ Arotate=true;NeedCorrezione=(Math.abs(SonarA-SonarWAfter)>ErroreConcesso ||  Math.abs(SonarW-SonarDAfter)<ErroreConcesso )
+						  }
+						 else
+						  { 
+						  					var differenceA =SonarAAfter-SonarA
+						  					var differenceD =SonarDAfter-SonarD
+						  if((Math.abs(differenceA)>ErroreConcesso*2 && Math.abs(differenceA)<SogliaDiScarto)){ NeedCorrezione=true
+						  Arotate=differenceA>0
+						   }
+						  if((Math.abs(differenceD)>ErroreConcesso*2 && Math.abs(differenceD)<SogliaDiScarto)){ NeedCorrezione=true
+						  Arotate=differenceD<0
+						   }
+						   }
+						  }
 					}
-					 transition(edgeName="t012",targetState="handleCompassRes",cond=whenDispatch("compassRes"))
-				}	 
-				state("handleCompassRes") { //this:State
-					action { //it:State
-						if( checkMsgContent( Term.createTerm("compassRes(ORIENTATION)"), Term.createTerm("compassRes(ORIENTATION)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								Orientation = payloadArg(0).toLong()
-						}
-						
-									 Abs = Math.abs(OrientationZero-Orientation)
-									 NeedRotate = Abs>ErroreConcesso
-						println("handleCompassRes--------------->Abs[$Abs] ATTUALE[$Orientation] NEED[$OrientationZero]")
-					}
-					 transition( edgeName="goto",targetState="miniRotate", cond=doswitchGuarded({NeedRotate}) )
-					transition( edgeName="goto",targetState="endDoRotationForward", cond=doswitchGuarded({! NeedRotate}) )
+					 transition( edgeName="goto",targetState="miniRotate", cond=doswitchGuarded({NeedCorrezione}) )
+					transition( edgeName="goto",targetState="endDoRotationForward", cond=doswitchGuarded({! NeedCorrezione}) )
 				}	 
 				state("miniRotate") { //this:State
 					action { //it:State
-						
-											var temp_d =0L
-											var temp_a =0L	
-						if(Orientation>OrientationZero){ 
-											temp_a =Orientation-OrientationZero
-											temp_d =360-temp_a			
-						 }
-						else
-						 { 
-						 					temp_d =OrientationZero-Orientation
-						 					temp_a =360-temp_d			
-						  }
-						var Arotate=true
-						if(temp_a>temp_d){ Arotate=false
-						 }
 						if(Arotate){ forward("modelChange", "modelChange(robot,ma)" ,"resourcemodel" ) 
 						 }
 						else
 						 { forward("modelChange", "modelChange(robot,md)" ,"resourcemodel" ) 
 						  }
+						SonarDAfter=-1;SonarAAfter=-1;SonarWAfter-1;
 					}
-					 transition( edgeName="goto",targetState="correggi", cond=doswitch() )
+					 transition(edgeName="t122",targetState="calibrationAfter",cond=whenEvent("sonarRobot"))
+					transition(edgeName="t123",targetState="calibrationAfter",cond=whenEvent("sonarLeft"))
+					transition(edgeName="t124",targetState="calibrationAfter",cond=whenEvent("sonarRigth"))
 				}	 
 				state("endDoRotationForward") { //this:State
 					action { //it:State
@@ -152,7 +167,7 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 						 }
 						replyToCaller("rotationOk", "rotationOk(0)")
 					}
-					 transition( edgeName="goto",targetState="ready", cond=doswitch() )
+					 transition(edgeName="t025",targetState="checkFirst",cond=whenDispatch("onerotationstep"))
 				}	 
 			}
 		}

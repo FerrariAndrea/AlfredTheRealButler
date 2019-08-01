@@ -31,7 +31,6 @@ class Sonarhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								forward("modelUpdate", "modelUpdate(sonarRobot,${payloadArg(0)})" ,"resourcemodel" ) 
 								
-												
 												LastSonarRobot = Integer.parseInt( payloadArg(0) )
 												val differenza = Math.abs(ForLedOldSonar-LastSonarRobot)
 								if(differenza>20){ 

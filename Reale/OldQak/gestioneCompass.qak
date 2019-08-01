@@ -176,59 +176,111 @@ QActor onerotateforward context ctxRobot {
 	["
 		//val RotateTime = 50L
 		val CompleteRotateTime = 400L
-		val ErroreConcesso : Int = 1
-		val SogliaDiScarto : Int = 20 //per evitare errori dovuti ad esempio al tavolo in mezzo alla stanza
-		
+		//val ErroreConcesso = 1L
 		//------------------------
-		var RealMove = \"a\" 
+		var RealMove = \"a\" 		
+		var Orientation =0L
+		var OrientationZero =0L	
+		var Abs =0L
+		var NeedRotate =false
 		//for calibration:
-		var SonarD :Int =-1
-		var SonarA :Int =-1
-		var SonarW :Int =-1
-		var SonarDAfter :Int =-1
-		var SonarAAfter :Int =-1
-		var SonarWAfter :Int =-1
-		var Arotate = false
-		var NeedCalibration = true
-		var NeedCorrezione =false
+		var SonarD :Int =0
+		var SonarA :Int =0
+		var SonarW :Int =0
 	"]  
 	State s0 initial {	   		
 		println("Start onerotateforward")
+		delay 500
 		
-	}Transition t0 whenMsg onerotationstep -> checkFirst 
+	}//Transition t0 whenMsg claibrationMsg -> calibrateOrientation
+	Goto ready
+	
+	/*
+	State calibrateOrientation{		
+		println("Onerotateforward CalibrateOrientation start.")
+		forward compass -m compassReq : compassReq(0)	
+	}Transition t0 whenMsg compassRes -> setOrientationZero
+		
+	State setOrientationZero{
+		onMsg( compassRes : compassRes(ORIENTATION) ) {
+				["OrientationZero = payloadArg(0).toLong()"]
+		}
+		println("OrientationZero set at --> $OrientationZero")
+	}Goto ready
+	*/
+	
+	State ready{
+	}Transition t0 whenMsg onerotationstep -> checkFirst
 	
 	State checkFirst{
 		//qui in futuro si possono controllare i vari sensori e dedurre uno stallo
 		["storeCurrentMessageForReply()"]		
 		onMsg( onerotationstep : onerotationstep(ORIENTATION) ) {
 			["RealMove = payloadArg(0)"]
-			if "RealMove==\"a\" ||  RealMove==\"d\""{
-				 ["SonarD=-1;SonarA=-1;SonarW=-1;"]				
-			}
-		}		
-	}Transition t1 whenEvent sonarRobot ->  calibration
-					 whenEvent sonarLeft ->  calibration
-					 whenEvent sonarRigth ->  calibration
+		}
+	}Transition t1 whenEvent sonarRobot ->  calibrationSonarW
  	
-	State calibration{
+	State calibrationSonarW{
 		onMsg ( sonarRobot : sonar( DISTANCE ) ){  
 			["SonarW=Integer.parseInt( payloadArg(0) )"]	
 		}
+	}Transition t1 whenEvent sonarLeft ->  calibrationSonarL
+	State calibrationSonarL{
 		onMsg ( sonarRobot : sonar( DISTANCE ) ){  
-			["SonarA=Integer.parseInt( payloadArg(0) )"]
+			["SonarL=Integer.parseInt( payloadArg(0) )"]
 		}
+	}Transition t1 whenEvent sonarRigth ->  calibrationSonarR
+	State calibrationSonarR{
 		onMsg ( sonarRigth : sonarRigth( DISTANCE ) ){  
-			["SonarD=Integer.parseInt( payloadArg(0) )"]
-		}		
-		["NeedCalibration=(SonarD<0 || SonarA<0 || SonarW<0)"]
-	}Goto calibrationAgaint if "NeedCalibration" else doRotationForward
-	
-	State calibrationAgaint{		
-	}Transition t1 whenEvent sonarRobot ->  calibration
-					 whenEvent sonarLeft ->  calibration
-					 whenEvent sonarRigth ->  calibration
-	
+			["SonarR=Integer.parseInt( payloadArg(0) )"]
+		}
+	}Goto doRotationForward
+ 	/*
+ 	State startFixCompass{
+ 		forward compass -m compassReq : compassReq(fix)	
+ 	}Transition t0 whenMsg compassRes -> endFixCompass
+ 	
+ 	State endFixCompass{
+ 		onMsg( compassRes : compassRes(RIS) ) {
+			println("COMPAS-FIX---> ${payloadArg(0)}")			
+		}
+ 		forward compass -m compassReq : compassReq(0)	
+ 	}Transition t0 whenMsg compassRes -> doRotationForward
+ 	* 
+ 	*/
+ 	
+ 
 	State doRotationForward{
+		onMsg( compassRes : compassRes(ORIENTATION) ) {
+			["
+				Orientation = payloadArg(0).toLong()
+				OrientationZero=Orientation //questo va tolto se si vuole correggere la rotta ad ogni onestep
+			"]
+			
+			if "RealMove==\"a\""{
+				["OrientationZero=Orientation-90"]
+			}
+			if "RealMove==\"d\""{
+					["OrientationZero=Orientation+90"]
+			}
+			//se no mi referisco all prima orientazione in assoluto (OrientationZero)
+			
+			if"OrientationZero<0"{
+				["OrientationZero=360+OrientationZero"]
+			}
+			if"OrientationZero>360"{
+				["OrientationZero=OrientationZero-360"]
+			}			
+		}
+		["
+			 Abs = Math.abs(OrientationZero-Orientation)
+			 NeedRotate = Abs>ErroreConcesso
+		"]
+		
+	
+	}Goto bigRotation if "NeedRotate" else correggi
+	
+	State bigRotation{
 		
 		if "RealMove==\"a\""{
 	  			//forward mindrobot -m local_modelChanged : modelChanged(robot, a)	  			
@@ -246,66 +298,55 @@ QActor onerotateforward context ctxRobot {
 	 		forward resourcemodel -m modelChange : modelChange(robot,h)	  			
 	 	
 		}
-		["SonarDAfter=-1;SonarAAfter=-1;SonarWAfter-1;"]
-	}Transition t1 whenEvent sonarRobot ->  calibrationAfter
-					 whenEvent sonarLeft ->  calibrationAfter
-					 whenEvent sonarRigth ->  calibrationAfter
-					 
-	State calibrationAfter{
-		onMsg ( sonarRobot : sonar( DISTANCE ) ){  
-			["SonarWAfter=Integer.parseInt( payloadArg(0) )"]	
-		}
-		onMsg ( sonarRobot : sonar( DISTANCE ) ){  
-			["SonarAAfter=Integer.parseInt( payloadArg(0) )"]
-		}
-		onMsg ( sonarRigth : sonarRigth( DISTANCE ) ){  
-			["SonarDAfter=Integer.parseInt( payloadArg(0) )"]
-		}		
-		["NeedCalibration=(SonarDAfter<0 || SonarAAfter<0 || SonarWAfter<0)"]
-	}Goto calibrationAfterAgaint if "NeedCalibration" else correggi
-	
-	State calibrationAfterAgaint{		
-	}Transition t1 whenEvent sonarRobot ->  calibrationAfter
-					 whenEvent sonarLeft ->  calibrationAfter
-					 whenEvent sonarRigth ->  calibrationAfter
+	}Goto correggi
 	
 	State correggi{
-		["NeedCorrezione =false"]
-		if "RealMove==\"d\""{
-			["Arotate=false;NeedCorrezione=(Math.abs(SonarD-SonarWAfter)>ErroreConcesso ||  Math.abs(SonarW-SonarAAfter)<ErroreConcesso )"]
-		}else{
-			if "RealMove==\"a\""{
-				["Arotate=true;NeedCorrezione=(Math.abs(SonarA-SonarWAfter)>ErroreConcesso ||  Math.abs(SonarW-SonarDAfter)<ErroreConcesso )"]
-			}else{//no rotation 
-				["
-					var differenceA =SonarAAfter-SonarA
-					var differenceD =SonarDAfter-SonarD
-				"]
-				if "(Math.abs(differenceA)>ErroreConcesso*2 && Math.abs(differenceA)<SogliaDiScarto)"{
-					["NeedCorrezione=true"]
-					["Arotate=differenceA>0"]
-				}
-				if "(Math.abs(differenceD)>ErroreConcesso*2 && Math.abs(differenceD)<SogliaDiScarto)"{
-					["NeedCorrezione=true"]
-					["Arotate=differenceD<0"]
-				}
-			}
-		}
+  		forward compass -m compassReq : compassReq(0) 
+	}Transition t0 whenMsg compassRes -> handleCompassRes
 		
-	}Goto miniRotate if "NeedCorrezione" else endDoRotationForward
+	State handleCompassRes{
+		onMsg( compassRes : compassRes(ORIENTATION) ) {
+			["Orientation = payloadArg(0).toLong()"]			
+		}
+		["
+			 Abs = Math.abs(OrientationZero-Orientation)
+			 NeedRotate = Abs>ErroreConcesso
+		"]
+		println("handleCompassRes--------------->Abs[$Abs] ATTUALE[$Orientation] NEED[$OrientationZero]")
+	}Goto miniRotate if "NeedRotate" else endDoRotationForward
 	
 	  State miniRotate{
+				["
+					var temp_d =0L
+					var temp_a =0L	
+				"]
+			if"Orientation>OrientationZero"{
+				["
+					temp_a =Orientation-OrientationZero
+					temp_d =360-temp_a			
+				"]
+			}else{
+				["
+					temp_d =OrientationZero-Orientation
+					temp_a =360-temp_d			
+				"]
+			}
+			["var Arotate=true"]
+			if"temp_a>temp_d"{
+				["Arotate=false"]
+			}
+			//println("Arotate[$Arotate], ActualOrientation[$Orientation], needOrientation[$OrientationZero]")
 			if"Arotate"{
 					//forward mindrobot -m local_modelChanged : modelChanged(robot, a)
 					forward resourcemodel -m modelChange : modelChange(robot,ma)	  				  		
 			}else{
 					//forward mindrobot -m local_modelChanged : modelChanged(robot, d)
 					forward resourcemodel -m modelChange : modelChange(robot,md)	  			  		
-			}				
-			["SonarDAfter=-1;SonarAAfter=-1;SonarWAfter-1;"]
-	  }Transition t1 whenEvent sonarRobot ->  calibrationAfter
-					 whenEvent sonarLeft ->  calibrationAfter
-					 whenEvent sonarRigth ->  calibrationAfter
+			}
+	  		//delayVar RotateTime
+	  		//forward mindrobot -m local_modelChanged : modelChanged(robot, h)
+	  		//forward resourcemodel -m modelChange : modelChange(robot,h)					
+	  }Goto correggi
 	  
 
 	State endDoRotationForward{
@@ -317,7 +358,8 @@ QActor onerotateforward context ctxRobot {
 			forward kb -m modelUpdate : modelUpdate(  robot, d)
 		}  		
 		["replyToCaller(\"rotationOk\", \"rotationOk(0)\")"]
-	}Transition t0 whenMsg onerotationstep -> checkFirst 
+	}
+	Goto ready
 	
 	
 }
@@ -577,23 +619,20 @@ QActor compass context ctxRobot{
 	State s0 initial {	
 		run surpluss.compassSupport.instance()
 		println("Start compass") 
-		/*
-				println("!!!!!!!! WARNING Compass waiting for calibration 2s !!!!!!!")
-				delay 2000 
-				println("!!!!!!!!!!!!!!! WARNING COMPASS CALIBRATION !!!!!!!!!!!!!!!") 	
-		*/	
+		println("!!!!!!!! WARNING Compass waiting for calibration 2s !!!!!!!")
+		delay 2000 
+		println("!!!!!!!!!!!!!!! WARNING COMPASS CALIBRATION !!!!!!!!!!!!!!!") 		
 	}
 	Goto calibration
 		
 	State calibration{
-		/*
-					forward basicrobot -m robotCmd : robotCmd(c)	
-					delay 100
-					 ["val calibration_x_y =surpluss.compassSupport.calibrateCompass()"]
-					 forward basicrobot -m robotCmd : robotCmd( h )	
-					// 	forward resourcemodel -m modelChange : modelChange(robot,h) 
-					 println("Compass calibration done: $calibration_x_y") 
-		 */
+		//forward resourcemodel -m modelChange : modelChange(robot,sa) 
+		forward basicrobot -m robotCmd : robotCmd(c)	
+		delay 100
+		 ["val calibration_x_y =surpluss.compassSupport.calibrateCompass()"]
+		 forward basicrobot -m robotCmd : robotCmd( h )	
+		// 	forward resourcemodel -m modelChange : modelChange(robot,h) 
+		 println("Compass calibration done: $calibration_x_y") 
 	}Transition t0  whenEvent compassReq  -> handleCompass
 	
 	State handleCompass{

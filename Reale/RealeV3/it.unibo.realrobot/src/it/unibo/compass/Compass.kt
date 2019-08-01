@@ -20,21 +20,13 @@ class Compass ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sco
 					action { //it:State
 						surpluss.compassSupport.instance(  )
 						println("Start compass")
-						println("!!!!!!!! WARNING Compass waiting for calibration 2s !!!!!!!")
-						delay(2000) 
-						println("!!!!!!!!!!!!!!! WARNING COMPASS CALIBRATION !!!!!!!!!!!!!!!")
 					}
 					 transition( edgeName="goto",targetState="calibration", cond=doswitch() )
 				}	 
 				state("calibration") { //this:State
 					action { //it:State
-						forward("robotCmd", "robotCmd(c)" ,"basicrobot" ) 
-						delay(100) 
-						val calibration_x_y =surpluss.compassSupport.calibrateCompass()
-						forward("robotCmd", "robotCmd(h)" ,"basicrobot" ) 
-						println("Compass calibration done: $calibration_x_y")
 					}
-					 transition(edgeName="t029",targetState="handleCompass",cond=whenEvent("compassReq"))
+					 transition(edgeName="t042",targetState="handleCompass",cond=whenEvent("compassReq"))
 				}	 
 				state("handleCompass") { //this:State
 					action { //it:State
@@ -50,7 +42,7 @@ class Compass ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sco
 								  }
 						}
 					}
-					 transition(edgeName="t130",targetState="handleCompass",cond=whenEvent("compassReq"))
+					 transition(edgeName="t143",targetState="handleCompass",cond=whenEvent("compassReq"))
 				}	 
 			}
 		}

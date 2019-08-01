@@ -30,7 +30,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				state("ready") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t013",targetState="checkFirst",cond=whenDispatch("onestep"))
+					 transition(edgeName="t026",targetState="checkFirst",cond=whenDispatch("onestep"))
 				}	 
 				state("checkFirst") { //this:State
 					action { //it:State
@@ -45,7 +45,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						forward("internalReq", "internalReq(lastSonarRobot)" ,"sonarhandler" ) 
 						println("----------------WAITING")
 					}
-					 transition(edgeName="t014",targetState="waitingForcheckFirstSonar",cond=whenEvent("lastSonarRobot"))
+					 transition(edgeName="t027",targetState="waitingForcheckFirstSonar",cond=whenEvent("lastSonarRobot"))
 				}	 
 				state("waitingForcheckFirstSonar") { //this:State
 					action { //it:State
@@ -72,8 +72,8 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						forward("setTimer", "setTimer($StepTime)" ,"timer" ) 
 						itunibo.planner.plannerUtil.startTimer(  )
 					}
-					 transition(edgeName="t015",targetState="endDoMoveForward",cond=whenEvent("tickTimer"))
-					transition(edgeName="t016",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
+					 transition(edgeName="t028",targetState="endDoMoveForward",cond=whenEvent("tickTimer"))
+					transition(edgeName="t029",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
 				}	 
 				state("endDoMoveForward") { //this:State
 					action { //it:State
@@ -125,8 +125,8 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 					action { //it:State
 						println("->mustGoOn")
 					}
-					 transition(edgeName="t017",targetState="endDoMoveForward",cond=whenEvent("tickTimer"))
-					transition(edgeName="t018",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
+					 transition(edgeName="t030",targetState="endDoMoveForward",cond=whenEvent("tickTimer"))
+					transition(edgeName="t031",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
 				}	 
 			}
 		}
