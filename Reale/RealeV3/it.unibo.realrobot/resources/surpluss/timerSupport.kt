@@ -19,6 +19,10 @@ object timerSupport {
 		
 	}
 	
+	fun sleep(value :Long){
+		println("----->$value")
+		Thread.sleep(value)			 
+	}
 	
 	fun startTimer(value :Long){
 		//println("start------------------->${System.currentTimeMillis()}")
