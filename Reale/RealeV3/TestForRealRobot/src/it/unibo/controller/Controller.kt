@@ -18,7 +18,7 @@ class Controller ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 		
 			
 			var Tback      = 0L
-			var StepTime   = 700L	//for real
+			var StepTime   = 650L	//for real
 			var RotateTime = 300L	//for real
 			var PauseTime  = 250L 
 		return { //this:ActionBasciFsm
@@ -51,18 +51,6 @@ class Controller ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 				state("handleStepFail") { //this:State
 					action { //it:State
 						println("Fail step :(")
-						if( checkMsgContent( Term.createTerm("stepFail(R,T)"), Term.createTerm("stepFail(R,D)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								Tback=payloadArg(1).toString().toLong()
-								println("recived $Tback")
-								
-												if( Tback > StepTime * 2 / 3 ) Tback = 0 else Tback=Tback/2
-								println("modded $Tback")
-								if(Tback > 0 ){ forward("local_modelChanged", "modelChanged(robot,s)" ,"mindrobot" ) 
-								delay(Tback)
-								forward("local_modelChanged", "modelChanged(robot,h)" ,"mindrobot" ) 
-								 }
-						}
 					}
 					 transition( edgeName="goto",targetState="next", cond=doswitch() )
 				}	 

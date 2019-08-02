@@ -21,6 +21,8 @@ Dispatch rotationOk        : rotationOk(STALL)
 Dispatch setTimer        : setTimer(DURATION)		//TODO eliminate  V
 Dispatch resetTimer      : resetTimer(V) //TODO eliminate  V
 Dispatch tickTimer        : tickTimer(V) //TODO eliminate  V
+Dispatch internalTickTimer   : internalTickTimer(V) //TODO eliminate  V
+
 
 Dispatch local_modelChanged   : modelChanged( TARGET, VALUE )
 Dispatch robotCmd     : robotCmd( CMD )				  //sent by the mind to the basicrobot
@@ -443,6 +445,7 @@ QActor timer context ctxRobot {
 	["var ActualTimer = 0L "]
 	State s0 initial {	   
 		println("Start timer") 
+		run surpluss.timerSupport.create(myself)
 	}Goto ready
 	
 	State ready{
@@ -452,12 +455,21 @@ QActor timer context ctxRobot {
 	
 	State start{
 		onMsg( setTimer : setTimer( DURATION ) ) {
-			["ActualTimer = payloadArg(0).toLong()"]
+			["ActualTimer = payloadArg(0).toLong()"]  //esempio-->650
 		}
-	}Transition t0 whenTimeVar  ActualTimer -> drinnn	
-					whenEvent resetTimer  -> ready
+		run surpluss.timerSupport.startTimer(ActualTimer)
+		println("${System.currentTimeMillis()}")//esempio-->1564732238868		
+	}Transition t0 // whenTimeVar  ActualTimer -> drinnn	
+					whenEvent resetTimer  -> reset
+					whenEvent internalTickTimer  -> drinnn
 					
+	State reset{
+		run surpluss.timerSupport.resetTimer()		
+	}Goto ready
+	
 	State drinnn{
+		println("${System.currentTimeMillis()}")//esempio-->1564732239862
+		//1564732239862-1564732238868 = 994 != 650
 		forward onecellforward -m tickTimer : tickTimer(ok) 
 	}
 	Goto ready

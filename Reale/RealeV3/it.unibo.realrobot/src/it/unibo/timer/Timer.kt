@@ -20,6 +20,7 @@ class Timer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope
 				state("s0") { //this:State
 					action { //it:State
 						println("Start timer")
+						surpluss.timerSupport.create(myself)
 					}
 					 transition( edgeName="goto",targetState="ready", cond=doswitch() )
 				}	 
@@ -35,14 +36,21 @@ class Timer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								ActualTimer = payloadArg(0).toLong()
 						}
-						stateTimer = TimerActor("timer_start", 
-							scope, context!!, "local_tout_timer_start", ActualTimer )
+						surpluss.timerSupport.startTimer( ActualTimer  )
+						println("${System.currentTimeMillis()}")
 					}
-					 transition(edgeName="t033",targetState="drinnn",cond=whenTimeout("local_tout_timer_start"))   
-					transition(edgeName="t034",targetState="ready",cond=whenEvent("resetTimer"))
+					 transition(edgeName="t033",targetState="reset",cond=whenEvent("resetTimer"))
+					transition(edgeName="t034",targetState="drinnn",cond=whenEvent("internalTickTimer"))
+				}	 
+				state("reset") { //this:State
+					action { //it:State
+						surpluss.timerSupport.resetTimer(  )
+					}
+					 transition( edgeName="goto",targetState="ready", cond=doswitch() )
 				}	 
 				state("drinnn") { //this:State
 					action { //it:State
+						println("${System.currentTimeMillis()}")
 						forward("tickTimer", "tickTimer(ok)" ,"onecellforward" ) 
 					}
 					 transition( edgeName="goto",targetState="ready", cond=doswitch() )

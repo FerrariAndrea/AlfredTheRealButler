@@ -24,7 +24,7 @@ QActor controller context ctxController {
 ["
 	
 	var Tback      = 0L
-	var StepTime   = 700L	//for real
+	var StepTime   = 650L	//for real
 	var RotateTime = 300L	//for real
 	var PauseTime  = 250L 
 "]	
@@ -49,7 +49,6 @@ QActor controller context ctxController {
 	}
 	
 	State oneStep{
-			
 			forward onecellforward -m onestep : onestep($StepTime)	
 	}
 	Transition t0 	whenMsg stepOk   -> handleStepOk   
@@ -63,20 +62,7 @@ QActor controller context ctxController {
 	
 	State handleStepFail{ 
 			
-		println("Fail step :(")
-			onMsg( stepFail:stepFail(R,D) ) {
-				["Tback=payloadArg(1).toString().toLong()"]
-				println("recived $Tback")
-				 ["
-				if( Tback > StepTime * 2 / 3 ) Tback = 0 else Tback=Tback/2
-				"]
-				println("modded $Tback")
-					if "Tback > 0 "{
-				 		forward mindrobot -m local_modelChanged : modelChanged(robot,s)  
-				 		delayVar Tback 
-				  		forward mindrobot -m local_modelChanged : modelChanged(robot,h) 
-					}
-			}
+		println("Fail step :(")	
 			
 	}
 	Goto next
