@@ -52,6 +52,10 @@ QActor resourcemodel context ctxResourceModel {
 		onMsg( modelUpdate : modelUpdate(sonarRobot,V ) ) {
 			run itunibo.robot.resourceModelSupport.updateSonarRobotModel( myself, payloadArg(1) )
 		}
+		//Start and stop msg (DONE--> comando effettuato)
+		onMsg( modelUpdate : modelUpdate(metre,V ) ) {
+			//run itunibo.robot.resourceModelSupport.updateSonarRobotModel( myself, payloadArg(1) )
+		}
 	}	
 	Goto  waitModelChange
 	
@@ -62,6 +66,10 @@ QActor resourcemodel context ctxResourceModel {
 			//run itunibo.robot.resourceModelSupport.updateRobotModel( myself, payloadArg(1) )
 			forward mindrobot -m local_modelChanged : modelChanged(  robot,  $payloadArg(1))  //for the robotmind
 			//forward kb -m modelUpdate : modelUpdate(  robot,  $payloadArg(1))  //for kb
+		} 
+		//Start and stop msg  (richiesta comando)
+		onMsg( modelChange : modelChange( metre,CMD) ) {
+			//forward mindrobot -m local_modelChanged : modelChanged(  metre,  $payloadArg(1)) 
 		} 
 	}
 	Goto  waitModelChange

@@ -26,6 +26,7 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 			var PauseTime  = 250L 
 			var Direction = ""
 			var RepeatAction = 1
+			var addingFood = false
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -42,6 +43,30 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						println("Waiting for mission... Please send an action!")
 					}
 					 transition(edgeName="t00",targetState="goToPosition",cond=whenEvent("goTo"))
+					transition(edgeName="t01",targetState="addingFood",cond=whenEvent("addFood"))
+				}	 
+				state("addingFood") { //this:State
+					action { //it:State
+						println("ADDING FOOD: Go to Fridge")
+						addingFood = true
+					}
+					 transition( edgeName="goto",targetState="goToFridge", cond=doswitch() )
+				}	 
+				state("goToFridge") { //this:State
+					action { //it:State
+						solve("direction(D)","") //set resVar	
+						println("Actor: Explorer; State: goToFridge; Payload: direction at start: ${getCurSol("D").toString()}")
+						itunibo.planner.plannerUtil.showMap(  )
+						itunibo.planner.plannerUtil.setGoal( 5, 0  )
+						goingHome=false
+						itunibo.planner.moveUtils.doPlan(myself)
+					}
+					 transition( edgeName="goto",targetState="executePlannedActions", cond=doswitchGuarded({itunibo.planner.moveUtils.existPlan()}) )
+					transition( edgeName="goto",targetState="endOfJob", cond=doswitchGuarded({! itunibo.planner.moveUtils.existPlan()}) )
+				}	 
+				state("stopped") { //this:State
+					action { //it:State
+					}
 				}	 
 				state("goToPosition") { //this:State
 					action { //it:State
@@ -78,8 +103,26 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 					action { //it:State
 						println("Explorer: on the target cell!")
 					}
+					 transition( edgeName="goto",targetState="goToTable", cond=doswitchGuarded({addingFood}) )
+					transition( edgeName="goto",targetState="checkIfGoingHome", cond=doswitchGuarded({! addingFood}) )
+				}	 
+				state("checkIfGoingHome") { //this:State
+					action { //it:State
+					}
 					 transition( edgeName="goto",targetState="atHome", cond=doswitchGuarded({goingHome}) )
 					transition( edgeName="goto",targetState="goHome", cond=doswitchGuarded({! goingHome}) )
+				}	 
+				state("goToTable") { //this:State
+					action { //it:State
+						solve("direction(D)","") //set resVar	
+						println("Actor: Explorer; State: goToTable; Payload: direction at start: ${getCurSol("D").toString()}")
+						itunibo.planner.plannerUtil.showMap(  )
+						itunibo.planner.plannerUtil.setGoal( 5, 4  )
+						addingFood=false
+						itunibo.planner.moveUtils.doPlan(myself)
+					}
+					 transition( edgeName="goto",targetState="executePlannedActions", cond=doswitchGuarded({itunibo.planner.moveUtils.existPlan()}) )
+					transition( edgeName="goto",targetState="endOfJob", cond=doswitchGuarded({! itunibo.planner.moveUtils.existPlan()}) )
 				}	 
 				state("doTheMove") { //this:State
 					action { //it:State
@@ -89,9 +132,9 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						 { forward("onestep", "onestep($StepTime)" ,"onecellforward" ) 
 						  }
 					}
-					 transition(edgeName="t01",targetState="handleStepOk",cond=whenDispatch("stepOk"))
-					transition(edgeName="t02",targetState="handleStepFail",cond=whenDispatch("stepFail"))
-					transition(edgeName="t03",targetState="handleStepOk",cond=whenDispatch("rotationOk"))
+					 transition(edgeName="t02",targetState="handleStepOk",cond=whenDispatch("stepOk"))
+					transition(edgeName="t03",targetState="handleStepFail",cond=whenDispatch("stepFail"))
+					transition(edgeName="t04",targetState="handleStepOk",cond=whenDispatch("rotationOk"))
 				}	 
 				state("handleStepOk") { //this:State
 					action { //it:State
@@ -142,7 +185,7 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						delay(StepTime)
 						forward("onerotationstep", "onerotationstep($Move)" ,"onerotateforward" ) 
 					}
-					 transition(edgeName="t04",targetState="checkSouth",cond=whenDispatch("rotationOk"))
+					 transition(edgeName="t05",targetState="checkSouth",cond=whenDispatch("rotationOk"))
 				}	 
 				state("checkSouth") { //this:State
 					action { //it:State

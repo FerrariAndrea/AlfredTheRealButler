@@ -66,7 +66,13 @@ app.get('/appl', function(req, res) {
 /*
  * ====================== COMMANDS ================
  */
-	app.post("/test", function(req, res,next) { superHandlePostMove("test","moving forward", req,res,next); });	
+	app.post("/addFood1", function(req, res,next) { superHandlePostMove("addFood1","adding food 1", req,res,next); });
+	app.post("/addFood2", function(req, res,next) { superHandlePostMove("addFood2","adding food 2", req,res,next); });	
+	app.post("/clear", function(req, res,next) { superHandlePostMove("clear","clearing room", req,res,next); });	
+	app.post("/prepare", function(req, res,next) { superHandlePostMove("prepare","preparing room", req,res,next); });	
+	app.post("/stop", function(req, res,next) { superHandlePostMove("stop","freezing time", req,res,next); });	
+	app.post("/resume", function(req, res,next) { superHandlePostMove("prepare","resuming time", req,res,next); });	
+
 	app.post("/w", function(req, res,next) { handlePostMove("w","moving forward", req,res,next); });	
 	app.post("/s", function(req, res,next) { handlePostMove("s","moving backward",req,res,next); });
 	app.post("/a", function(req, res,next) { handlePostMove("a","moving left",    req,res,next); });	
@@ -108,10 +114,6 @@ app.setIoSocket = function( iosock ){
 }
 
 function superDelegate( cmd, newState, req, res ){
-	//publishMsgToRobotmind(cmd);                  //interaction with the robotmind 
-   //publishEmitUserCmd(cmd);                     //interaction with the basicrobot
-   //publishMsgToResourceModel("robot",cmd);	    //for hexagonal mind
-   //changeResourceModelCoap(cmd);		            //for hexagonal mind RESTful m2m
    publishMsgToExplorer(cmd)
 } 
 
@@ -120,8 +122,9 @@ function delegate( cmd, newState, req, res ){
 	//publishEmitUserCmd(cmd);                     //interaction with the basicrobot
 	//publishMsgToResourceModel("robot",cmd);	    //for hexagonal mind
 	changeResourceModelCoap(cmd);		            //for hexagonal mind RESTful m2m
- } 
-function delegateForAppl( cmd, req, res, next ){
+ }
+ 
+function delegateForAppl( cmd, req, res, next ) {
      console.log("app delegateForAppl cmd=" + cmd); 
      result = "Web server delegateForAppl: " + cmd;
  	 publishMsgToRobotapplication( cmd );		     
@@ -134,10 +137,24 @@ function delegateForAppl( cmd, req, res, next ){
 
 // We are going to communicate only with the Explorer so we're most likely to use only this method
 // Note: So far it goes ALWAYS to (3,0). CMD is IGNORED, needs to be modified so that the method can be used to do many things.
-var publishMsgToExplorer = function( cmd ){  
-	var msgstr = "msg(goTo,dispatch,js,explorer,goTo(3,0),1)"  ;  
-	console.log("publishMsgToExplorer forward> "+ msgstr);
-	mqttUtils.publish( msgstr, "unibo/qak/explorer" );
+var publishMsgToExplorer = function( cmd ){
+	switch(cmd) {
+  	case "addFood1":
+  	var msgstr = "msg(addFood,dispatch,js,explorer,addFood(1),1)"  ;  
+  	console.log("publishMsgToRobotmind forward> "+ msgstr);
+   	mqttUtils.publish( msgstr, "unibo/qak/explorer" );
+
+    break;
+  	case "addFood2":
+  	var msgstr = "msg(addFood,dispatch,js,explorer,addFood(2),1)"  ;  
+  	console.log("publishMsgToRobotmind forward> "+ msgstr);
+   	mqttUtils.publish( msgstr, "unibo/qak/explorer" );
+
+    break;
+  	default:
+  	console.log("error, cmd not found in switch case publishMsgToExplorer, check code.")
+    // code block
+}
 }
 
 var publishMsgToRobotmind = function( cmd ){  
