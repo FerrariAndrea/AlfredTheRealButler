@@ -28,7 +28,7 @@ class Timer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope
 					action { //it:State
 						ActualTimer = 0L 
 					}
-					 transition(edgeName="t032",targetState="start",cond=whenDispatch("setTimer"))
+					 transition(edgeName="t033",targetState="start",cond=whenDispatch("setTimer"))
 				}	 
 				state("start") { //this:State
 					action { //it:State
@@ -38,8 +38,8 @@ class Timer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope
 						}
 						surpluss.timerSupport.startTimer( ActualTimer  )
 					}
-					 transition(edgeName="t033",targetState="reset",cond=whenEvent("resetTimer"))
-					transition(edgeName="t034",targetState="drinnn",cond=whenEvent("internalTickTimer"))
+					 transition(edgeName="t034",targetState="reset",cond=whenDispatch("resetTimer"))
+					transition(edgeName="t035",targetState="drinnn",cond=whenDispatch("internalTickTimer"))
 				}	 
 				state("reset") { //this:State
 					action { //it:State

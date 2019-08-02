@@ -27,7 +27,7 @@ Dispatch internalTickTimer   : internalTickTimer(V) //TODO eliminate  V
 Dispatch local_modelChanged   : modelChanged( TARGET, VALUE )
 Dispatch robotCmd     : robotCmd( CMD )				  //sent by the mind to the basicrobot
 Dispatch internalRobotReq     : internalRobotReq( CMD, STEPS )
-Event internalRobotRes     : internalRobotRes(V)
+Dispatch internalRobotRes     : internalRobotRes(V)
 
 Dispatch modelChange  : modelChange( TARGET, VALUE )  //force a resource-model change
 Dispatch modelUpdate  : modelUpdate( TARGET, VALUE )  //sent by the mind
@@ -123,6 +123,13 @@ QActor basicrobot context ctxRobot{
 			["val Step= payloadArg(1).toInt()"]
 			run surpluss.motorsSupport.askToMotors("msg(${payloadArg(0)})",Step)
 						
+		}
+		onMsg( internalRobotRes : internalRobotRes(V) ) { 
+			//println("handleRobotCmd-->${payloadArg(0)}")	
+			//MOVE = w | a | s | d | h
+			//run itunibo.robot.robotSupport.move( "msg(${payloadArg(0)})" ) 
+			["val Ris= payloadArg(0)"]
+			["replyToCaller(\"internalRobotRes\", \"internalRobotRes($Ris)\")"]
 		}
 	}
 	Goto waitCmd 
@@ -347,15 +354,13 @@ QActor onecellforward context ctxRobot {
 		var StepTime = 0L
 		var Duration : Long =0
 		var DistanzaMinima :Long =10
-		val StepValue : Long =50
-		val DistanzaCella : Long =25
+		var DistanzaCella : Long =25
 	"]  
 	State s0 initial {	   		
 		println("Start onecellforward")
 	}Goto ready
 	
 	State ready{
-			println("ready!!")
 	}Transition t0 whenMsg onestep -> checkFirst
 	
 	State checkFirst{
@@ -376,7 +381,8 @@ QActor onecellforward context ctxRobot {
                if"FoundObstacle"{
               	  ["replyToCaller(\"stepFail\", \"stepFail(obstacle,$distance) \")"]
 				println("Actor: OneStepForward; State:cantDoOneStep")	
-              }else{              	
+              }else{
+              	
               	println("Actor: OneStepForward; State: OK-> $distance")	
               }
               
@@ -384,22 +390,18 @@ QActor onecellforward context ctxRobot {
    		}
 	}Goto ready if "FoundObstacle" else doMoveForward
 
-	State doMoveForward{	
-			forward basicrobot -m internalRobotReq :  internalRobotReq( ws, $StepTime )
-			forward resourcemodel -m modelUpdate : modelUpdate(robot,w)		
+	State doMoveForward{		  
+			forward resourcemodel -m modelChange : modelChange(robot,w)	  			
+			forward timer -m setTimer : setTimer( $StepTime )	
 			run itunibo.planner.plannerUtil.startTimer()
-	}Goto mustGoOn
-
-  
-	  State mustGoOn{
-	  	println("mustGoOn")
-	  }Transition t0
-		whenEvent internalRobotRes  -> endDoMoveForward	
+	} 
+	Transition t0
+		whenMsg tickTimer  -> endDoMoveForward	
 		whenEvent sonarRobot  -> handleSonarRobot	
-		
+  
 	State endDoMoveForward{
-		println("endDoMoveForward")
-		forward resourcemodel -m modelUpdate : modelUpdate(robot,h)	
+		//forward mindrobot -m local_modelChanged : modelChanged(robot,h)		
+		forward resourcemodel -m modelChange : modelChange(robot,h)
 		//setp in avanti ok quindi salvo sulla kb
 		forward kb -m modelUpdate : modelUpdate(  robot,  w)  
 		//aggiusto la rotta
@@ -424,24 +426,33 @@ QActor onecellforward context ctxRobot {
 	}	
 	Goto stepFail if "FoundObstacle" else mustGoOn
 	
-	State stepFail{	
+	State stepFail{
+		forward timer -m resetTimer : resetTimer( reset )						
+		//forward mindrobot -m local_modelChanged : modelChanged(robot,h)		
 		forward resourcemodel -m modelChange : modelChange(robot,h)
 		solve( wduration( TIME ) )
-		["Duration=getCurSol(\"TIME\").toString().toLong()"]			 	
+		//["Duration=getDuration()"]
+		["Duration=getCurSol(\"TIME\").toString().toLong()"]		
+		//println("Actor: OneStepForward; State:stepfail -> $Duration")		
+			 	
 	}Goto goBackFromFail
 	
 	State goBackFromFail{
-		["val DurationInt :Int= (Duration/StepValue).toInt()"]
-		forward basicrobot -m internalRobotReq :  internalRobotReq( ss, $DurationInt )
-		forward resourcemodel -m modelUpdate : modelUpdate(robot,s)	
-		
-	}Transition t0 whenMsg internalRobotRes  -> endGoBackFormFail	
 	
-	State endGoBackFormFail{
-		["replyToCaller(\"stepFail\", \"stepFail(obstacle,$Duration) \")"]		
+ 		forward resourcemodel -m modelChange : modelChange(robot,s)  
+ 		delayVar Duration 
+  		forward resourcemodel -m modelChange : modelChange(robot,h) 
+  		
+		["replyToCaller(\"stepFail\", \"stepFail(obstacle,$Duration) \")"]
+		
 	}Goto ready
 	
-		
+	State mustGoOn{
+		      println("->mustGoOn")
+   		
+	}
+	Transition t0 whenMsg tickTimer  -> endDoMoveForward	
+					whenEvent sonarRobot  -> handleSonarRobot	
 }
 
 QActor timer context ctxRobot {

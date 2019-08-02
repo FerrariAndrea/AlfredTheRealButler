@@ -21,13 +21,7 @@ class Basicrobot ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 						println("Start basicrobot")
 						solve("consult('basicRobotConfig.pl')","") //set resVar	
 						solve("robot(R,PORT)","") //set resVar	
-						if(currentSolution.isSuccess()) { println("USING ROBOT : ${getCurSol("R")},  port= ${getCurSol("PORT")} ")
-						 }
-						else
-						{ println("no robot")
-						 }
-						if(currentSolution.isSuccess()) { itunibo.robot.robotSupport.create(myself ,getCurSol("R").toString(), getCurSol("PORT").toString() )
-						 }
+						surpluss.motorsSupport.create(myself ,"internalRobotRes" )
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
@@ -35,12 +29,21 @@ class Basicrobot ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 					action { //it:State
 					}
 					 transition(edgeName="t02",targetState="handleRobotCmd",cond=whenDispatch("robotCmd"))
+					transition(edgeName="t03",targetState="handleRobotCmd",cond=whenDispatch("internalRobotReq"))
+					transition(edgeName="t04",targetState="handleRobotCmd",cond=whenDispatch("internalRobotRes"))
 				}	 
 				state("handleRobotCmd") { //this:State
 					action { //it:State
+						storeCurrentMessageForReply()
 						if( checkMsgContent( Term.createTerm("robotCmd(CMD)"), Term.createTerm("robotCmd(MOVE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								itunibo.robot.robotSupport.move( "msg(${payloadArg(0)})"  )
+								val NonStep =-1
+								surpluss.motorsSupport.askToMotors( "msg(${payloadArg(0)})", NonStep  )
+						}
+						if( checkMsgContent( Term.createTerm("internalRobotReq(CMD,STEPS)"), Term.createTerm("internalRobotReq(MOVE,STEP)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								val Step= payloadArg(1).toInt()
+								surpluss.motorsSupport.askToMotors( "msg(${payloadArg(0)})", Step  )
 						}
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )

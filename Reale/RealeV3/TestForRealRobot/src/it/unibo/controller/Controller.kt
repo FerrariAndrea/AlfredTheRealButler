@@ -18,7 +18,7 @@ class Controller ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 		
 			
 			var Tback      = 0L
-			var StepTime   = 650L	//for real (cm)
+			var StepTime   = 8L	//for real steps (*50ms)
 			var RotateTime = 300L	//for real
 			var PauseTime  = 250L 
 		return { //this:ActionBasciFsm

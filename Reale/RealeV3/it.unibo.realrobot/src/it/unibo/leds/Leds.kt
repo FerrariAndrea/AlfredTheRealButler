@@ -37,7 +37,7 @@ class Leds ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope)
 				state("waitingForCMD") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t035",targetState="handleSetLed",cond=whenEvent("setLed"))
+					 transition(edgeName="t036",targetState="handleSetLed",cond=whenDispatch("setLed"))
 				}	 
 				state("handleSetLed") { //this:State
 					action { //it:State
@@ -66,7 +66,7 @@ class Leds ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope)
 						stateTimer = TimerActor("timer_blinkOn", 
 							scope, context!!, "local_tout_leds_blinkOn", OnTiming )
 					}
-					 transition(edgeName="t036",targetState="blinkOff",cond=whenTimeout("local_tout_leds_blinkOn"))   
+					 transition(edgeName="t037",targetState="blinkOff",cond=whenTimeout("local_tout_leds_blinkOn"))   
 				}	 
 				state("blinkOff") { //this:State
 					action { //it:State
@@ -81,7 +81,7 @@ class Leds ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope)
 						stateTimer = TimerActor("timer_needBlinkAgain", 
 							scope, context!!, "local_tout_leds_needBlinkAgain", BlinkDelay )
 					}
-					 transition(edgeName="t037",targetState="blinkOn",cond=whenTimeout("local_tout_leds_needBlinkAgain"))   
+					 transition(edgeName="t038",targetState="blinkOn",cond=whenTimeout("local_tout_leds_needBlinkAgain"))   
 				}	 
 			}
 		}

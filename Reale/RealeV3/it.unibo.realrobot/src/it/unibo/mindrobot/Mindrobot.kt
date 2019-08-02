@@ -26,7 +26,7 @@ class Mindrobot ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 				state("waitCmd") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t00",targetState="handleEnvCond",cond=whenEvent("envCond"))
+					 transition(edgeName="t00",targetState="handleEnvCond",cond=whenDispatch("envCond"))
 					transition(edgeName="t01",targetState="handleModelChanged",cond=whenEvent("local_modelChanged"))
 				}	 
 				state("handleEnvCond") { //this:State
