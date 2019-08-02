@@ -75,8 +75,7 @@ QActor mindrobot context ctxRobot{
 		
 	State handleModelChanged {
 		//printCurrentMessage
-		onMsg ( local_modelChanged : modelChanged(robot,CMD) ){ 
-			//println("handleModelChanged-->${payloadArg(1)}")			
+		onMsg ( local_modelChanged : modelChanged(robot,CMD) ){ 		
 			forward basicrobot -m robotCmd : robotCmd( $payloadArg(1) )	
 			forward resourcemodel -m modelUpdate : modelUpdate(robot,$payloadArg(1)) //... then update the model
 		}	
@@ -113,13 +112,10 @@ QActor basicrobot context ctxRobot{
 			//println("handleRobotCmd-->${payloadArg(0)}")	
 			//MOVE = w | a | s | d | h
 			//run itunibo.robot.robotSupport.move( "msg(${payloadArg(0)})" ) 
-			["val NonStep =-1"]
+			["val NonStep =0"]
 			run surpluss.motorsSupport.askToMotors("msg(${payloadArg(0)})",NonStep)
 		}
 		onMsg( internalRobotReq : internalRobotReq( MOVE,STEP ) ) { 
-			//println("handleRobotCmd-->${payloadArg(0)}")	
-			//MOVE = w | a | s | d | h
-			//run itunibo.robot.robotSupport.move( "msg(${payloadArg(0)})" ) 
 			["val Step= payloadArg(1).toInt()"]
 			run surpluss.motorsSupport.askToMotors("msg(${payloadArg(0)})",Step)
 						
@@ -194,10 +190,11 @@ QActor sonarhandler context ctxRobot {
 QActor onerotateforward context ctxRobot {
 	["
 		val RotateTime = 1L
-		val CompleteRotateTime = 8L
+		val CompleteRotateTimeA = 16L
+		val CompleteRotateTimeD = 25L
 		val ErroreConcesso : Int = 2
 		val SogliaDiScarto : Int = 20 //per evitare errori dovuti ad esempio al tavolo in mezzo alla stanza
-		
+		val WaitingTimg : Long = 5000
 		//------------------------
 		var RealMove = \"a\" 
 		//for calibration:
@@ -239,7 +236,7 @@ QActor onerotateforward context ctxRobot {
 		onMsg ( sonarRigth : sonarRigth( DISTANCE ) ){  
 			["SonarD=Integer.parseInt( payloadArg(0) )"]
 		}		
-		["NeedCalibration=(SonarD<0 || SonarA<0 || SonarW<0)"]
+		["NeedCalibration=(SonarD<0 || SonarA<0 || SonarW<0)"]		
 	}Goto calibrationAgaint if "NeedCalibration" else doRotationForward
 	
 	State calibrationAgaint{		
@@ -250,23 +247,27 @@ QActor onerotateforward context ctxRobot {
 	State doRotationForward{
 		
 		if "RealMove==\"a\""{ 			
-	  		forward basicrobot -m internalRobotReq :  internalRobotReq( as, $CompleteRotateTime )
+	  		forward basicrobot -m internalRobotReq :  internalRobotReq( as, $CompleteRotateTimeA )
 			forward resourcemodel -m modelUpdate : modelUpdate(robot,a)	
 	  	}
 		if "RealMove==\"d\""{
-			forward basicrobot -m internalRobotReq :  internalRobotReq( ds, $CompleteRotateTime )
+			forward basicrobot -m internalRobotReq :  internalRobotReq( ds, $CompleteRotateTimeD )
 			forward resourcemodel -m modelUpdate : modelUpdate(robot,d)	
 		}
 		
 	}Transition t1 whenEvent internalRobotRes ->  endRotate
 	
 	State endRotate{
-		forward resourcemodel -m modelUpdate : modelUpdate(robot,h)	
+		forward resourcemodel -m modelUpdate : modelUpdate(robot,h)
+		["replyToCaller(\"rotationOk\", \"rotationOk(0)\")"]//da togliere se vuoi startFix	
+	}Transition t0 whenMsg onerotationstep -> checkFirst //Goto startFix
+		
+	State startFix{
+			delayVar WaitingTimg	
 		["SonarDAfter=-1;SonarAAfter=-1;SonarWAfter-1;"]
 	}Transition t1 whenEvent sonarRobot ->  calibrationAfter
 					 whenEvent sonarLeft ->  calibrationAfter
-					 whenEvent sonarRigth ->  calibrationAfter
-							 
+					 whenEvent sonarRigth ->  calibrationAfter			 
 	State calibrationAfter{
 		onMsg ( sonarRobot : sonar( DISTANCE ) ){  
 			["SonarWAfter=Integer.parseInt( payloadArg(0) )"]	
@@ -288,10 +289,10 @@ QActor onerotateforward context ctxRobot {
 	State correggi{
 		["NeedCorrezione =false"]
 		if "RealMove==\"d\""{
-			["Arotate=false;NeedCorrezione=(Math.abs(SonarD-SonarWAfter)>ErroreConcesso ||  Math.abs(SonarW-SonarAAfter)<ErroreConcesso )"]
+			["Arotate=false;NeedCorrezione=(Math.abs(SonarD-SonarWAfter)>ErroreConcesso ||  Math.abs(SonarW-SonarAAfter)>ErroreConcesso )"]
 		}else{
 			if "RealMove==\"a\""{
-				["Arotate=true;NeedCorrezione=(Math.abs(SonarA-SonarWAfter)>ErroreConcesso ||  Math.abs(SonarW-SonarDAfter)<ErroreConcesso )"]
+				["Arotate=true;NeedCorrezione=(Math.abs(SonarA-SonarWAfter)>ErroreConcesso ||  Math.abs(SonarW-SonarDAfter)>ErroreConcesso )"]
 			}else{//no rotation 
 				["
 					var differenceA =SonarAAfter-SonarA
@@ -305,6 +306,7 @@ QActor onerotateforward context ctxRobot {
 					["NeedCorrezione=true"]
 					["Arotate=differenceD<0"]
 				}
+				
 			}
 		}
 		
@@ -312,16 +314,17 @@ QActor onerotateforward context ctxRobot {
 	
 	  State miniRotate{
 			if"Arotate"{
-				forward basicrobot -m internalRobotReq :  internalRobotReq( am, $CompleteRotateTime )
+				forward basicrobot -m internalRobotReq :  internalRobotReq( am, 2 )
 				forward resourcemodel -m modelUpdate : modelUpdate(robot,a)	
 			}else{
-				forward basicrobot -m internalRobotReq :  internalRobotReq( dm, $CompleteRotateTime )
+				forward basicrobot -m internalRobotReq :  internalRobotReq( dm, 2 )
 				forward resourcemodel -m modelUpdate : modelUpdate(robot,d)		  			  		
-			}		
-			delay 200		
+			}			
 	  }Transition t1 whenEvent internalRobotRes ->  endMiniRotate
 	  
 	State endMiniRotate{
+		forward resourcemodel -m modelUpdate : modelUpdate(robot,h)		
+		delayVar WaitingTimg	
 		["SonarDAfter=-1;SonarAAfter=-1;SonarWAfter-1;"]
 	}Transition t1 whenEvent sonarRobot ->  calibrationAfter
 					 whenEvent sonarLeft ->  calibrationAfter
@@ -347,7 +350,7 @@ QActor onecellforward context ctxRobot {
 		var StepTime = 0L
 		var Duration : Long =0
 		var DistanzaMinima :Long =10
-		val StepValue : Long =50
+		val StepValue : Long =25
 		val DistanzaCella : Long =25
 	"]  
 	State s0 initial {	   		
@@ -392,7 +395,6 @@ QActor onecellforward context ctxRobot {
 
   
 	  State mustGoOn{
-	  	println("mustGoOn")
 	  }Transition t0
 		whenEvent internalRobotRes  -> endDoMoveForward	
 		whenEvent sonarRobot  -> handleSonarRobot	
@@ -406,13 +408,14 @@ QActor onecellforward context ctxRobot {
 		//forward onerotateforward -m onerotationstep : onerotationstep(Z) 
 		
 	}//Transition t0 whenEvent rotationOk  -> endCorrezioneRotta	
-	Goto endCorrezioneRotta
+	Goto manualFix
 	
 	State endCorrezioneRotta{
 			["replyToCaller(\"stepOk\", \"stepOk(ok)\")"]		
 	}Goto ready
 	
 	State handleSonarRobot{  	
+		
 		
  		onMsg ( sonarRobot : sonar( DISTANCE ) ){     
 			["val distance = Integer.parseInt( payloadArg(0) ) 
@@ -427,21 +430,29 @@ QActor onecellforward context ctxRobot {
 	State stepFail{	
 		forward resourcemodel -m modelChange : modelChange(robot,h)
 		solve( wduration( TIME ) )
-		["Duration=getCurSol(\"TIME\").toString().toLong()"]			 	
+		["Duration=getCurSol(\"TIME\").toString().toLong()"]	
+		delay 250
 	}Goto goBackFromFail
 	
 	State goBackFromFail{
+		println("goBackFromFail")
 		["val DurationInt :Int= (Duration/StepValue).toInt()"]
-		forward basicrobot -m internalRobotReq :  internalRobotReq( ss, $DurationInt )
 		forward resourcemodel -m modelUpdate : modelUpdate(robot,s)	
-		
-	}Transition t0 whenMsg internalRobotRes  -> endGoBackFormFail	
+		forward basicrobot -m internalRobotReq :  internalRobotReq( ss, $DurationInt )
 	
-	State endGoBackFormFail{
+	}Transition t0 whenEvent internalRobotRes  -> endGoBackFormFail	
+	
+	State endGoBackFormFail{		
+		println("endGoBackFormFail")
 		["replyToCaller(\"stepFail\", \"stepFail(obstacle,$Duration) \")"]		
 	}Goto ready
 	
+	State manualFix{
+		delay 100
+		forward basicrobot -m internalRobotReq :  internalRobotReq( dm, 16 )		
+	}Transition t0 whenEvent internalRobotRes  -> endCorrezioneRotta
 		
+	
 }
 
 QActor timer context ctxRobot {
@@ -542,7 +553,7 @@ QActor leds context ctxRobot {
 
 QActor realforntsonar context ctxRobot{
 	["	
-		var ActualTimer : Long = 180
+		var ActualTimer : Long = 80
 	"]
 	State s0 initial {	
 		run surpluss.pollingSonar.instance()

@@ -17,10 +17,11 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
 				val RotateTime = 1L
-				val CompleteRotateTime = 8L
+				val CompleteRotateTimeA = 16L
+				val CompleteRotateTimeD = 25L
 				val ErroreConcesso : Int = 2
 				val SogliaDiScarto : Int = 20 //per evitare errori dovuti ad esempio al tavolo in mezzo alla stanza
-				
+				val WaitingTimg : Long = 5000
 				//------------------------
 				var RealMove = "a" 
 				//for calibration:
@@ -82,10 +83,10 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 				}	 
 				state("doRotationForward") { //this:State
 					action { //it:State
-						if(RealMove=="a"){ forward("internalRobotReq", "internalRobotReq(as,$CompleteRotateTime)" ,"basicrobot" ) 
+						if(RealMove=="a"){ forward("internalRobotReq", "internalRobotReq(as,$CompleteRotateTimeA)" ,"basicrobot" ) 
 						forward("modelUpdate", "modelUpdate(robot,a)" ,"resourcemodel" ) 
 						 }
-						if(RealMove=="d"){ forward("internalRobotReq", "internalRobotReq(ds,$CompleteRotateTime)" ,"basicrobot" ) 
+						if(RealMove=="d"){ forward("internalRobotReq", "internalRobotReq(ds,$CompleteRotateTimeD)" ,"basicrobot" ) 
 						forward("modelUpdate", "modelUpdate(robot,d)" ,"resourcemodel" ) 
 						 }
 					}
@@ -94,11 +95,18 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 				state("endRotate") { //this:State
 					action { //it:State
 						forward("modelUpdate", "modelUpdate(robot,h)" ,"resourcemodel" ) 
+						replyToCaller("rotationOk", "rotationOk(0)")
+					}
+					 transition(edgeName="t019",targetState="checkFirst",cond=whenDispatch("onerotationstep"))
+				}	 
+				state("startFix") { //this:State
+					action { //it:State
+						delay(WaitingTimg)
 						SonarDAfter=-1;SonarAAfter=-1;SonarWAfter-1;
 					}
-					 transition(edgeName="t119",targetState="calibrationAfter",cond=whenEvent("sonarRobot"))
-					transition(edgeName="t120",targetState="calibrationAfter",cond=whenEvent("sonarLeft"))
-					transition(edgeName="t121",targetState="calibrationAfter",cond=whenEvent("sonarRigth"))
+					 transition(edgeName="t120",targetState="calibrationAfter",cond=whenEvent("sonarRobot"))
+					transition(edgeName="t121",targetState="calibrationAfter",cond=whenEvent("sonarLeft"))
+					transition(edgeName="t122",targetState="calibrationAfter",cond=whenEvent("sonarRigth"))
 				}	 
 				state("calibrationAfter") { //this:State
 					action { //it:State
@@ -122,17 +130,17 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 				state("calibrationAfterAgaint") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t122",targetState="calibrationAfter",cond=whenEvent("sonarRobot"))
-					transition(edgeName="t123",targetState="calibrationAfter",cond=whenEvent("sonarLeft"))
-					transition(edgeName="t124",targetState="calibrationAfter",cond=whenEvent("sonarRigth"))
+					 transition(edgeName="t123",targetState="calibrationAfter",cond=whenEvent("sonarRobot"))
+					transition(edgeName="t124",targetState="calibrationAfter",cond=whenEvent("sonarLeft"))
+					transition(edgeName="t125",targetState="calibrationAfter",cond=whenEvent("sonarRigth"))
 				}	 
 				state("correggi") { //this:State
 					action { //it:State
 						NeedCorrezione =false
-						if(RealMove=="d"){ Arotate=false;NeedCorrezione=(Math.abs(SonarD-SonarWAfter)>ErroreConcesso ||  Math.abs(SonarW-SonarAAfter)<ErroreConcesso )
+						if(RealMove=="d"){ Arotate=false;NeedCorrezione=(Math.abs(SonarD-SonarWAfter)>ErroreConcesso ||  Math.abs(SonarW-SonarAAfter)>ErroreConcesso )
 						 }
 						else
-						 { if(RealMove=="a"){ Arotate=true;NeedCorrezione=(Math.abs(SonarA-SonarWAfter)>ErroreConcesso ||  Math.abs(SonarW-SonarDAfter)<ErroreConcesso )
+						 { if(RealMove=="a"){ Arotate=true;NeedCorrezione=(Math.abs(SonarA-SonarWAfter)>ErroreConcesso ||  Math.abs(SonarW-SonarDAfter)>ErroreConcesso )
 						  }
 						 else
 						  { 
@@ -152,24 +160,25 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 				}	 
 				state("miniRotate") { //this:State
 					action { //it:State
-						if(Arotate){ forward("internalRobotReq", "internalRobotReq(am,$CompleteRotateTime)" ,"basicrobot" ) 
+						if(Arotate){ forward("internalRobotReq", "internalRobotReq(am,2)" ,"basicrobot" ) 
 						forward("modelUpdate", "modelUpdate(robot,a)" ,"resourcemodel" ) 
 						 }
 						else
-						 { forward("internalRobotReq", "internalRobotReq(dm,$CompleteRotateTime)" ,"basicrobot" ) 
+						 { forward("internalRobotReq", "internalRobotReq(dm,2)" ,"basicrobot" ) 
 						 forward("modelUpdate", "modelUpdate(robot,d)" ,"resourcemodel" ) 
 						  }
-						delay(200) 
 					}
-					 transition(edgeName="t125",targetState="endMiniRotate",cond=whenEvent("internalRobotRes"))
+					 transition(edgeName="t126",targetState="endMiniRotate",cond=whenEvent("internalRobotRes"))
 				}	 
 				state("endMiniRotate") { //this:State
 					action { //it:State
+						forward("modelUpdate", "modelUpdate(robot,h)" ,"resourcemodel" ) 
+						delay(WaitingTimg)
 						SonarDAfter=-1;SonarAAfter=-1;SonarWAfter-1;
 					}
-					 transition(edgeName="t126",targetState="calibrationAfter",cond=whenEvent("sonarRobot"))
-					transition(edgeName="t127",targetState="calibrationAfter",cond=whenEvent("sonarLeft"))
-					transition(edgeName="t128",targetState="calibrationAfter",cond=whenEvent("sonarRigth"))
+					 transition(edgeName="t127",targetState="calibrationAfter",cond=whenEvent("sonarRobot"))
+					transition(edgeName="t128",targetState="calibrationAfter",cond=whenEvent("sonarLeft"))
+					transition(edgeName="t129",targetState="calibrationAfter",cond=whenEvent("sonarRigth"))
 				}	 
 				state("endDoRotationForward") { //this:State
 					action { //it:State
@@ -179,7 +188,7 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 						 }
 						replyToCaller("rotationOk", "rotationOk(0)")
 					}
-					 transition(edgeName="t029",targetState="checkFirst",cond=whenDispatch("onerotationstep"))
+					 transition(edgeName="t030",targetState="checkFirst",cond=whenDispatch("onerotationstep"))
 				}	 
 			}
 		}

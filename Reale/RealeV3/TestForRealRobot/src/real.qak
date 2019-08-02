@@ -26,7 +26,7 @@ QActor controller context ctxController {
 ["
 	
 	var Tback      = 0L
-	var StepTime   = 8L	//for real steps (*50ms)
+	var StepTime   = 1000L//16L	//for real steps (*50ms)
 	var RotateTime = 300L	//for real
 	var PauseTime  = 250L 
 "]	
@@ -43,7 +43,7 @@ QActor controller context ctxController {
 		println("Start one step")
 		delay 1000
 	}
-	Goto oneRotate
+	Goto oneStep
 
 	State oneRotate{
 			forward onerotateforward -m onerotationstep : onerotationstep(a)	

@@ -43,6 +43,9 @@ object motorsSupport {
 	
 	private fun asyncAsk(cmdForC : Int, steps : Int){
 		//reader_compass.reset()//non so se sia opportuno ( è per sicurezza)
+		while(reader_compass.ready()){
+			 reader_compass.readLine()
+		}
 		writer_compass.write("$cmdForC-$steps\n")
 		writer_compass.flush()		
 		 GlobalScope.launch{
