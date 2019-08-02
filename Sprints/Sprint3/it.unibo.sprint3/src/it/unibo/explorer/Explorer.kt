@@ -27,6 +27,8 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 			var Direction = ""
 			var RepeatAction = 1
 			var addingFood = false
+			var preparing = false
+			var clearing = false
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -44,6 +46,8 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 					}
 					 transition(edgeName="t00",targetState="goToPosition",cond=whenEvent("goTo"))
 					transition(edgeName="t01",targetState="addingFood",cond=whenEvent("addFood"))
+					transition(edgeName="t02",targetState="preparingRoom",cond=whenEvent("prepare"))
+					transition(edgeName="t03",targetState="clearingRoom",cond=whenEvent("prepare"))
 				}	 
 				state("addingFood") { //this:State
 					action { //it:State
@@ -51,6 +55,14 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						addingFood = true
 					}
 					 transition( edgeName="goto",targetState="goToFridge", cond=doswitch() )
+				}	 
+				state("preparingRoom") { //this:State
+					action { //it:State
+					}
+				}	 
+				state("clearingRoom") { //this:State
+					action { //it:State
+					}
 				}	 
 				state("goToFridge") { //this:State
 					action { //it:State
@@ -132,9 +144,9 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						 { forward("onestep", "onestep($StepTime)" ,"onecellforward" ) 
 						  }
 					}
-					 transition(edgeName="t02",targetState="handleStepOk",cond=whenDispatch("stepOk"))
-					transition(edgeName="t03",targetState="handleStepFail",cond=whenDispatch("stepFail"))
-					transition(edgeName="t04",targetState="handleStepOk",cond=whenDispatch("rotationOk"))
+					 transition(edgeName="t04",targetState="handleStepOk",cond=whenDispatch("stepOk"))
+					transition(edgeName="t05",targetState="handleStepFail",cond=whenDispatch("stepFail"))
+					transition(edgeName="t06",targetState="handleStepOk",cond=whenDispatch("rotationOk"))
 				}	 
 				state("handleStepOk") { //this:State
 					action { //it:State
@@ -185,7 +197,7 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						delay(StepTime)
 						forward("onerotationstep", "onerotationstep($Move)" ,"onerotateforward" ) 
 					}
-					 transition(edgeName="t05",targetState="checkSouth",cond=whenDispatch("rotationOk"))
+					 transition(edgeName="t07",targetState="checkSouth",cond=whenDispatch("rotationOk"))
 				}	 
 				state("checkSouth") { //this:State
 					action { //it:State

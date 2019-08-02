@@ -10,7 +10,11 @@ Dispatch rotationOk        : rotationOk(STALL)
 
 Dispatch goTo  : goTo( X,Y )
 Dispatch testCmd: testCmd(cmd)
+
+//Macro dispatch
 Dispatch addFood : addFood(X) //1 or 2: payload for now is ignored.
+Dispatch prepare : prepare()
+Dispatch clear : clear()
 
 Event  sonarRobot     : sonar( DISTANCE )	     //from  sonar on robot 
 
@@ -40,6 +44,8 @@ QActor explorer context ctxExplorer{
 	var Direction = \"\"
 	var RepeatAction = 1
 	var addingFood = false
+	var preparing = false
+	var clearing = false
 	"]	
 	State s0 initial {	
 		println("Actor: Explorer; State: initial")
@@ -54,13 +60,26 @@ QActor explorer context ctxExplorer{
  	} 	
 	Transition t0 whenEvent   goTo  -> goToPosition
 				  whenEvent	  addFood -> addingFood
-					//qui handleStop -> stopped
+				  whenEvent   prepare -> preparingRoom
+				  whenEvent   prepare -> clearingRoom
+				  //qui handleStop -> stopped
 	
 	State addingFood {
 		//SI DEVE AGGIUNGERE IL PAYLOAD, OVVERO SE SI AGGIUNGE IL TIPO 1 DI CIBO (PIZZA) OPPURE IL TIPO 2 (CRESCENTINA)
+		//COSA FA QUESTO TASK?
+		//SE IL CIBO E' PRESENTE NEL FRIGO, LO AGGIUNGE AL TAVOLO; IN CASO CONTRARIO, NOTIFICA IL MAITRE
+		//RITORNA NELLA POSIZIONE HOME
 		println("ADDING FOOD: Go to Fridge")
 		["addingFood = true"]
 	} Goto goToFridge
+	
+	State preparingRoom {
+		//METTERE PIATTI DAL PANTRY AL TABLE
+	}
+	
+	State clearingRoom {
+		//PRENDERE CIBO DAL TAVOLO, PORTARLO AL FRIGO E I PIATTI NEL DISHWASHER
+	}
 	
 	State goToFridge {
 		solve( direction(D) )   

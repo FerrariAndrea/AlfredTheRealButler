@@ -70,8 +70,10 @@ app.get('/appl', function(req, res) {
 	app.post("/addFood2", function(req, res,next) { superHandlePostMove("addFood2","adding food 2", req,res,next); });	
 	app.post("/clear", function(req, res,next) { superHandlePostMove("clear","clearing room", req,res,next); });	
 	app.post("/prepare", function(req, res,next) { superHandlePostMove("prepare","preparing room", req,res,next); });	
-	app.post("/stop", function(req, res,next) { superHandlePostMove("stop","freezing time", req,res,next); });	
-	app.post("/resume", function(req, res,next) { superHandlePostMove("prepare","resuming time", req,res,next); });	
+	
+	//PER ANDREA FERRARI: LEGGI LE DUE SEGUENTI LINEE
+	app.post("/stop", function(req, res,next) { handlePostMove("stop","freezing time", req,res,next); });	
+	app.post("/resume", function(req, res,next) { handlePostMove("resume","resuming time", req,res,next); });	
 
 	app.post("/w", function(req, res,next) { handlePostMove("w","moving forward", req,res,next); });	
 	app.post("/s", function(req, res,next) { handlePostMove("s","moving backward",req,res,next); });
@@ -151,9 +153,20 @@ var publishMsgToExplorer = function( cmd ){
    	mqttUtils.publish( msgstr, "unibo/qak/explorer" );
 
     break;
+  	case "preparing":
+  	var msgstr = "msg(preparing,dispatch,js,explorer,preparing(),1)"  ;  
+  	console.log("publishMsgToRobotmind forward> "+ msgstr);
+   	mqttUtils.publish( msgstr, "unibo/qak/explorer" );
+
+    break;
+  	case "clearing":
+  	var msgstr = "msg(clearing,dispatch,js,explorer,clearing,1)"  ;  
+  	console.log("publishMsgToRobotmind forward> "+ msgstr);
+   	mqttUtils.publish( msgstr, "unibo/qak/explorer" );
+   	
+    break;
   	default:
   	console.log("error, cmd not found in switch case publishMsgToExplorer, check code.")
-    // code block
 }
 }
 
