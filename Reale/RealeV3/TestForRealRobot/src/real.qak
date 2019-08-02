@@ -24,7 +24,7 @@ QActor controller context ctxController {
 ["
 	
 	var Tback      = 0L
-	var StepTime   = 650L	//for real
+	var StepTime   = 25L	//for real (cm)
 	var RotateTime = 300L	//for real
 	var PauseTime  = 250L 
 "]	

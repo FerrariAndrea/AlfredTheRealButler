@@ -324,21 +324,12 @@ QActor onerotateforward context ctxRobot {
 }
 
 QActor onecellforward context ctxRobot {
-	["	
-		var BackTrakingDistance :Int=0	//la distanza prima dello step per il backtraking
-		var StepCm : Int =0			//vado in avanti di tot cm
-		var ActualDistance :Int =0 	//cm attuali dal muro
-		var NeedToBe : Int =0 			//cm che saranno dal muro dopo lo step
-		var FoundObstacle =false		//trovato muro
-		var MoveDone =false				//mossa onestep fatta
-		var End =false					//usata in varie Transition
-
-		val CoefSpeed :Long =4			//rapporto cm mancanti tempo movimento
-		val ErrorePreCheck:Long =10		//cm mancanti dal muro concessi
-		val ErroreConcesso :Long=2		//errore mi misura
-		val MinDistanceWall : Long=2	//distanza minima dal muro
-	"]
-	
+	["
+		var FoundObstacle = false
+		var StepTime = 0L
+		var Duration : Long =0
+		var DistanzaMinima :Long =10
+	"]  
 	State s0 initial {	   		
 		println("Start onecellforward")
 	}Goto ready
@@ -347,104 +338,106 @@ QActor onecellforward context ctxRobot {
 	}Transition t0 whenMsg onestep -> checkFirst
 	
 	State checkFirst{
+		 println("---------->checkFirst")
 		["
 			storeCurrentMessageForReply()
 			FoundObstacle = false 
 		"]		
 		onMsg( onestep : onestep( TIME ) ) {
-			["StepCm = payloadArg(0).toInt()"]
+			["StepTime = payloadArg(0).toLong()"]
 		}
-		println("------------>StepCm[$StepCm]")
-	}Transition t0 whenEvent sonarRobot  -> waitingForcheckFirstSonar
+		forward sonarhandler -m internalReq : internalReq(lastSonarRobot)
+			println ("----------------WAITING")
+	}Transition t0 whenEvent lastSonarRobot  -> waitingForcheckFirstSonar
 	
 	State waitingForcheckFirstSonar{
-		onMsg ( sonarRobot : sonar( DISTANCE ) ){     
-			["
-				ActualDistance = Integer.parseInt( payloadArg(0) ) 
-				BackTrakingDistance = ActualDistance
-				NeedToBe = ActualDistance-StepCm
-            	FoundObstacle = (NeedToBe+ErrorePreCheck<0) 				
-			"] 
-           if"FoundObstacle"{
-          	  ["replyToCaller(\"stepFail\", \"stepFail(obstacle,$ActualDistance) \")"]
-			println("Actor: OneStepForward; State:cantDoOneStep")	
-          }else{
-          	println("Actor: OneStepForward; State: OK-> $NeedToBe")	
-          }
+		 println("---------->waitingForcheckFirstSonar")
+		onMsg ( lastSonarRobot : lastSonarRobot( DISTANCE ) ){     
+			["var distance = Integer.parseInt( payloadArg(0) ) 
+              FoundObstacle = (distance<DistanzaMinima/2) "] 
+               if"FoundObstacle"{
+              	  ["replyToCaller(\"stepFail\", \"stepFail(obstacle,$distance) \")"]
+				println("Actor: OneStepForward; State:cantDoOneStep")	
+              }else{
+              	
+              	println("Actor: OneStepForward; State: OK-> $distance")	
+              }
               
               
    		}
-	}Goto ready if "FoundObstacle" else doMiniMoveForward
-	
-	State doMiniMoveForward{
-		forward resourcemodel -m modelChange : modelChange(robot,w)
-		["val ActualDelayTime =(ActualDistance-NeedToBe)*CoefSpeed"] 
-	}Transition t0 	whenTimeVar ActualDelayTime ->waitingForSonarW
-					whenEvent sonarRobot  -> checkSonarW
-	
-	State waitingForSonarW{
-		forward resourcemodel -m modelChange : modelChange(robot,h)		
-	}Transition t0 	whenEvent sonarRobot  -> checkSonarW
-	
-	State checkSonarW{		
-		forward resourcemodel -m modelChange : modelChange(robot,h)	//a volte è duplicato ma è irrilevante
-		onMsg ( sonarRobot : sonar( DISTANCE ) ){     
-			["
-				ActualDistance = Integer.parseInt( payloadArg(0) )
-				MoveDone= Math.abs(ActualDistance-NeedToBe)<ErroreConcesso
-				End = MoveDone || ActualDistance<MinDistanceWall
-			"]  
-			println("$ActualDistance ----> $NeedToBe")
-   		}
-	}Goto endStep if "End" else doMiniMoveForward
-	
-	State endStep{
-		if "ActualDistance<MinDistanceWall"{
-			["NeedToBe=BackTrakingDistance;End=false;"]
-		}else{
-			forward kb -m modelUpdate : modelUpdate(  robot,  w)	
-			["End=true"]	
-		}
-	}//Goto correggiRotta if "End" else stepFail
-	Goto endCorrezioneRotta if "End" else goBackFromFail
-	
-	State correggiRotta{
+	}Goto ready if "FoundObstacle" else doMoveForward
+
+	State doMoveForward{		  
+			println("-->doMoveForward")
+			//["startTimer()"] <<<<<-----------------NON VA
+			//forward mindrobot -m local_modelChanged : modelChanged(robot, w)
+			forward resourcemodel -m modelChange : modelChange(robot,w)	  			
+			forward timer -m setTimer : setTimer( $StepTime )			
+			run itunibo.planner.plannerUtil.startTimer()
+	} 
+	Transition t0
+		whenEvent tickTimer  -> endDoMoveForward	
+		whenEvent sonarRobot  -> handleSonarRobot	
+  
+	State endDoMoveForward{
+		println("---------------------------OK----->endDoMoveForward")
+		//forward mindrobot -m local_modelChanged : modelChanged(robot,h)		
+		forward resourcemodel -m modelChange : modelChange(robot,h)
+		//setp in avanti ok quindi salvo sulla kb
+		forward kb -m modelUpdate : modelUpdate(  robot,  w)  
 		//aggiusto la rotta
-		forward onerotateforward -m onerotationstep : onerotationstep(Z) 
-	}Transition t0 whenEvent rotationOk  -> endCorrezioneRotta	
+		//forward onerotateforward -m onerotationstep : onerotationstep(Z) 
+		
+	}//Transition t0 whenEvent rotationOk  -> endCorrezioneRotta	
+	Goto endCorrezioneRotta
 	
-	State endCorrezioneRotta{		
-			["val Err =Math.abs(ActualDistance-NeedToBe)"]
-			["replyToCaller(\"stepOk\", \"stepOk($Err)\")"]		
+	State endCorrezioneRotta{
+			["replyToCaller(\"stepOk\", \"stepOk(ok)\")"]		
 	}Goto ready
 	
-	State goBackFromFail{
-		forward resourcemodel -m modelChange : modelChange(robot,s)
-		["val ActualDelayTime =(NeedToBe-ActualDistance)*CoefSpeed"] 
-	}Transition t0 	whenTimeVar ActualDelayTime ->waitingForSonarS
-					whenEvent sonarRobot  -> checkSonarS
-	
-	State waitingForSonarS{
-		forward resourcemodel -m modelChange : modelChange(robot,h)		
-	}Transition t0 	whenEvent sonarRobot  -> checkSonarS
-	
-	State checkSonarS{		
-		forward resourcemodel -m modelChange : modelChange(robot,h)	//a volte è duplicato ma è irrilevante
-		onMsg ( sonarRobot : sonar( DISTANCE ) ){     
-			["
-				ActualDistance = Integer.parseInt( payloadArg(0) )
-				MoveDone= Math.abs(ActualDistance-NeedToBe)<ErroreConcesso
-			"]  
+	//Substitute with an ad-hoc actor for a real robot
+	State handleSonarRobot{  //before than the step time
+		//printCurrentMessage		
+		
+ 		onMsg ( sonarRobot : sonar( DISTANCE ) ){     
+			["val distance = Integer.parseInt( payloadArg(0) ) 
+              FoundObstacle = (distance<DistanzaMinima) "]  
+              if "FoundObstacle"{
+	 			run itunibo.planner.moveUtils.setDuration(myself)
+              }
+              
+              println("handleSonarRobot-ONESTEP--------------------------------------------->$distance")
    		}
-	}Goto stepFail if "MoveDone" else goBackFromFail
-	
+	}	
+	Goto stepFail if "FoundObstacle" else mustGoOn
 	
 	State stepFail{
-		["val Err =Math.abs(ActualDistance-NeedToBe)"]
-		["replyToCaller(\"stepFail\", \"stepFail(obstacle,$Err) \")"]		
+		forward timer -m resetTimer : resetTimer( reset )						
+		//forward mindrobot -m local_modelChanged : modelChanged(robot,h)		
+		forward resourcemodel -m modelChange : modelChange(robot,h)
+		solve( wduration( TIME ) )
+		//["Duration=getDuration()"]
+		["Duration=getCurSol(\"TIME\").toString().toLong()"]		
+		//println("Actor: OneStepForward; State:stepfail -> $Duration")		
+			 	
+	}Goto goBackFromFail
+	
+	State goBackFromFail{
+	
+ 		forward resourcemodel -m modelChange : modelChange(robot,s)  
+ 		delayVar Duration 
+  		forward resourcemodel -m modelChange : modelChange(robot,h) 
+  		
+		["replyToCaller(\"stepFail\", \"stepFail(obstacle,$Duration) \")"]
+		
 	}Goto ready
 	
-	
+	State mustGoOn{
+		      println("->mustGoOn")
+   		
+	}
+	Transition t0 whenEvent tickTimer  -> endDoMoveForward	
+					whenEvent sonarRobot  -> handleSonarRobot	
 }
 
 QActor timer context ctxRobot {
@@ -523,7 +516,6 @@ QActor leds context ctxRobot {
 			}
 		}
 	}Goto blinkOn if "NeedBlink" else waitingForCMD
-	
 	
 	State blinkOn{
 		run surpluss.ledManagerSupport.frontLedOn()

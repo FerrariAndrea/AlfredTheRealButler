@@ -36,7 +36,7 @@ object nanoSupport {
 	} 
 	
 	fun move( cmd : String ){
-		println( "nanoSupport move $cmd $robot" )
+		//println( "nanoSupport move $cmd $robot" )
 		var command : IBaseRobotCommand = BaseRobotStop(SPEED_LOW )
 		when( cmd ){
 			"msg(w)" -> command = BaseRobotForward( SPEED_LOW )

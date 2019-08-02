@@ -28,7 +28,7 @@ class Timer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope
 					action { //it:State
 						ActualTimer = 0L 
 					}
-					 transition(edgeName="t032",targetState="start",cond=whenDispatch("setTimer"))
+					 transition(edgeName="t035",targetState="start",cond=whenDispatch("setTimer"))
 				}	 
 				state("start") { //this:State
 					action { //it:State
@@ -37,10 +37,9 @@ class Timer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope
 								ActualTimer = payloadArg(0).toLong()
 						}
 						surpluss.timerSupport.startTimer( ActualTimer  )
-						println("${System.currentTimeMillis()}")
 					}
-					 transition(edgeName="t033",targetState="reset",cond=whenEvent("resetTimer"))
-					transition(edgeName="t034",targetState="drinnn",cond=whenEvent("internalTickTimer"))
+					 transition(edgeName="t036",targetState="reset",cond=whenEvent("resetTimer"))
+					transition(edgeName="t037",targetState="drinnn",cond=whenEvent("internalTickTimer"))
 				}	 
 				state("reset") { //this:State
 					action { //it:State
@@ -50,7 +49,6 @@ class Timer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope
 				}	 
 				state("drinnn") { //this:State
 					action { //it:State
-						println("${System.currentTimeMillis()}")
 						forward("tickTimer", "tickTimer(ok)" ,"onecellforward" ) 
 					}
 					 transition( edgeName="goto",targetState="ready", cond=doswitch() )

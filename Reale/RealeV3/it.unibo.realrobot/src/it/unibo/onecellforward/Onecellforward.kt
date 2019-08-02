@@ -15,11 +15,19 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 	}
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
+			
+				var BackTrakingDistance :Int=0	//la distanza prima dello step per il backtraking
+				var StepCm : Int =0			//vado in avanti di tot cm
+				var ActualDistance :Int =0 	//cm attuali dal muro
+				var NeedToBe : Int =0 			//cm che saranno dal muro dopo lo step
+				var FoundObstacle =false		//trovato muro
+				var MoveDone =false				//mossa onestep fatta
+				var End =false					//usata in varie Transition
 		
-				var FoundObstacle = false
-				var StepTime = 0L
-				var Duration : Long =0
-				var DistanzaMinima :Long =10
+				val CoefSpeed :Long =4			//rapporto cm mancanti tempo movimento
+				val ErrorePreCheck:Long =10		//cm mancanti dal muro concessi
+				val ErroreConcesso :Long=2		//errore mi misura
+				val MinDistanceWall : Long=2	//distanza minima dal muro
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -34,99 +42,128 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				}	 
 				state("checkFirst") { //this:State
 					action { //it:State
-						println("---------->checkFirst")
 						
 									storeCurrentMessageForReply()
 									FoundObstacle = false 
 						if( checkMsgContent( Term.createTerm("onestep(DURATION)"), Term.createTerm("onestep(TIME)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								StepTime = payloadArg(0).toLong()
+								StepCm = payloadArg(0).toInt()
 						}
-						forward("internalReq", "internalReq(lastSonarRobot)" ,"sonarhandler" ) 
-						println("----------------WAITING")
+						println("------------>StepCm[$StepCm]")
 					}
-					 transition(edgeName="t027",targetState="waitingForcheckFirstSonar",cond=whenEvent("lastSonarRobot"))
+					 transition(edgeName="t027",targetState="waitingForcheckFirstSonar",cond=whenEvent("sonarRobot"))
 				}	 
 				state("waitingForcheckFirstSonar") { //this:State
 					action { //it:State
-						println("---------->waitingForcheckFirstSonar")
-						if( checkMsgContent( Term.createTerm("lastSonarRobot(DISATNCE)"), Term.createTerm("lastSonarRobot(DISTANCE)"), 
+						if( checkMsgContent( Term.createTerm("sonar(DISTANCE)"), Term.createTerm("sonar(DISTANCE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								var distance = Integer.parseInt( payloadArg(0) ) 
-								              FoundObstacle = (distance<DistanzaMinima/2) 
-								if(FoundObstacle){ replyToCaller("stepFail", "stepFail(obstacle,$distance) ")
+								
+												ActualDistance = Integer.parseInt( payloadArg(0) ) 
+												BackTrakingDistance = ActualDistance
+												NeedToBe = ActualDistance-StepCm
+								            	FoundObstacle = (NeedToBe+ErrorePreCheck<0) 				
+								if(FoundObstacle){ replyToCaller("stepFail", "stepFail(obstacle,$ActualDistance) ")
 								println("Actor: OneStepForward; State:cantDoOneStep")
 								 }
 								else
-								 { println("Actor: OneStepForward; State: OK-> $distance")
+								 { println("Actor: OneStepForward; State: OK-> $NeedToBe")
 								  }
 						}
 					}
 					 transition( edgeName="goto",targetState="ready", cond=doswitchGuarded({FoundObstacle}) )
-					transition( edgeName="goto",targetState="doMoveForward", cond=doswitchGuarded({! FoundObstacle}) )
+					transition( edgeName="goto",targetState="doMiniMoveForward", cond=doswitchGuarded({! FoundObstacle}) )
 				}	 
-				state("doMoveForward") { //this:State
+				state("doMiniMoveForward") { //this:State
 					action { //it:State
-						println("-->doMoveForward")
 						forward("modelChange", "modelChange(robot,w)" ,"resourcemodel" ) 
-						forward("setTimer", "setTimer($StepTime)" ,"timer" ) 
-						itunibo.planner.plannerUtil.startTimer(  )
+						val ActualDelayTime =(ActualDistance-NeedToBe)*CoefSpeed
+						stateTimer = TimerActor("timer_doMiniMoveForward", 
+							scope, context!!, "local_tout_onecellforward_doMiniMoveForward", ActualDelayTime )
 					}
-					 transition(edgeName="t028",targetState="endDoMoveForward",cond=whenEvent("tickTimer"))
-					transition(edgeName="t029",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
+					 transition(edgeName="t028",targetState="waitingForSonarW",cond=whenTimeout("local_tout_onecellforward_doMiniMoveForward"))   
+					transition(edgeName="t029",targetState="checkSonarW",cond=whenEvent("sonarRobot"))
 				}	 
-				state("endDoMoveForward") { //this:State
+				state("waitingForSonarW") { //this:State
 					action { //it:State
-						println("---------------------------OK----->endDoMoveForward")
 						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
-						forward("modelUpdate", "modelUpdate(robot,w)" ,"kb" ) 
 					}
-					 transition( edgeName="goto",targetState="endCorrezioneRotta", cond=doswitch() )
+					 transition(edgeName="t030",targetState="checkSonarW",cond=whenEvent("sonarRobot"))
+				}	 
+				state("checkSonarW") { //this:State
+					action { //it:State
+						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
+						if( checkMsgContent( Term.createTerm("sonar(DISTANCE)"), Term.createTerm("sonar(DISTANCE)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								
+												ActualDistance = Integer.parseInt( payloadArg(0) )
+												MoveDone= Math.abs(ActualDistance-NeedToBe)<ErroreConcesso
+												End = MoveDone || ActualDistance<MinDistanceWall
+								println("$ActualDistance ----> $NeedToBe")
+						}
+					}
+					 transition( edgeName="goto",targetState="endStep", cond=doswitchGuarded({End}) )
+					transition( edgeName="goto",targetState="doMiniMoveForward", cond=doswitchGuarded({! End}) )
+				}	 
+				state("endStep") { //this:State
+					action { //it:State
+						if(ActualDistance<MinDistanceWall){ NeedToBe=BackTrakingDistance;End=false;
+						 }
+						else
+						 { forward("modelUpdate", "modelUpdate(robot,w)" ,"kb" ) 
+						 End=true
+						  }
+					}
+					 transition( edgeName="goto",targetState="endCorrezioneRotta", cond=doswitchGuarded({End}) )
+					transition( edgeName="goto",targetState="goBackFromFail", cond=doswitchGuarded({! End}) )
+				}	 
+				state("correggiRotta") { //this:State
+					action { //it:State
+						forward("onerotationstep", "onerotationstep(Z)" ,"onerotateforward" ) 
+					}
+					 transition(edgeName="t031",targetState="endCorrezioneRotta",cond=whenEvent("rotationOk"))
 				}	 
 				state("endCorrezioneRotta") { //this:State
 					action { //it:State
-						replyToCaller("stepOk", "stepOk(ok)")
+						val Err =Math.abs(ActualDistance-NeedToBe)
+						replyToCaller("stepOk", "stepOk($Err)")
 					}
 					 transition( edgeName="goto",targetState="ready", cond=doswitch() )
-				}	 
-				state("handleSonarRobot") { //this:State
-					action { //it:State
-						if( checkMsgContent( Term.createTerm("sonar(DISTANCE)"), Term.createTerm("sonar(DISTANCE)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								val distance = Integer.parseInt( payloadArg(0) ) 
-								              FoundObstacle = (distance<DistanzaMinima) 
-								if(FoundObstacle){ itunibo.planner.moveUtils.setDuration(myself)
-								 }
-								println("handleSonarRobot-ONESTEP--------------------------------------------->$distance")
-						}
-					}
-					 transition( edgeName="goto",targetState="stepFail", cond=doswitchGuarded({FoundObstacle}) )
-					transition( edgeName="goto",targetState="mustGoOn", cond=doswitchGuarded({! FoundObstacle}) )
-				}	 
-				state("stepFail") { //this:State
-					action { //it:State
-						forward("resetTimer", "resetTimer(reset)" ,"timer" ) 
-						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
-						solve("wduration(TIME)","") //set resVar	
-						Duration=getCurSol("TIME").toString().toLong()
-					}
-					 transition( edgeName="goto",targetState="goBackFromFail", cond=doswitch() )
 				}	 
 				state("goBackFromFail") { //this:State
 					action { //it:State
 						forward("modelChange", "modelChange(robot,s)" ,"resourcemodel" ) 
-						delay(Duration)
+						val ActualDelayTime =(NeedToBe-ActualDistance)*CoefSpeed
+						stateTimer = TimerActor("timer_goBackFromFail", 
+							scope, context!!, "local_tout_onecellforward_goBackFromFail", ActualDelayTime )
+					}
+					 transition(edgeName="t032",targetState="waitingForSonarS",cond=whenTimeout("local_tout_onecellforward_goBackFromFail"))   
+					transition(edgeName="t033",targetState="checkSonarS",cond=whenEvent("sonarRobot"))
+				}	 
+				state("waitingForSonarS") { //this:State
+					action { //it:State
 						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
-						replyToCaller("stepFail", "stepFail(obstacle,$Duration) ")
+					}
+					 transition(edgeName="t034",targetState="checkSonarS",cond=whenEvent("sonarRobot"))
+				}	 
+				state("checkSonarS") { //this:State
+					action { //it:State
+						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
+						if( checkMsgContent( Term.createTerm("sonar(DISTANCE)"), Term.createTerm("sonar(DISTANCE)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								
+												ActualDistance = Integer.parseInt( payloadArg(0) )
+												MoveDone= Math.abs(ActualDistance-NeedToBe)<ErroreConcesso
+						}
+					}
+					 transition( edgeName="goto",targetState="stepFail", cond=doswitchGuarded({MoveDone}) )
+					transition( edgeName="goto",targetState="goBackFromFail", cond=doswitchGuarded({! MoveDone}) )
+				}	 
+				state("stepFail") { //this:State
+					action { //it:State
+						val Err =Math.abs(ActualDistance-NeedToBe)
+						replyToCaller("stepFail", "stepFail(obstacle,$Err) ")
 					}
 					 transition( edgeName="goto",targetState="ready", cond=doswitch() )
-				}	 
-				state("mustGoOn") { //this:State
-					action { //it:State
-						println("->mustGoOn")
-					}
-					 transition(edgeName="t030",targetState="endDoMoveForward",cond=whenEvent("tickTimer"))
-					transition(edgeName="t031",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
 				}	 
 			}
 		}
