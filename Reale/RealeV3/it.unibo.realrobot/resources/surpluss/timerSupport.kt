@@ -21,10 +21,13 @@ object timerSupport {
 	
 	
 	fun startTimer(value :Long){
+		//println("start------------------->${System.currentTimeMillis()}")
 		_th= Thread {
 			  Thread.sleep(value)
 			  GlobalScope.launch{
 				_actor.autoMsg("internalTickTimer", "internalTickTimer(tick)" )
+				// println("End------------------->${System.currentTimeMillis()}")	
+		
 			  }
 		}
 		_th.start()
