@@ -26,7 +26,7 @@ class Compass ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sco
 				state("calibration") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t043",targetState="handleCompass",cond=whenDispatch("compassReq"))
+					 transition(edgeName="t045",targetState="handleCompass",cond=whenDispatch("compassReq"))
 				}	 
 				state("handleCompass") { //this:State
 					action { //it:State
@@ -42,7 +42,7 @@ class Compass ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sco
 								  }
 						}
 					}
-					 transition(edgeName="t144",targetState="handleCompass",cond=whenDispatch("compassReq"))
+					 transition(edgeName="t146",targetState="handleCompass",cond=whenDispatch("compassReq"))
 				}	 
 			}
 		}

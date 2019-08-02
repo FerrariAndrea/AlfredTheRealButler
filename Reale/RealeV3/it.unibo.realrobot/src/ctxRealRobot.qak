@@ -193,9 +193,9 @@ QActor sonarhandler context ctxRobot {
 
 QActor onerotateforward context ctxRobot {
 	["
-		//val RotateTime = 50L
-		val CompleteRotateTime = 400L
-		val ErroreConcesso : Int = 1
+		val RotateTime = 1L
+		val CompleteRotateTime = 8L
+		val ErroreConcesso : Int = 2
 		val SogliaDiScarto : Int = 20 //per evitare errori dovuti ad esempio al tavolo in mezzo alla stanza
 		
 		//------------------------
@@ -249,27 +249,24 @@ QActor onerotateforward context ctxRobot {
 	
 	State doRotationForward{
 		
-		if "RealMove==\"a\""{
-	  			//forward mindrobot -m local_modelChanged : modelChanged(robot, a)	  			
-				forward resourcemodel -m modelChange : modelChange(robot,a)
-	  			delayVar CompleteRotateTime
-	  			//forward mindrobot -m local_modelChanged : modelChanged(robot, h)
-	  			forward resourcemodel -m modelChange : modelChange(robot,h)	  			
-	  			
+		if "RealMove==\"a\""{ 			
+	  		forward basicrobot -m internalRobotReq :  internalRobotReq( as, $CompleteRotateTime )
+			forward resourcemodel -m modelUpdate : modelUpdate(robot,a)	
 	  	}
 		if "RealMove==\"d\""{
-			//forward mindrobot -m local_modelChanged : modelChanged(robot, d)
-			forward resourcemodel -m modelChange : modelChange(robot,d)	  			
-			delayVar CompleteRotateTime
-	 		//forward mindrobot -m local_modelChanged : modelChanged(robot, h)
-	 		forward resourcemodel -m modelChange : modelChange(robot,h)	  			
-	 	
+			forward basicrobot -m internalRobotReq :  internalRobotReq( ds, $CompleteRotateTime )
+			forward resourcemodel -m modelUpdate : modelUpdate(robot,d)	
 		}
+		
+	}Transition t1 whenEvent internalRobotRes ->  endRotate
+	
+	State endRotate{
+		forward resourcemodel -m modelUpdate : modelUpdate(robot,h)	
 		["SonarDAfter=-1;SonarAAfter=-1;SonarWAfter-1;"]
 	}Transition t1 whenEvent sonarRobot ->  calibrationAfter
 					 whenEvent sonarLeft ->  calibrationAfter
 					 whenEvent sonarRigth ->  calibrationAfter
-					 
+							 
 	State calibrationAfter{
 		onMsg ( sonarRobot : sonar( DISTANCE ) ){  
 			["SonarWAfter=Integer.parseInt( payloadArg(0) )"]	
@@ -315,18 +312,21 @@ QActor onerotateforward context ctxRobot {
 	
 	  State miniRotate{
 			if"Arotate"{
-					//forward mindrobot -m local_modelChanged : modelChanged(robot, a)
-					forward resourcemodel -m modelChange : modelChange(robot,ma)	  				  		
+				forward basicrobot -m internalRobotReq :  internalRobotReq( am, $CompleteRotateTime )
+				forward resourcemodel -m modelUpdate : modelUpdate(robot,a)	
 			}else{
-					//forward mindrobot -m local_modelChanged : modelChanged(robot, d)
-					forward resourcemodel -m modelChange : modelChange(robot,md)	  			  		
-			}				
-			["SonarDAfter=-1;SonarAAfter=-1;SonarWAfter-1;"]
-	  }Transition t1 whenEvent sonarRobot ->  calibrationAfter
+				forward basicrobot -m internalRobotReq :  internalRobotReq( dm, $CompleteRotateTime )
+				forward resourcemodel -m modelUpdate : modelUpdate(robot,d)		  			  		
+			}		
+			delay 200		
+	  }Transition t1 whenEvent internalRobotRes ->  endMiniRotate
+	  
+	State endMiniRotate{
+		["SonarDAfter=-1;SonarAAfter=-1;SonarWAfter-1;"]
+	}Transition t1 whenEvent sonarRobot ->  calibrationAfter
 					 whenEvent sonarLeft ->  calibrationAfter
 					 whenEvent sonarRigth ->  calibrationAfter
 	  
-
 	State endDoRotationForward{
 		//Rotation ok quindi salvo sulla kb
 		if "RealMove==\"a\""{

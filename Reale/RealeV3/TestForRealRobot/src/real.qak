@@ -6,7 +6,8 @@ Dispatch local_modelChanged   : modelChanged( TARGET, VALUE )
 Dispatch onestep       : onestep(DURATION)
 Dispatch stepOk        : stepOk(V)		//TODO eliminate  V
 Dispatch stepFail      : stepFail(R,T) //R=ok | obstacle, T = time
-
+Dispatch onerotationstep   : onerotationstep(MOVE)
+Dispatch rotationOk        : rotationOk(STALL)
 Event  sonarRobot     : sonar( DISTANCE )	     //from  sonar on robot 
 
 
@@ -18,6 +19,7 @@ Context ctxDummy ip[host="dummyhost" port=8084] -mqtt //as ctxRobot
 //per semplicità
 ExternalQActor mindrobot context ctxDummy
 ExternalQActor onecellforward context ctxDummy
+ExternalQActor onerotateforward context ctxDummy
 
 
 QActor controller context ctxController {
@@ -41,9 +43,12 @@ QActor controller context ctxController {
 		println("Start one step")
 		delay 1000
 	}
-	Goto oneStep
+	Goto oneRotate
 
-
+	State oneRotate{
+			forward onerotateforward -m onerotationstep : onerotationstep(a)	
+	}
+	
 	State next{
 		println("next")
 	}

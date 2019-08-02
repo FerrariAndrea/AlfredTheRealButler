@@ -27,7 +27,12 @@ class Controller ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 						println("Start one step")
 						delay(1000) 
 					}
-					 transition( edgeName="goto",targetState="oneStep", cond=doswitch() )
+					 transition( edgeName="goto",targetState="oneRotate", cond=doswitch() )
+				}	 
+				state("oneRotate") { //this:State
+					action { //it:State
+						forward("onerotationstep", "onerotationstep(a)" ,"onerotateforward" ) 
+					}
 				}	 
 				state("next") { //this:State
 					action { //it:State

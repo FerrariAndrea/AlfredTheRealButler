@@ -33,7 +33,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 					action { //it:State
 						println("ready!!")
 					}
-					 transition(edgeName="t028",targetState="checkFirst",cond=whenDispatch("onestep"))
+					 transition(edgeName="t030",targetState="checkFirst",cond=whenDispatch("onestep"))
 				}	 
 				state("checkFirst") { //this:State
 					action { //it:State
@@ -46,7 +46,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						}
 						forward("internalReq", "internalReq(lastSonarRobot)" ,"sonarhandler" ) 
 					}
-					 transition(edgeName="t029",targetState="waitingForcheckFirstSonar",cond=whenDispatch("lastSonarRobot"))
+					 transition(edgeName="t031",targetState="waitingForcheckFirstSonar",cond=whenDispatch("lastSonarRobot"))
 				}	 
 				state("waitingForcheckFirstSonar") { //this:State
 					action { //it:State
@@ -77,8 +77,8 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 					action { //it:State
 						println("mustGoOn")
 					}
-					 transition(edgeName="t030",targetState="endDoMoveForward",cond=whenEvent("internalRobotRes"))
-					transition(edgeName="t031",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
+					 transition(edgeName="t032",targetState="endDoMoveForward",cond=whenEvent("internalRobotRes"))
+					transition(edgeName="t033",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
 				}	 
 				state("endDoMoveForward") { //this:State
 					action { //it:State
@@ -121,7 +121,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						forward("internalRobotReq", "internalRobotReq(ss,$DurationInt)" ,"basicrobot" ) 
 						forward("modelUpdate", "modelUpdate(robot,s)" ,"resourcemodel" ) 
 					}
-					 transition(edgeName="t032",targetState="endGoBackFormFail",cond=whenDispatch("internalRobotRes"))
+					 transition(edgeName="t034",targetState="endGoBackFormFail",cond=whenDispatch("internalRobotRes"))
 				}	 
 				state("endGoBackFormFail") { //this:State
 					action { //it:State
