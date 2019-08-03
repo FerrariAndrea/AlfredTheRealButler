@@ -191,8 +191,8 @@ QActor sonarhandler context ctxRobot {
 QActor onerotateforward context ctxRobot {
 	["
 		val RotateTime = 1L
-		val CompleteRotateTimeA = 16L
-		val CompleteRotateTimeD = 25L
+		val CompleteRotateTimeA = 450L
+		val CompleteRotateTimeD = 450L
 		val ErroreConcesso : Int = 2
 		val SogliaDiScarto : Int = 20 //per evitare errori dovuti ad esempio al tavolo in mezzo alla stanza
 		val WaitingTimg : Long = 5000
@@ -246,7 +246,7 @@ QActor onerotateforward context ctxRobot {
 					 whenEvent sonarRigth ->  calibration
 	
 	State doRotationForward{
-		
+		delay 80
 		if "RealMove==\"a\""{ 			
 	  		forward basicrobot -m internalRobotReq :  internalRobotReq( as, $CompleteRotateTimeA )
 			forward resourcemodel -m modelUpdate : modelUpdate(robot,a)	
@@ -409,7 +409,7 @@ QActor onecellforward context ctxRobot {
 		//forward onerotateforward -m onerotationstep : onerotationstep(Z) 
 		
 	}//Transition t0 whenEvent rotationOk  -> endCorrezioneRotta	
-	Goto manualFix
+	Goto endCorrezioneRotta//manualFix
 	
 	State endCorrezioneRotta{
 			["replyToCaller(\"stepOk\", \"stepOk(ok)\")"]		
@@ -449,8 +449,7 @@ QActor onecellforward context ctxRobot {
 	}Goto ready
 	
 	State manualFix{
-		delay 100
-		forward basicrobot -m internalRobotReq :  internalRobotReq( dm, 16 )		
+		forward basicrobot -m internalRobotReq :  internalRobotReq( dm, 10 )		
 	}Transition t0 whenEvent internalRobotRes  -> endCorrezioneRotta
 		
 	

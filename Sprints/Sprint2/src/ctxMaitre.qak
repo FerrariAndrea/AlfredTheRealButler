@@ -49,7 +49,7 @@ QActor maitre context ctxMaitre {
 	State go {		
 		println("Send Start to explorer ")	
 		forward explorer -m  testCmd :  testCmd( Start ) 
-		delay 6500		
+		delay 10000		
 	
 		forward kb -m  modelRequest :  modelRequest( robot, location ) 
 		println("Waiting response ")	
@@ -62,12 +62,12 @@ QActor maitre context ctxMaitre {
 		if "iter==1"{
 			println("Send Next to explorer (iter1) ")	
 			forward explorer -m  testCmd :  testCmd( Next ) 
-			delay 6500
+			delay 10000
 		}
 		if "iter==2"{
 			println("Send Next to explorer (iter2) ")	
 			forward explorer -m  testCmd :  testCmd( Next ) 
-			delay 6500
+			delay 8000
 		}	
 		forward kb -m  modelRequest :  modelRequest( robot, location ) 
 		println("Waiting response ")	

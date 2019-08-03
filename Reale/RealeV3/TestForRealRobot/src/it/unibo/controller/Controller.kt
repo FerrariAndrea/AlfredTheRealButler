@@ -18,7 +18,7 @@ class Controller ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 		
 			
 			var Tback      = 0L
-			var StepTime   = 1000L//16L	//for real steps (*50ms)
+			var StepTime   = 15L	//for real steps (*50ms)
 			var RotateTime = 300L	//for real
 			var PauseTime  = 250L 
 		return { //this:ActionBasciFsm
@@ -27,11 +27,11 @@ class Controller ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 						println("Start one step")
 						delay(1000) 
 					}
-					 transition( edgeName="goto",targetState="oneStep", cond=doswitch() )
+					 transition( edgeName="goto",targetState="oneRotate", cond=doswitch() )
 				}	 
 				state("oneRotate") { //this:State
 					action { //it:State
-						forward("onerotationstep", "onerotationstep(a)" ,"onerotateforward" ) 
+						forward("onerotationstep", "onerotationstep(d)" ,"onerotateforward" ) 
 					}
 				}	 
 				state("next") { //this:State

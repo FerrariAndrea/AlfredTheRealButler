@@ -85,7 +85,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						forward("modelUpdate", "modelUpdate(robot,h)" ,"resourcemodel" ) 
 						forward("modelUpdate", "modelUpdate(robot,w)" ,"kb" ) 
 					}
-					 transition( edgeName="goto",targetState="manualFix", cond=doswitch() )
+					 transition( edgeName="goto",targetState="endCorrezioneRotta", cond=doswitch() )
 				}	 
 				state("endCorrezioneRotta") { //this:State
 					action { //it:State
@@ -133,8 +133,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				}	 
 				state("manualFix") { //this:State
 					action { //it:State
-						delay(100) 
-						forward("internalRobotReq", "internalRobotReq(dm,16)" ,"basicrobot" ) 
+						forward("internalRobotReq", "internalRobotReq(dm,10)" ,"basicrobot" ) 
 					}
 					 transition(edgeName="t036",targetState="endCorrezioneRotta",cond=whenEvent("internalRobotRes"))
 				}	 

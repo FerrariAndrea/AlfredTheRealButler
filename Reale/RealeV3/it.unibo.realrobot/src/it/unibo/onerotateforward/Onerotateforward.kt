@@ -17,8 +17,8 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
 				val RotateTime = 1L
-				val CompleteRotateTimeA = 16L
-				val CompleteRotateTimeD = 25L
+				val CompleteRotateTimeA = 450L
+				val CompleteRotateTimeD = 450L
 				val ErroreConcesso : Int = 2
 				val SogliaDiScarto : Int = 20 //per evitare errori dovuti ad esempio al tavolo in mezzo alla stanza
 				val WaitingTimg : Long = 5000
@@ -83,6 +83,7 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 				}	 
 				state("doRotationForward") { //this:State
 					action { //it:State
+						delay(80) 
 						if(RealMove=="a"){ forward("internalRobotReq", "internalRobotReq(as,$CompleteRotateTimeA)" ,"basicrobot" ) 
 						forward("modelUpdate", "modelUpdate(robot,a)" ,"resourcemodel" ) 
 						 }

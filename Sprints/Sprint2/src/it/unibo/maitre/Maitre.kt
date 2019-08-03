@@ -28,7 +28,7 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 					action { //it:State
 						println("Send Start to explorer ")
 						forward("testCmd", "testCmd(Start)" ,"explorer" ) 
-						delay(6500) 
+						delay(10000) 
 						forward("modelRequest", "modelRequest(robot,location)" ,"kb" ) 
 						println("Waiting response ")
 					}
@@ -39,11 +39,11 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 					action { //it:State
 						if(iter==1){ println("Send Next to explorer (iter1) ")
 						forward("testCmd", "testCmd(Next)" ,"explorer" ) 
-						delay(6500) 
+						delay(10000) 
 						 }
 						if(iter==2){ println("Send Next to explorer (iter2) ")
 						forward("testCmd", "testCmd(Next)" ,"explorer" ) 
-						delay(6500) 
+						delay(8000) 
 						 }
 						forward("modelRequest", "modelRequest(robot,location)" ,"kb" ) 
 						println("Waiting response ")
