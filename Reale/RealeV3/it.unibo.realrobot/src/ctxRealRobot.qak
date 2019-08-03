@@ -117,6 +117,7 @@ QActor basicrobot context ctxRobot{
 		}
 		onMsg( internalRobotReq : internalRobotReq( MOVE,STEP ) ) { 
 			["val Step= payloadArg(1).toInt()"]
+			println("msg(${payloadArg(0)}) $Step")
 			run surpluss.motorsSupport.askToMotors("msg(${payloadArg(0)})",Step)
 						
 		}

@@ -43,6 +43,7 @@ class Basicrobot ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 						if( checkMsgContent( Term.createTerm("internalRobotReq(CMD,STEPS)"), Term.createTerm("internalRobotReq(MOVE,STEP)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								val Step= payloadArg(1).toInt()
+								println("msg(${payloadArg(0)}) $Step")
 								surpluss.motorsSupport.askToMotors( "msg(${payloadArg(0)})", Step  )
 						}
 					}

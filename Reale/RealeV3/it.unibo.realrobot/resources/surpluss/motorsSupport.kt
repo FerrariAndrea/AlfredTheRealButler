@@ -49,8 +49,10 @@ object motorsSupport {
 		writer_compass.write("$cmdForC-$steps\n")
 		writer_compass.flush()		
 		 GlobalScope.launch{
-				var data = reader_compass.readLine()				
-				actor.emit(msgType, msgType+"($data)" )
+				var data = reader_compass.readLine()
+				if(data!=null && data!="killed"){				 
+							actor.emit(msgType, msgType+"($data)" )
+				}				
 		}
 	}
 	
