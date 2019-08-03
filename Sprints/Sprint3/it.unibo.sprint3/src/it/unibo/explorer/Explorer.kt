@@ -47,7 +47,7 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 					 transition(edgeName="t00",targetState="goToPosition",cond=whenEvent("goTo"))
 					transition(edgeName="t01",targetState="addingFood",cond=whenEvent("addFood"))
 					transition(edgeName="t02",targetState="preparingRoom",cond=whenEvent("prepare"))
-					transition(edgeName="t03",targetState="clearingRoom",cond=whenEvent("prepare"))
+					transition(edgeName="t03",targetState="clearingRoom",cond=whenEvent("clear"))
 				}	 
 				state("addingFood") { //this:State
 					action { //it:State
@@ -58,11 +58,17 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				}	 
 				state("preparingRoom") { //this:State
 					action { //it:State
+						println("PREPARING: Go to Pantry")
+						preparing = true
 					}
+					 transition( edgeName="goto",targetState="goToPantry", cond=doswitch() )
 				}	 
 				state("clearingRoom") { //this:State
 					action { //it:State
+						println("ADDING FOOD: Go to Table")
+						clearing = true
 					}
+					 transition( edgeName="goto",targetState="goToTable", cond=doswitch() )
 				}	 
 				state("goToFridge") { //this:State
 					action { //it:State
@@ -71,6 +77,44 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						itunibo.planner.plannerUtil.showMap(  )
 						itunibo.planner.plannerUtil.setGoal( 5, 0  )
 						goingHome=false
+						itunibo.planner.moveUtils.doPlan(myself)
+					}
+					 transition( edgeName="goto",targetState="executePlannedActions", cond=doswitchGuarded({itunibo.planner.moveUtils.existPlan()}) )
+					transition( edgeName="goto",targetState="endOfJob", cond=doswitchGuarded({! itunibo.planner.moveUtils.existPlan()}) )
+				}	 
+				state("goToPantry") { //this:State
+					action { //it:State
+						solve("direction(D)","") //set resVar	
+						println("Actor: Explorer; State: goToPantry; Payload: direction at start: ${getCurSol("D").toString()}")
+						itunibo.planner.plannerUtil.showMap(  )
+						itunibo.planner.plannerUtil.setGoal( 0, 4  )
+						goingHome=false
+						itunibo.planner.moveUtils.doPlan(myself)
+					}
+					 transition( edgeName="goto",targetState="executePlannedActions", cond=doswitchGuarded({itunibo.planner.moveUtils.existPlan()}) )
+					transition( edgeName="goto",targetState="endOfJob", cond=doswitchGuarded({! itunibo.planner.moveUtils.existPlan()}) )
+				}	 
+				state("goToDishwasher") { //this:State
+					action { //it:State
+						solve("direction(D)","") //set resVar	
+						println("Actor: Explorer; State: goToDishwasher; Payload: direction at start: ${getCurSol("D").toString()}")
+						itunibo.planner.plannerUtil.showMap(  )
+						itunibo.planner.plannerUtil.setGoal( 5, 3  )
+						goingHome=false
+						itunibo.planner.moveUtils.doPlan(myself)
+					}
+					 transition( edgeName="goto",targetState="executePlannedActions", cond=doswitchGuarded({itunibo.planner.moveUtils.existPlan()}) )
+					transition( edgeName="goto",targetState="endOfJob", cond=doswitchGuarded({! itunibo.planner.moveUtils.existPlan()}) )
+				}	 
+				state("goToTable") { //this:State
+					action { //it:State
+						solve("direction(D)","") //set resVar	
+						println("Actor: Explorer; State: goToTable; Payload: direction at start: ${getCurSol("D").toString()}")
+						itunibo.planner.plannerUtil.showMap(  )
+						itunibo.planner.plannerUtil.setGoal( 5, 3  )
+						
+								addingFood=false
+								preparing=false
 						itunibo.planner.moveUtils.doPlan(myself)
 					}
 					 transition( edgeName="goto",targetState="executePlannedActions", cond=doswitchGuarded({itunibo.planner.moveUtils.existPlan()}) )
@@ -114,27 +158,33 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				state("goalOk") { //this:State
 					action { //it:State
 						println("Explorer: on the target cell!")
+						delay(3000) 
+					}
+					 transition( edgeName="goto",targetState="checkAddingFood", cond=doswitch() )
+				}	 
+				state("checkAddingFood") { //this:State
+					action { //it:State
 					}
 					 transition( edgeName="goto",targetState="goToTable", cond=doswitchGuarded({addingFood}) )
-					transition( edgeName="goto",targetState="checkIfGoingHome", cond=doswitchGuarded({! addingFood}) )
+					transition( edgeName="goto",targetState="checkPreparingRoom", cond=doswitchGuarded({! addingFood}) )
 				}	 
-				state("checkIfGoingHome") { //this:State
+				state("checkPreparingRoom") { //this:State
+					action { //it:State
+					}
+					 transition( edgeName="goto",targetState="goToTable", cond=doswitchGuarded({preparing}) )
+					transition( edgeName="goto",targetState="checkClearingRoom", cond=doswitchGuarded({! preparing}) )
+				}	 
+				state("checkClearingRoom") { //this:State
+					action { //it:State
+					}
+					 transition( edgeName="goto",targetState="goToDishwasher", cond=doswitchGuarded({clearing}) )
+					transition( edgeName="goto",targetState="checkGoingHome", cond=doswitchGuarded({! clearing}) )
+				}	 
+				state("checkGoingHome") { //this:State
 					action { //it:State
 					}
 					 transition( edgeName="goto",targetState="atHome", cond=doswitchGuarded({goingHome}) )
 					transition( edgeName="goto",targetState="goHome", cond=doswitchGuarded({! goingHome}) )
-				}	 
-				state("goToTable") { //this:State
-					action { //it:State
-						solve("direction(D)","") //set resVar	
-						println("Actor: Explorer; State: goToTable; Payload: direction at start: ${getCurSol("D").toString()}")
-						itunibo.planner.plannerUtil.showMap(  )
-						itunibo.planner.plannerUtil.setGoal( 5, 4  )
-						addingFood=false
-						itunibo.planner.moveUtils.doPlan(myself)
-					}
-					 transition( edgeName="goto",targetState="executePlannedActions", cond=doswitchGuarded({itunibo.planner.moveUtils.existPlan()}) )
-					transition( edgeName="goto",targetState="endOfJob", cond=doswitchGuarded({! itunibo.planner.moveUtils.existPlan()}) )
 				}	 
 				state("doTheMove") { //this:State
 					action { //it:State

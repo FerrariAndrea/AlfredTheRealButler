@@ -13,8 +13,8 @@ Dispatch testCmd: testCmd(cmd)
 
 //Macro dispatch
 Dispatch addFood : addFood(X) //1 or 2: payload for now is ignored.
-Dispatch prepare : prepare()
-Dispatch clear : clear()
+Dispatch prepare : prepare(X) //Non so perché senza Payload non mi funziona, quindi ne metto uno che viene ignorato. Idem per clear (Luca)
+Dispatch clear : clear(X)
 
 Event  sonarRobot     : sonar( DISTANCE )	     //from  sonar on robot 
 
@@ -61,7 +61,7 @@ QActor explorer context ctxExplorer{
 	Transition t0 whenEvent   goTo  -> goToPosition
 				  whenEvent	  addFood -> addingFood
 				  whenEvent   prepare -> preparingRoom
-				  whenEvent   prepare -> clearingRoom
+				  whenEvent   clear -> clearingRoom
 				  //qui handleStop -> stopped
 	
 	State addingFood {
@@ -74,12 +74,16 @@ QActor explorer context ctxExplorer{
 	} Goto goToFridge
 	
 	State preparingRoom {
+		println("PREPARING: Go to Pantry")
+		["preparing = true"]
 		//METTERE PIATTI DAL PANTRY AL TABLE
-	}
+	} Goto goToPantry
 	
 	State clearingRoom {
+		println("ADDING FOOD: Go to Table")
+		["clearing = true"]
 		//PRENDERE CIBO DAL TAVOLO, PORTARLO AL FRIGO E I PIATTI NEL DISHWASHER
-	}
+	} Goto goToTable
 	
 	State goToFridge {
 		solve( direction(D) )   
@@ -88,9 +92,37 @@ QActor explorer context ctxExplorer{
 		run itunibo.planner.plannerUtil.setGoal(5,0)
 		["goingHome=false"]	
 		run itunibo.planner.moveUtils.doPlan( myself )
-	}
+	} Goto executePlannedActions  if "itunibo.planner.moveUtils.existPlan()" else endOfJob 
 	
-	Goto executePlannedActions  if "itunibo.planner.moveUtils.existPlan()" else endOfJob 
+	State goToPantry {
+		solve( direction(D) )   
+   		println("Actor: Explorer; State: goToPantry; Payload: direction at start: ${getCurSol(\"D\").toString()}")
+		run itunibo.planner.plannerUtil.showMap()		
+		run itunibo.planner.plannerUtil.setGoal(0,4)
+		["goingHome=false"]	
+		run itunibo.planner.moveUtils.doPlan( myself )
+	} Goto executePlannedActions  if "itunibo.planner.moveUtils.existPlan()" else endOfJob 
+	
+	State goToDishwasher {
+		solve( direction(D) )   
+   		println("Actor: Explorer; State: goToDishwasher; Payload: direction at start: ${getCurSol(\"D\").toString()}")
+		run itunibo.planner.plannerUtil.showMap()		
+		run itunibo.planner.plannerUtil.setGoal(5,3)
+		["goingHome=false"]	
+		run itunibo.planner.moveUtils.doPlan( myself )
+	} Goto executePlannedActions  if "itunibo.planner.moveUtils.existPlan()" else endOfJob
+	
+	 State goToTable {
+ 		solve( direction(D) )   
+   		println("Actor: Explorer; State: goToTable; Payload: direction at start: ${getCurSol(\"D\").toString()}")
+		run itunibo.planner.plannerUtil.showMap()
+		run itunibo.planner.plannerUtil.setGoal(5,3)
+		["
+		addingFood=false
+		preparing=false
+		"]
+		run itunibo.planner.moveUtils.doPlan( myself )
+ 	} 	Goto executePlannedActions  if "itunibo.planner.moveUtils.existPlan()" else endOfJob 
 	
 	State stopped{
 		//waiting
@@ -123,28 +155,30 @@ QActor explorer context ctxExplorer{
 		solve( retract( move(M) ) ) //consume a move
 		ifSolved {  
 			["Move = getCurSol(\"M\").toString()"]
-		} else { ["Move = \"\""]  }  
+		} else { ["Move = \"\""]  } 
  	}
 	Goto doTheMove  if "(Move.length>0) " else goalOk 
  	
  	State goalOk{		  
  		println("Explorer: on the target cell!")
- 	} //Goto atHome if "goingHome" else goHome
- 	Goto goToTable if "addingFood" else checkIfGoingHome
+ 		delay 3000
+ 	} Goto checkAddingFood
  	
- 	State checkIfGoingHome {
+ 	// Nota di Luca: E' l'unico modo per fare dei controlli innestati (come uno switch case).
+ 	State checkAddingFood {
+ 	} Goto goToTable if "addingFood" else checkPreparingRoom
+ 	
+ 	State checkPreparingRoom {
+ 		
+ 	} Goto goToTable if "preparing" else checkClearingRoom
+ 	
+ 	State checkClearingRoom {
+ 		
+ 	} Goto goToDishwasher if "clearing" else checkGoingHome
+ 	
+ 	State checkGoingHome {
  	}
  	Goto atHome if "goingHome" else goHome
- 	
- 	State goToTable {
- 		solve( direction(D) )   
-   		println("Actor: Explorer; State: goToTable; Payload: direction at start: ${getCurSol(\"D\").toString()}")
-		run itunibo.planner.plannerUtil.showMap()
-		
-		run itunibo.planner.plannerUtil.setGoal(5,4)
-		["addingFood=false"]
-		run itunibo.planner.moveUtils.doPlan( myself )
- 	} 	Goto executePlannedActions  if "itunibo.planner.moveUtils.existPlan()" else endOfJob 
  	
 	State doTheMove{
 		if "Move==\"a\" || Move==\"d\" " {//ROTATION			
