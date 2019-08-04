@@ -99,8 +99,9 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						solve("direction(D)","") //set resVar	
 						println("Actor: Explorer; State: goToDishwasher; Payload: direction at start: ${getCurSol("D").toString()}")
 						itunibo.planner.plannerUtil.showMap(  )
-						itunibo.planner.plannerUtil.setGoal( 5, 3  )
+						itunibo.planner.plannerUtil.setGoal( 4, 5  )
 						goingHome=false
+								  clearing=false
 						itunibo.planner.moveUtils.doPlan(myself)
 					}
 					 transition( edgeName="goto",targetState="executePlannedActions", cond=doswitchGuarded({itunibo.planner.moveUtils.existPlan()}) )
@@ -158,7 +159,7 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				state("goalOk") { //this:State
 					action { //it:State
 						println("Explorer: on the target cell!")
-						delay(3000) 
+						delay(2000) 
 					}
 					 transition( edgeName="goto",targetState="checkAddingFood", cond=doswitch() )
 				}	 
