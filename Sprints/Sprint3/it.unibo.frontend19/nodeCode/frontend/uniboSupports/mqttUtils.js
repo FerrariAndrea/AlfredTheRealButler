@@ -32,19 +32,23 @@ client.on('connect', function () {
 client.on('message', function (topic, message){
   //console.log("mqtt io="+ io );
   //msg(modelContent,event,resourcemodel,none,content(robot(state(5))),74)
-  console.log("mqtt RECEIVES:"+ message.toString()); //if toString is not given, the message comes as buffer
+  //console.log("mqtt RECEIVES:"+ message.toString()); //if toString is not given, the message comes as buffer
   var msgStr          = message.toString();
   var spRobot         = msgStr.indexOf("robot");
   var spSonarRobot    = msgStr.indexOf("sonarRobot");
   var sp1    = msgStr.indexOf("state");
   var msgStr = msgStr.substr(sp1);
   var sp2    = msgStr.indexOf("))");
-  if( spRobot > 0 ) 
+  if( spRobot > 0 )
   var msg    = "";
   var content =  message.toString().substr(sp1,sp2+1);
   if( spRobot > 0 )      { msg = "robot - "; robotModel=msg+content        }
   if( spSonarRobot > 0 ) { msg = "sonarRobot - "; sonarModel = msg+content }
   msg = msg + content// message.toString().substr(sp1,sp2+1);
+  //---------------------------------------Fix for real
+  if(msg===undefined || msg==="undefined"|| msg ===""|| msg === "sonarRobot - "){
+    msg=message.toString();
+  }
   io.sockets.send( msg );
 });
 

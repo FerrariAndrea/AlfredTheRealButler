@@ -362,9 +362,11 @@ QActor onecellforward context ctxRobot {
 		var StepTime = 0L
 		var Duration : Long =0
 		var DistanzaMinima :Long =10
-		val StepValue : Long =25
-		val DistanzaCella : Long =25
-		val MenoUno : Int =-1
+		val WorkTime : Long =20 //ms
+		val SleepTime : Long =10 //ms
+		val DistanzaCella : Long =25 //cm
+		val MenoUno : Int =-1 //da buttare
+		var ActualStep : Int =0
 	"]  
 	State s0 initial {	   		
 		println("Start onecellforward")
@@ -398,23 +400,26 @@ QActor onecellforward context ctxRobot {
               
               
    		}
+   		["ActualStep=0"]
 	}Goto ready if "FoundObstacle" else doMoveForward
 
-	State doMoveForward{	
-			forward basicrobot -m internalRobotReq :  internalRobotReq( ws, $StepTime,$MenoUno,$MenoUno )
-			forward resourcemodel -m modelUpdate : modelUpdate(robot,w)		
-			run itunibo.planner.plannerUtil.startTimer()
-	}Goto mustGoOn
-
-  
+	State doMoveForward{
+			["ActualStep=ActualStep+1"]	
+			forward basicrobot -m internalRobotReq :  internalRobotReq( ws, 1,$WorkTime,$SleepTime )
+			forward resourcemodel -m modelUpdate : modelUpdate(robot,w)	
+	}Transition t0 whenEvent internalRobotRes  -> checkFinish
+	
+	State checkFinish{
+	}Goto mustGoOn if "ActualStep<StepTime" else endDoMoveForward
+	
 	  State mustGoOn{
+	  	
 	  }Transition t0
 		whenEvent internalRobotRes  -> endDoMoveForward	
 		whenEvent sonarRobot  -> handleSonarRobot	
 		
 	State endDoMoveForward{
 		println("endDoMoveForward")
-		forward resourcemodel -m modelUpdate : modelUpdate(robot,h)	
 		//setp in avanti ok quindi salvo sulla kb
 		forward kb -m modelUpdate : modelUpdate(  robot,  w)  
 		//aggiusto la rotta
@@ -449,9 +454,8 @@ QActor onecellforward context ctxRobot {
 	
 	State goBackFromFail{
 		println("goBackFromFail")
-		["val DurationInt :Int= (Duration/StepValue).toInt()"]
 		forward resourcemodel -m modelUpdate : modelUpdate(robot,s)	
-		forward basicrobot -m internalRobotReq :  internalRobotReq( ss, $DurationInt,$MenoUno,$MenoUno )
+		forward basicrobot -m internalRobotReq :  internalRobotReq( ss, $ActualStep,$WorkTime,$SleepTime )
 	
 	}Transition t0 whenEvent internalRobotRes  -> endGoBackFormFail	
 	

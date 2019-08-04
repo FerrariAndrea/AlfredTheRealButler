@@ -33,8 +33,8 @@ class Realforntsonar ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						stateTimer = TimerActor("timer_pollingMode", 
 							scope, context!!, "local_tout_realforntsonar_pollingMode", ActualTimer )
 					}
-					 transition(edgeName="t043",targetState="doNotifyAll",cond=whenTimeout("local_tout_realforntsonar_pollingMode"))   
-					transition(edgeName="t044",targetState="changeMode",cond=whenDispatch("internalSonarChangeMode"))
+					 transition(edgeName="t044",targetState="doNotifyAll",cond=whenTimeout("local_tout_realforntsonar_pollingMode"))   
+					transition(edgeName="t045",targetState="changeMode",cond=whenDispatch("internalSonarChangeMode"))
 				}	 
 				state("changeMode") { //this:State
 					action { //it:State
@@ -66,8 +66,8 @@ class Realforntsonar ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						if(NeedAck){ replyToCaller("internalSonarChangeMode", "internalSonarChangeMode(2)")
 						 }
 					}
-					 transition(edgeName="t045",targetState="changeMode",cond=whenDispatch("internalSonarChangeMode"))
-					transition(edgeName="t046",targetState="doNotifyAll",cond=whenDispatch("internalSonarReq"))
+					 transition(edgeName="t046",targetState="changeMode",cond=whenDispatch("internalSonarChangeMode"))
+					transition(edgeName="t047",targetState="doNotifyAll",cond=whenDispatch("internalSonarReq"))
 				}	 
 			}
 		}

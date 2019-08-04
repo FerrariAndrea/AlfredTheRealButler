@@ -8,17 +8,21 @@
 <script>
        var socket  = io.connect();
        socket.on('connect', function(){ console.log("socket connected");});
-       socket.on('message', function(v){ 
+       socket.on('message', function(v){
+         console.log(v);
        			if( v.indexOf("robot") >= 0 ){document.getElementById('robotDisplay').innerHTML=v; }
-       			if( v.indexOf("sonarRobot") >= 0 ){document.getElementById('sonarRobotDisplay').innerHTML=v; }
-       			}
+       			if( v.indexOf("sonarRobot") >= 0 ){document.getElementById('sonarRobotDisplay').innerHTML=v.split('(')[2].split(')')[0]; }
+            if( v.indexOf("sonarLeft") >= 0 ){document.getElementById('sonarRobotLDisplay').innerHTML=v.split('(')[2].split(')')[0]; }
+            if( v.indexOf("sonarRigth") >= 0 ){document.getElementById('sonarRobotRDisplay').innerHTML=v.split('(')[2].split(')')[0]; }
+
+          	}
        	);
 </script>
 <!-- <script type="text/javascript" src="QActorWebUI.js"></script> -->
 </head>
 
 <body style="background-color: #37464f">
- 
+
 <div style="background-color: #37464f">
 	<center>
 <h2 style="color:white;background-color: black;padding: 10px;">Maître de salle Console</h2>
@@ -32,6 +36,16 @@
 	<div>
   		<b>SONAR STATE</b>: <span id="sonarRobotDisplay"></span>
 	</div>
+  <div>
+    <b>SONAR LEFT STATE</b>: <span id="sonarRobotLDisplay"></span>
+  </div>
+  <div>
+    <b>SONAR RIGTH STATE</b>: <span id="sonarRobotRDisplay"></span>
+  </div>
+  </div>
+
+</div>
+
 </div>
 
 <br></br>
@@ -50,7 +64,7 @@
 
 			<!-- INVISIBLE ROW -->
 					<tr>
-						<tr><td align="center"><span style="opacity:0;">This sentence is invisible</span></td>		
+						<tr><td align="center"><span style="opacity:0;">This sentence is invisible</span></td>
 					</tr>
 
 
@@ -72,10 +86,10 @@
 							</form>
 						</td>
 					</tr>
-			
+
 			<!-- INVISIBLE ROW -->
 			<tr>
-					<tr><td align="center"><span style="opacity:0;">This sentence is invisible</span></td>		
+					<tr><td align="center"><span style="opacity:0;">This sentence is invisible</span></td>
 			</tr>
 
 
@@ -91,7 +105,7 @@
 
 			<!-- INVISIBLE ROW -->
 			<tr>
-					<tr><td align="center"><span style="opacity:0;">This sentence is invisible</span></td>		
+					<tr><td align="center"><span style="opacity:0;">This sentence is invisible</span></td>
 			</tr>
 
 
@@ -122,9 +136,9 @@
 <div style="background-color: #FAF19C">
 	<div style = "background-color: rgb(240, 225, 95)"">
 		<b style="font-weight: bold;">CAPABILITIES</b>:
-	</div>	
+	</div>
 	<div>
-		 <b>Fridge</b>: 
+		 <b>Fridge</b>:
 		 <ul>
 			<li>Crescentine: K1</li>
 			<li>Pizze: K2</li>
