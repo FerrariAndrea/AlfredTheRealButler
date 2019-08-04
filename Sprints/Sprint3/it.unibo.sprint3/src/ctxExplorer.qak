@@ -64,6 +64,8 @@ QActor explorer context ctxExplorer{
 				  whenEvent   clear -> clearingRoom
 				  //qui handleStop -> stopped
 	
+	// ------------------ MACRO COMMANDS ------------------
+	
 	State addingFood {
 		//SI DEVE AGGIUNGERE IL PAYLOAD, OVVERO SE SI AGGIUNGE IL TIPO 1 DI CIBO (PIZZA) OPPURE IL TIPO 2 (CRESCENTINA)
 		//COSA FA QUESTO TASK?
@@ -84,6 +86,8 @@ QActor explorer context ctxExplorer{
 		["clearing = true"]
 		//PRENDERE CIBO DAL TAVOLO, PORTARLO AL FRIGO E I PIATTI NEL DISHWASHER
 	} Goto goToTable
+	
+	// ------------------ REACH OBJECTS ------------------
 	
 	State goToFridge {
 		solve( direction(D) )   
@@ -107,8 +111,10 @@ QActor explorer context ctxExplorer{
 		solve( direction(D) )   
    		println("Actor: Explorer; State: goToDishwasher; Payload: direction at start: ${getCurSol(\"D\").toString()}")
 		run itunibo.planner.plannerUtil.showMap()		
-		run itunibo.planner.plannerUtil.setGoal(5,3)
-		["goingHome=false"]	
+		run itunibo.planner.plannerUtil.setGoal(4,5)
+		["goingHome=false
+		  clearing=false
+		"]	
 		run itunibo.planner.moveUtils.doPlan( myself )
 	} Goto executePlannedActions  if "itunibo.planner.moveUtils.existPlan()" else endOfJob
 	
@@ -161,24 +167,14 @@ QActor explorer context ctxExplorer{
  	
  	State goalOk{		  
  		println("Explorer: on the target cell!")
- 		delay 3000
+ 		delay 2000 // to simulate the action
  	} Goto checkAddingFood
  	
  	// Nota di Luca: E' l'unico modo per fare dei controlli innestati (come uno switch case).
- 	State checkAddingFood {
- 	} Goto goToTable if "addingFood" else checkPreparingRoom
- 	
- 	State checkPreparingRoom {
- 		
- 	} Goto goToTable if "preparing" else checkClearingRoom
- 	
- 	State checkClearingRoom {
- 		
- 	} Goto goToDishwasher if "clearing" else checkGoingHome
- 	
- 	State checkGoingHome {
- 	}
- 	Goto atHome if "goingHome" else goHome
+ 	State checkAddingFood {} Goto goToTable if "addingFood" else checkPreparingRoom
+ 	State checkPreparingRoom {} Goto goToTable if "preparing" else checkClearingRoom
+ 	State checkClearingRoom {} Goto goToDishwasher if "clearing" else checkGoingHome
+ 	State checkGoingHome {} Goto atHome if "goingHome" else goHome
  	
 	State doTheMove{
 		if "Move==\"a\" || Move==\"d\" " {//ROTATION			
