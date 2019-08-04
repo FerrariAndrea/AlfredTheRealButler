@@ -22,6 +22,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				var DistanzaMinima :Long =10
 				val StepValue : Long =25
 				val DistanzaCella : Long =25
+				val MenoUno : Int =-1
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -67,7 +68,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				}	 
 				state("doMoveForward") { //this:State
 					action { //it:State
-						forward("internalRobotReq", "internalRobotReq(ws,$StepTime)" ,"basicrobot" ) 
+						forward("internalRobotReq", "internalRobotReq(ws,$StepTime,$MenoUno,$MenoUno)" ,"basicrobot" ) 
 						forward("modelUpdate", "modelUpdate(robot,w)" ,"resourcemodel" ) 
 						itunibo.planner.plannerUtil.startTimer(  )
 					}
@@ -120,7 +121,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						println("goBackFromFail")
 						val DurationInt :Int= (Duration/StepValue).toInt()
 						forward("modelUpdate", "modelUpdate(robot,s)" ,"resourcemodel" ) 
-						forward("internalRobotReq", "internalRobotReq(ss,$DurationInt)" ,"basicrobot" ) 
+						forward("internalRobotReq", "internalRobotReq(ss,$DurationInt,$MenoUno,$MenoUno)" ,"basicrobot" ) 
 					}
 					 transition(edgeName="t035",targetState="endGoBackFormFail",cond=whenEvent("internalRobotRes"))
 				}	 
@@ -133,7 +134,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				}	 
 				state("manualFix") { //this:State
 					action { //it:State
-						forward("internalRobotReq", "internalRobotReq(dm,10)" ,"basicrobot" ) 
+						forward("internalRobotReq", "internalRobotReq(dm,10,$MenoUno,$MenoUno)" ,"basicrobot" ) 
 					}
 					 transition(edgeName="t036",targetState="endCorrezioneRotta",cond=whenEvent("internalRobotRes"))
 				}	 

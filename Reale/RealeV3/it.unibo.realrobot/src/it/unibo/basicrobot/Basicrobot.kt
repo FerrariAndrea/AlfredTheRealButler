@@ -15,6 +15,7 @@ class Basicrobot ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 	}
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
+		val MotorWorkTime :Int =20;val MotorSleepTime :Int =10;
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -38,13 +39,18 @@ class Basicrobot ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 						if( checkMsgContent( Term.createTerm("robotCmd(CMD)"), Term.createTerm("robotCmd(MOVE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								val NonStep =0
-								surpluss.motorsSupport.askToMotors( "msg(${payloadArg(0)})", NonStep  )
+								surpluss.motorsSupport.askToMotors( "msg(${payloadArg(0)})"  )
 						}
-						if( checkMsgContent( Term.createTerm("internalRobotReq(CMD,STEPS)"), Term.createTerm("internalRobotReq(MOVE,STEP)"), 
+						if( checkMsgContent( Term.createTerm("internalRobotReq(CMD,STEPS,WT,ST)"), Term.createTerm("internalRobotReq(MOVE,STEP,WT,ST)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								val Step= payloadArg(1).toInt()
-								println("msg(${payloadArg(0)}) $Step")
-								surpluss.motorsSupport.askToMotors( "msg(${payloadArg(0)})", Step  )
+								val WT= payloadArg(2).toInt()
+								val ST= payloadArg(3).toInt()
+								if(WT<0 || ST <0){ surpluss.motorsSupport.askToMotors( "msg(${payloadArg(0)})", Step, MotorWorkTime, MotorSleepTime  )
+								 }
+								else
+								 { surpluss.motorsSupport.askToMotors( "msg(${payloadArg(0)})", Step, WT, ST  )
+								  }
 						}
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )

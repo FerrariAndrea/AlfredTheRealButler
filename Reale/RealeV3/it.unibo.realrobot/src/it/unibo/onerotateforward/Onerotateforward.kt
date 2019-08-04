@@ -17,7 +17,7 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
 				val RotateTime = 1L
-				val CompleteRotateTimeA = 450L
+				val CompleteRotateTimeA = 400L
 				val CompleteRotateTimeD = 450L
 				val ErroreConcesso : Int = 2
 				val SogliaDiScarto : Int = 20 //per evitare errori dovuti ad esempio al tavolo in mezzo alla stanza
@@ -84,10 +84,10 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 				state("doRotationForward") { //this:State
 					action { //it:State
 						delay(80) 
-						if(RealMove=="a"){ forward("internalRobotReq", "internalRobotReq(as,$CompleteRotateTimeA)" ,"basicrobot" ) 
+						if(RealMove=="a"){ forward("internalRobotReq", "internalRobotReq(as,1,$CompleteRotateTimeA,0)" ,"basicrobot" ) 
 						forward("modelUpdate", "modelUpdate(robot,a)" ,"resourcemodel" ) 
 						 }
-						if(RealMove=="d"){ forward("internalRobotReq", "internalRobotReq(ds,$CompleteRotateTimeD)" ,"basicrobot" ) 
+						if(RealMove=="d"){ forward("internalRobotReq", "internalRobotReq(ds,1,$CompleteRotateTimeD,0)" ,"basicrobot" ) 
 						forward("modelUpdate", "modelUpdate(robot,d)" ,"resourcemodel" ) 
 						 }
 					}
@@ -161,11 +161,11 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 				}	 
 				state("miniRotate") { //this:State
 					action { //it:State
-						if(Arotate){ forward("internalRobotReq", "internalRobotReq(am,2)" ,"basicrobot" ) 
+						if(Arotate){ forward("internalRobotReq", "internalRobotReq(am,1,2,0)" ,"basicrobot" ) 
 						forward("modelUpdate", "modelUpdate(robot,a)" ,"resourcemodel" ) 
 						 }
 						else
-						 { forward("internalRobotReq", "internalRobotReq(dm,2)" ,"basicrobot" ) 
+						 { forward("internalRobotReq", "internalRobotReq(dm,1,2,0)" ,"basicrobot" ) 
 						 forward("modelUpdate", "modelUpdate(robot,d)" ,"resourcemodel" ) 
 						  }
 					}

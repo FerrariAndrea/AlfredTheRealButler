@@ -17,25 +17,57 @@ class Realforntsonar ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 			
 				var ActualTimer : Long = 80
+				var PollingModeOn =true
+				var NeedAck =true
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
 						surpluss.pollingSonar.instance(  )
 						println("Start realSonar")
-						stateTimer = TimerActor("timer_s0", 
-							scope, context!!, "local_tout_realforntsonar_s0", ActualTimer )
 					}
-					 transition(edgeName="t043",targetState="doNotifyAll",cond=whenTimeout("local_tout_realforntsonar_s0"))   
+					 transition( edgeName="goto",targetState="pollingMode", cond=doswitchGuarded({PollingModeOn}) )
+					transition( edgeName="goto",targetState="reqResMode", cond=doswitchGuarded({! PollingModeOn}) )
+				}	 
+				state("pollingMode") { //this:State
+					action { //it:State
+						stateTimer = TimerActor("timer_pollingMode", 
+							scope, context!!, "local_tout_realforntsonar_pollingMode", ActualTimer )
+					}
+					 transition(edgeName="t043",targetState="doNotifyAll",cond=whenTimeout("local_tout_realforntsonar_pollingMode"))   
+					transition(edgeName="t044",targetState="changeMode",cond=whenDispatch("internalSonarChangeMode"))
+				}	 
+				state("changeMode") { //this:State
+					action { //it:State
+						storeCurrentMessageForReply()
+						if( checkMsgContent( Term.createTerm("internalSonarChangeMode(MODE)"), Term.createTerm("internalSonarChangeMode(MODE)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								val MODE: Int = Integer.parseInt( payloadArg(0) ) 
+								if(MODE==0){ PollingModeOn=true;NeedAck=true;
+								 }
+								else
+								 { PollingModeOn=false
+								  }
+						}
+					}
+					 transition( edgeName="goto",targetState="pollingMode", cond=doswitchGuarded({PollingModeOn}) )
+					transition( edgeName="goto",targetState="reqResMode", cond=doswitchGuarded({! PollingModeOn}) )
 				}	 
 				state("doNotifyAll") { //this:State
 					action { //it:State
 						val Distance = surpluss.pollingSonar.askToSonar().toInt()
 						if(Distance>0){ emit("sonarRobot", "sonar($Distance)" ) 
 						 }
-						stateTimer = TimerActor("timer_doNotifyAll", 
-							scope, context!!, "local_tout_realforntsonar_doNotifyAll", ActualTimer )
 					}
-					 transition(edgeName="t144",targetState="doNotifyAll",cond=whenTimeout("local_tout_realforntsonar_doNotifyAll"))   
+					 transition( edgeName="goto",targetState="pollingMode", cond=doswitchGuarded({PollingModeOn}) )
+					transition( edgeName="goto",targetState="reqResMode", cond=doswitchGuarded({! PollingModeOn}) )
+				}	 
+				state("reqResMode") { //this:State
+					action { //it:State
+						if(NeedAck){ replyToCaller("internalSonarChangeMode", "internalSonarChangeMode(2)")
+						 }
+					}
+					 transition(edgeName="t045",targetState="changeMode",cond=whenDispatch("internalSonarChangeMode"))
+					transition(edgeName="t046",targetState="doNotifyAll",cond=whenDispatch("internalSonarReq"))
 				}	 
 			}
 		}
