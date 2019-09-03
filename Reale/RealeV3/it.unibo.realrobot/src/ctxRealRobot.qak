@@ -10,8 +10,8 @@ Event  polar          : p( Distance, Angle )
 Event  sonarLeft     : sonarLeft( DISTANCE )
 Event  sonarRigth     : sonarRigth( DISTANCE )
 
-Dispatch internalSonarChangeMode   : internalSonarChangeMode( MODE ) //0-->set polling 1-->set req-res 2-->ACK
 Dispatch internalSonarReq   : internalSonarReq( V ) 
+Dispatch internalSonarRes   : internalSonarRes( SonarW,SonarL,SonarR ) 
 
 Event internalRobotRes     : internalRobotRes(V)
 
@@ -135,6 +135,70 @@ QActor basicrobot context ctxRobot{
 		}
 	}
 	Goto waitCmd 
+}
+
+QActor sonarcollector context ctxRobot{
+	
+	//Dispatch internalSonarReq   : internalSonarReq( V ) 
+	//Dispatch internalSonarRes   : internalSonarRes( SonarW,SonarL,SonarR ) 
+	["
+		val minCount = 3
+		var SonarW :IntArray= IntArray(3)
+		var SonarL :IntArray= IntArray(3)
+		var SonarR :IntArray= IntArray(3)
+		var CountW :Int=0
+		var CountL :Int=0
+		var CountR :Int=0
+	"]
+	State s0 initial {
+		println("Start sonarcollector")		
+	}Transition t0 whenMsg internalSonarReq ->  handleReq
+	
+	State handleReq{
+		["
+			storeCurrentMessageForReply()
+			 CountW =0
+			 CountL =0
+			 CountR =0
+		"]	
+	}Goto needCollect
+	
+	State collect{
+		onMsg ( sonarRobot : sonar( DISTANCE ) ){ 
+			if "CountW<minCount"{  
+				["SonarW[CountW]=payloadArg(0).toInt();CountW++;"]
+			}
+ 		}
+ 		onMsg ( sonarLeft : sonarLeft( DISTANCE ) ){ 
+ 			if "CountL<minCount"{
+ 				["SonarL[CountL]=payloadArg(0).toInt();CountL++;"]
+ 			}
+ 		
+ 		}
+ 		onMsg ( sonarRigth : sonarRigth( DISTANCE ) ){
+ 			if "CountR<minCount"{  
+				["SonarR[CountR]=payloadArg(0).toInt();CountR++;"]				
+			}
+ 		}
+	}Goto response if "(CountW>=minCount && CountL>=minCount && CountR>=minCount)" else needCollect
+	
+	State needCollect{
+		
+	}Transition t0 whenEvent sonarRobot ->  collect
+					 whenEvent sonarLeft ->  collect
+					  whenEvent sonarRigth ->  collect
+					  
+	State response{
+		["		
+ 			SonarW.sort();SonarR.sort(); SonarL.sort()
+			val medianaW = SonarW[minCount/3]
+			val medianaR = SonarR[minCount/3]
+			val medianaL = SonarL[minCount/3]
+			replyToCaller(\"internalSonarRes\", \"internalSonarRes($medianaW,$medianaR,$medianaL)\")
+		"]
+		
+	}Transition t0 whenMsg internalSonarReq ->  handleReq
+
 }
 
 QActor sonarhandler context ctxRobot {
@@ -358,15 +422,22 @@ QActor onerotateforward context ctxRobot {
 
 QActor onecellforward context ctxRobot {
 	["
+		val WorkTime : Long =40 //ms
+		val SleepTime : Long =10 //ms
+		val DistanzaCella : Long =25 //cm
+
 		var FoundObstacle = false
 		var StepTime = 0L
 		var Duration : Long =0
 		var DistanzaMinima :Long =10
-		val WorkTime : Long =20 //ms
-		val SleepTime : Long =10 //ms
-		val DistanzaCella : Long =25 //cm
-		val MenoUno : Int =-1 //da buttare
+		
 		var ActualStep : Int =0
+		var ActualL : Int =0
+		var ActualR : Int =0
+		var L : Int =-1
+		var R : Int =-1
+		var DeviazioneL: Int=0
+		var DeviazioneR: Int=0
 	"]  
 	State s0 initial {	   		
 		println("Start onecellforward")
@@ -384,90 +455,122 @@ QActor onecellforward context ctxRobot {
 		onMsg( onestep : onestep( TIME ) ) {
 			["StepTime = payloadArg(0).toLong()"]
 		}
-		forward sonarhandler -m internalReq : internalReq(lastSonarRobot)
-	}Transition t0 whenMsg lastSonarRobot  -> waitingForcheckFirstSonar
+		forward sonarcollector -m internalSonarReq : internalSonarReq(V)
+	}Transition t0 whenMsg internalSonarRes  -> waitingForcheckFirstSonar
 	
 	State waitingForcheckFirstSonar{
-		onMsg ( lastSonarRobot : lastSonarRobot( DISTANCE ) ){     
-			["var distance = Integer.parseInt( payloadArg(0) ) 
-              FoundObstacle = (distance<DistanzaCella) "] 
-               if"FoundObstacle"{
-              	  ["replyToCaller(\"stepFail\", \"stepFail(obstacle,$distance) \")"]
+		onMsg ( internalSonarRes : internalSonarRes( W,L,R ) ){     
+			["
+				val W = Integer.parseInt( payloadArg(0) ) 
+				ActualL = Integer.parseInt( payloadArg(1) ) 
+				ActualR = Integer.parseInt( payloadArg(2) ) 
+				FoundObstacle=W<DistanzaMinima
+				DeviazioneL=0
+				DeviazioneR=0
+            "]  
+             if"FoundObstacle"{
+              	  ["replyToCaller(\"stepFail\", \"stepFail(obstacle,$W) \")"]
 				println("Actor: OneStepForward; State:cantDoOneStep")	
               }else{              	
-              	println("Actor: OneStepForward; State: OK-> $distance")	
+              	println("Actor: OneStepForward; State: OK-> $W")	
               }
-              
-              
-   		}
+            }
    		["ActualStep=0"]
 	}Goto ready if "FoundObstacle" else doMoveForward
 
 	State doMoveForward{
+			println("doMoveForward")
 			["ActualStep=ActualStep+1"]	
-			forward basicrobot -m internalRobotReq :  internalRobotReq( ws, 1,$WorkTime,$SleepTime )
+			forward basicrobot -m internalRobotReq :  internalRobotReq( ws, 2,$WorkTime,$SleepTime )
 			forward resourcemodel -m modelUpdate : modelUpdate(robot,w)	
 	}Transition t0 whenEvent internalRobotRes  -> checkFinish
 	
 	State checkFinish{
-	}Goto mustGoOn if "ActualStep<StepTime" else endDoMoveForward
+			println("checkFinish")
+	}Goto mustGoOn if "(ActualStep<StepTime)" else endDoMoveForward
 	
 	  State mustGoOn{
-	  	
-	  }Transition t0
-		whenEvent internalRobotRes  -> endDoMoveForward	
-		whenEvent sonarRobot  -> handleSonarRobot	
+	  	println("mustGoOn")
+	  	forward sonarcollector -m internalSonarReq : internalSonarReq(V)
+	  }Transition t0 whenEvent internalSonarRes  -> checkMove	
 		
+	State checkMove{
+			println("checkMove")
+		onMsg ( internalSonarRes : internalSonarRes( W,L,R ) ){     
+			["
+				val W = Integer.parseInt( payloadArg(0) ) 
+				ActualL = Integer.parseInt( payloadArg(1) ) 
+				ActualR = Integer.parseInt( payloadArg(2) ) 
+				FoundObstacle=W<DistanzaMinima
+				DeviazioneL=0
+				DeviazioneR=0
+            "]  
+            println("checkMove $W $ActualR $ActualL")
+            if"ActualL<ActualR"{
+            	if "L<0" {
+            		["L=ActualL"]
+	            }else{
+	            	["DeviazioneL=L-ActualL"]
+	            }
+            }else{
+            	 if "R<0" {
+            		["R=ActualR"]
+	            }else{
+	            	["DeviazioneR=R-ActualR"]
+	            }
+            }
+            
+            
+  		}
+	}Goto fixMove if "(DeviazioneL!=0 || DeviazioneR!=0)" else checkFail
+	
+	State fixMove{
+		println("fixMove")		
+		if "DeviazioneL>0 || DeviazioneR<0"  {
+			//a
+			["ActualStep=ActualStep+1"]	
+			forward basicrobot -m internalRobotReq :  internalRobotReq( am,2,$WorkTime,$SleepTime )			
+		}else{
+			//d	
+			["ActualStep=ActualStep+1"]	
+			forward basicrobot -m internalRobotReq :  internalRobotReq( dm, 2,$WorkTime,$SleepTime )			
+		}
+	}Goto checkFail
+	
+	State checkFail{
+		println("checkFail")		
+	}Goto stepFail if "FoundObstacle" else doMoveForward
+	
 	State endDoMoveForward{
 		println("endDoMoveForward")
 		//setp in avanti ok quindi salvo sulla kb
 		forward kb -m modelUpdate : modelUpdate(  robot,  w)  
-		//aggiusto la rotta
-		//forward onerotateforward -m onerotationstep : onerotationstep(Z) 
-		
+		["replyToCaller(\"stepOk\", \"stepOk(ok)\")"]	
 	}//Transition t0 whenEvent rotationOk  -> endCorrezioneRotta	
-	Goto endCorrezioneRotta//manualFix
-	
-	State endCorrezioneRotta{
-			["replyToCaller(\"stepOk\", \"stepOk(ok)\")"]		
-	}Goto ready
-	
-	State handleSonarRobot{  	
+	Goto ready
 		
-		
- 		onMsg ( sonarRobot : sonar( DISTANCE ) ){     
-			["val distance = Integer.parseInt( payloadArg(0) ) 
-              FoundObstacle = (distance<DistanzaMinima) "]  
-              if "FoundObstacle"{
-	 			run itunibo.planner.moveUtils.setDuration(myself)
-              }
-  		}
-	}	
-	Goto stepFail if "FoundObstacle" else mustGoOn
-	
 	State stepFail{	
 		forward resourcemodel -m modelChange : modelChange(robot,h)
-		solve( wduration( TIME ) )
-		["Duration=getCurSol(\"TIME\").toString().toLong()"]	
-		delay 250
 	}Goto goBackFromFail
 	
 	State goBackFromFail{
 		println("goBackFromFail")
-		forward resourcemodel -m modelUpdate : modelUpdate(robot,s)	
-		forward basicrobot -m internalRobotReq :  internalRobotReq( ss, $ActualStep,$WorkTime,$SleepTime )
-	
+		if "ActualStep>0" {
+			forward resourcemodel -m modelUpdate : modelUpdate(robot,s)	
+			forward basicrobot -m internalRobotReq :  internalRobotReq( ss, $ActualStep,$WorkTime,$SleepTime )
+		}else{
+			forward resourcemodel -m modelUpdate : modelUpdate(robot,s)
+			forward basicrobot -m internalRobotReq :  internalRobotReq(ss,1,10,100)		
+		}
+		
 	}Transition t0 whenEvent internalRobotRes  -> endGoBackFormFail	
 	
 	State endGoBackFormFail{		
 		println("endGoBackFormFail")
+		forward resourcemodel -m modelChange : modelChange(robot,h)
 		["replyToCaller(\"stepFail\", \"stepFail(obstacle,$Duration) \")"]		
 	}Goto ready
 	
-	State manualFix{
-		forward basicrobot -m internalRobotReq :  internalRobotReq( dm, 10,$MenoUno,$MenoUno )		
-	}Transition t0 whenEvent internalRobotRes  -> endCorrezioneRotta
-		
 	
 }
 
@@ -570,22 +673,17 @@ QActor leds context ctxRobot {
 QActor realforntsonar context ctxRobot{
 	["	
 		var ActualTimer : Long = 80
-		var PollingModeOn =true
-		var NeedAck =true
+		//var PollingModeOn =true
+		//var NeedAck =true
 	"]
 	State s0 initial {	
 		run surpluss.pollingSonar.instance()
 		println("Start realSonar") 
-	}Goto pollingMode if "PollingModeOn" else reqResMode
+	}Transition t0  whenTimeVar  ActualTimer -> doNotifyAll
+	//Goto pollingMode if "PollingModeOn" else reqResMode
 	
-	
-	State pollingMode{
-		/*
-		 * ["storeCurrentMessageForReply()"]	
-		 * ["replyToCaller(\"rotationOk\", \"rotationOk(0)\")"]
-		 Dispatch internalSonarChangeMode   : internalSonarChangeMode( MODE ) //0-->set polling 1-->set req-res 2-->ACK
-		Dispatch internalSonarReq   : internalSonarReq( V )
-		  */
+	/*
+	State pollingMode{	
 	}Transition t0  whenTimeVar  ActualTimer -> doNotifyAll
 					whenMsg internalSonarChangeMode -> changeMode
 	
@@ -600,28 +698,28 @@ QActor realforntsonar context ctxRobot{
               }
   		}
 	}Goto pollingMode if "PollingModeOn" else reqResMode
-	
+	 */
 	State doNotifyAll{
 		["val Distance = surpluss.pollingSonar.askToSonar().toInt()"]
 		if"Distance>0"{			
 			emit sonarRobot : sonar($Distance)
 		}		
-	}Goto pollingMode if "PollingModeOn" else reqResMode
+	}Transition t0  whenTimeVar  ActualTimer -> doNotifyAll
+	//Goto pollingMode if "PollingModeOn" else reqResMode
 	
-	
+	/*
 	State reqResMode{
 		if "NeedAck"{
 				["replyToCaller(\"internalSonarChangeMode\", \"internalSonarChangeMode(2)\")"]
 		}	
 	}Transition t0  whenMsg internalSonarChangeMode -> changeMode
 					whenMsg internalSonarReq -> doNotifyAll
-	
-	
+	*/
 }
 
 QActor reallateralsonar context ctxRobot{
 	["	
-		var ActualTimer : Long = 250
+		var ActualTimer : Long = 80
 	"]
 	State s0 initial {	
 		run surpluss.pollingSonar.instance()

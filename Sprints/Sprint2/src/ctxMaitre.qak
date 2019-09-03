@@ -92,7 +92,6 @@ QActor maitre context ctxMaitre {
 			println("Errore-->Impossiible ottenere la posizione attuale del robot.")	
 		}
 	}Goto next  if "(iter<=2)" else end
-	
 	State end{
 		
 			println("Sprint2 END :)")

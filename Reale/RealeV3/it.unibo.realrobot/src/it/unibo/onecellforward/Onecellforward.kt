@@ -16,15 +16,22 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
+				val WorkTime : Long =40 //ms
+				val SleepTime : Long =10 //ms
+				val DistanzaCella : Long =25 //cm
+		
 				var FoundObstacle = false
 				var StepTime = 0L
 				var Duration : Long =0
 				var DistanzaMinima :Long =10
-				val WorkTime : Long =20 //ms
-				val SleepTime : Long =10 //ms
-				val DistanzaCella : Long =25 //cm
-				val MenoUno : Int =-1 //da buttare
+				
 				var ActualStep : Int =0
+				var ActualL : Int =0
+				var ActualR : Int =0
+				var L : Int =-1
+				var R : Int =-1
+				var DeviazioneL: Int=0
+				var DeviazioneR: Int=0
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -36,7 +43,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 					action { //it:State
 						println("ready!!")
 					}
-					 transition(edgeName="t031",targetState="checkFirst",cond=whenDispatch("onestep"))
+					 transition(edgeName="t036",targetState="checkFirst",cond=whenDispatch("onestep"))
 				}	 
 				state("checkFirst") { //this:State
 					action { //it:State
@@ -47,21 +54,26 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								StepTime = payloadArg(0).toLong()
 						}
-						forward("internalReq", "internalReq(lastSonarRobot)" ,"sonarhandler" ) 
+						forward("internalSonarReq", "internalSonarReq(V)" ,"sonarcollector" ) 
 					}
-					 transition(edgeName="t032",targetState="waitingForcheckFirstSonar",cond=whenDispatch("lastSonarRobot"))
+					 transition(edgeName="t037",targetState="waitingForcheckFirstSonar",cond=whenDispatch("internalSonarRes"))
 				}	 
 				state("waitingForcheckFirstSonar") { //this:State
 					action { //it:State
-						if( checkMsgContent( Term.createTerm("lastSonarRobot(DISATNCE)"), Term.createTerm("lastSonarRobot(DISTANCE)"), 
+						if( checkMsgContent( Term.createTerm("internalSonarRes(SonarW,SonarL,SonarR)"), Term.createTerm("internalSonarRes(W,L,R)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								var distance = Integer.parseInt( payloadArg(0) ) 
-								              FoundObstacle = (distance<DistanzaCella) 
-								if(FoundObstacle){ replyToCaller("stepFail", "stepFail(obstacle,$distance) ")
+								
+												val W = Integer.parseInt( payloadArg(0) ) 
+												ActualL = Integer.parseInt( payloadArg(1) ) 
+												ActualR = Integer.parseInt( payloadArg(2) ) 
+												FoundObstacle=W<DistanzaMinima
+												DeviazioneL=0
+												DeviazioneR=0
+								if(FoundObstacle){ replyToCaller("stepFail", "stepFail(obstacle,$W) ")
 								println("Actor: OneStepForward; State:cantDoOneStep")
 								 }
 								else
-								 { println("Actor: OneStepForward; State: OK-> $distance")
+								 { println("Actor: OneStepForward; State: OK-> $W")
 								  }
 						}
 						ActualStep=0
@@ -71,79 +83,112 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				}	 
 				state("doMoveForward") { //this:State
 					action { //it:State
+						println("doMoveForward")
 						ActualStep=ActualStep+1
-						forward("internalRobotReq", "internalRobotReq(ws,1,$WorkTime,$SleepTime)" ,"basicrobot" ) 
+						forward("internalRobotReq", "internalRobotReq(ws,2,$WorkTime,$SleepTime)" ,"basicrobot" ) 
 						forward("modelUpdate", "modelUpdate(robot,w)" ,"resourcemodel" ) 
 					}
-					 transition(edgeName="t033",targetState="checkFinish",cond=whenEvent("internalRobotRes"))
+					 transition(edgeName="t038",targetState="checkFinish",cond=whenEvent("internalRobotRes"))
 				}	 
 				state("checkFinish") { //this:State
 					action { //it:State
+						println("checkFinish")
 					}
-					 transition( edgeName="goto",targetState="mustGoOn", cond=doswitchGuarded({ActualStep<StepTime}) )
-					transition( edgeName="goto",targetState="endDoMoveForward", cond=doswitchGuarded({! ActualStep<StepTime}) )
+					 transition( edgeName="goto",targetState="mustGoOn", cond=doswitchGuarded({(ActualStep<StepTime)}) )
+					transition( edgeName="goto",targetState="endDoMoveForward", cond=doswitchGuarded({! (ActualStep<StepTime)}) )
 				}	 
 				state("mustGoOn") { //this:State
 					action { //it:State
+						println("mustGoOn")
+						forward("internalSonarReq", "internalSonarReq(V)" ,"sonarcollector" ) 
 					}
-					 transition(edgeName="t034",targetState="endDoMoveForward",cond=whenEvent("internalRobotRes"))
-					transition(edgeName="t035",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
+					 transition(edgeName="t039",targetState="checkMove",cond=whenEvent("internalSonarRes"))
+				}	 
+				state("checkMove") { //this:State
+					action { //it:State
+						println("checkMove")
+						if( checkMsgContent( Term.createTerm("internalSonarRes(SonarW,SonarL,SonarR)"), Term.createTerm("internalSonarRes(W,L,R)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								
+												val W = Integer.parseInt( payloadArg(0) ) 
+												ActualL = Integer.parseInt( payloadArg(1) ) 
+												ActualR = Integer.parseInt( payloadArg(2) ) 
+												FoundObstacle=W<DistanzaMinima
+												DeviazioneL=0
+												DeviazioneR=0
+								println("checkMove $W $ActualR $ActualL")
+								if(ActualL<ActualR){ if(L<0){ L=ActualL
+								 }
+								else
+								 { DeviazioneL=L-ActualL
+								  }
+								 }
+								else
+								 { if(R<0){ R=ActualR
+								  }
+								 else
+								  { DeviazioneR=R-ActualR
+								   }
+								  }
+						}
+					}
+					 transition( edgeName="goto",targetState="fixMove", cond=doswitchGuarded({(DeviazioneL!=0 || DeviazioneR!=0)}) )
+					transition( edgeName="goto",targetState="checkFail", cond=doswitchGuarded({! (DeviazioneL!=0 || DeviazioneR!=0)}) )
+				}	 
+				state("fixMove") { //this:State
+					action { //it:State
+						println("fixMove")
+						if(DeviazioneL>0 || DeviazioneR<0){ ActualStep=ActualStep+1
+						forward("internalRobotReq", "internalRobotReq(am,2,$WorkTime,$SleepTime)" ,"basicrobot" ) 
+						 }
+						else
+						 { ActualStep=ActualStep+1
+						 forward("internalRobotReq", "internalRobotReq(dm,2,$WorkTime,$SleepTime)" ,"basicrobot" ) 
+						  }
+					}
+					 transition( edgeName="goto",targetState="checkFail", cond=doswitch() )
+				}	 
+				state("checkFail") { //this:State
+					action { //it:State
+						println("checkFail")
+					}
+					 transition( edgeName="goto",targetState="stepFail", cond=doswitchGuarded({FoundObstacle}) )
+					transition( edgeName="goto",targetState="doMoveForward", cond=doswitchGuarded({! FoundObstacle}) )
 				}	 
 				state("endDoMoveForward") { //this:State
 					action { //it:State
 						println("endDoMoveForward")
 						forward("modelUpdate", "modelUpdate(robot,w)" ,"kb" ) 
-					}
-					 transition( edgeName="goto",targetState="endCorrezioneRotta", cond=doswitch() )
-				}	 
-				state("endCorrezioneRotta") { //this:State
-					action { //it:State
 						replyToCaller("stepOk", "stepOk(ok)")
 					}
 					 transition( edgeName="goto",targetState="ready", cond=doswitch() )
 				}	 
-				state("handleSonarRobot") { //this:State
-					action { //it:State
-						if( checkMsgContent( Term.createTerm("sonar(DISTANCE)"), Term.createTerm("sonar(DISTANCE)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								val distance = Integer.parseInt( payloadArg(0) ) 
-								              FoundObstacle = (distance<DistanzaMinima) 
-								if(FoundObstacle){ itunibo.planner.moveUtils.setDuration(myself)
-								 }
-						}
-					}
-					 transition( edgeName="goto",targetState="stepFail", cond=doswitchGuarded({FoundObstacle}) )
-					transition( edgeName="goto",targetState="mustGoOn", cond=doswitchGuarded({! FoundObstacle}) )
-				}	 
 				state("stepFail") { //this:State
 					action { //it:State
 						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
-						solve("wduration(TIME)","") //set resVar	
-						Duration=getCurSol("TIME").toString().toLong()
-						delay(250) 
 					}
 					 transition( edgeName="goto",targetState="goBackFromFail", cond=doswitch() )
 				}	 
 				state("goBackFromFail") { //this:State
 					action { //it:State
 						println("goBackFromFail")
-						forward("modelUpdate", "modelUpdate(robot,s)" ,"resourcemodel" ) 
+						if(ActualStep>0){ forward("modelUpdate", "modelUpdate(robot,s)" ,"resourcemodel" ) 
 						forward("internalRobotReq", "internalRobotReq(ss,$ActualStep,$WorkTime,$SleepTime)" ,"basicrobot" ) 
+						 }
+						else
+						 { forward("modelUpdate", "modelUpdate(robot,s)" ,"resourcemodel" ) 
+						 forward("internalRobotReq", "internalRobotReq(ss,1,10,100)" ,"basicrobot" ) 
+						  }
 					}
-					 transition(edgeName="t036",targetState="endGoBackFormFail",cond=whenEvent("internalRobotRes"))
+					 transition(edgeName="t040",targetState="endGoBackFormFail",cond=whenEvent("internalRobotRes"))
 				}	 
 				state("endGoBackFormFail") { //this:State
 					action { //it:State
 						println("endGoBackFormFail")
+						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
 						replyToCaller("stepFail", "stepFail(obstacle,$Duration) ")
 					}
 					 transition( edgeName="goto",targetState="ready", cond=doswitch() )
-				}	 
-				state("manualFix") { //this:State
-					action { //it:State
-						forward("internalRobotReq", "internalRobotReq(dm,10,$MenoUno,$MenoUno)" ,"basicrobot" ) 
-					}
-					 transition(edgeName="t037",targetState="endCorrezioneRotta",cond=whenEvent("internalRobotRes"))
 				}	 
 			}
 		}

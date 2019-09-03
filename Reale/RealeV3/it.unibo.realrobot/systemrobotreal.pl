@@ -8,6 +8,7 @@ context(ctxdummy, "dummyhost",  "MQTT", "0" ).
   qactor( resourcemodel, ctxdummy, "external").
   qactor( mindrobot, ctxrobot, "it.unibo.mindrobot.Mindrobot").
   qactor( basicrobot, ctxrobot, "it.unibo.basicrobot.Basicrobot").
+  qactor( sonarcollector, ctxrobot, "it.unibo.sonarcollector.Sonarcollector").
   qactor( sonarhandler, ctxrobot, "it.unibo.sonarhandler.Sonarhandler").
   qactor( onerotateforward, ctxrobot, "it.unibo.onerotateforward.Onerotateforward").
   qactor( onecellforward, ctxrobot, "it.unibo.onecellforward.Onecellforward").

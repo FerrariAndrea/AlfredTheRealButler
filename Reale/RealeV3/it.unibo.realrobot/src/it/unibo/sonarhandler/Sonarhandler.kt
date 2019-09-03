@@ -23,7 +23,7 @@ class Sonarhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 					action { //it:State
 						println("Start Sonarhandler")
 					}
-					 transition(edgeName="t05",targetState="handleSonar",cond=whenEvent("sonarRobot"))
+					 transition(edgeName="t010",targetState="handleSonar",cond=whenEvent("sonarRobot"))
 				}	 
 				state("handleSonar") { //this:State
 					action { //it:State
@@ -51,11 +51,11 @@ class Sonarhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 								forward("lastSonarRobot", "lastSonarRobot($LastSonarRobot)" ,"onecellforward" ) 
 						}
 					}
-					 transition(edgeName="t06",targetState="handleSonar",cond=whenEvent("sonar"))
-					transition(edgeName="t07",targetState="handleSonar",cond=whenEvent("sonarRobot"))
-					transition(edgeName="t08",targetState="handleSonar",cond=whenEvent("sonarLeft"))
-					transition(edgeName="t09",targetState="handleSonar",cond=whenEvent("sonarRigth"))
-					transition(edgeName="t010",targetState="handleSonar",cond=whenDispatch("internalReq"))
+					 transition(edgeName="t011",targetState="handleSonar",cond=whenEvent("sonar"))
+					transition(edgeName="t012",targetState="handleSonar",cond=whenEvent("sonarRobot"))
+					transition(edgeName="t013",targetState="handleSonar",cond=whenEvent("sonarLeft"))
+					transition(edgeName="t014",targetState="handleSonar",cond=whenEvent("sonarRigth"))
+					transition(edgeName="t015",targetState="handleSonar",cond=whenDispatch("internalReq"))
 				}	 
 			}
 		}

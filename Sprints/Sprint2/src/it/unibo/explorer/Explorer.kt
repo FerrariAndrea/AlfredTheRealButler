@@ -22,7 +22,7 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 			var stepCounter = 0 
 			var Move = ""
 			//var StepTime   = 350L	//for virtual
-			var StepTime   = 16L	//for real
+			var StepTime   = 12L	//for real
 			var PauseTime  = 250L 
 			var Direction = "" 
 		return { //this:ActionBasciFsm
