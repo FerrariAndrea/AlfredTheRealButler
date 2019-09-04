@@ -1,6 +1,6 @@
 package itunibo.coap.observer
 /*
- resourceObserverCoapClient 
+ resourceObserverCoapClient.kt  
 */
 import java.io.BufferedReader
 import java.io.IOException
@@ -12,26 +12,35 @@ import org.eclipse.californium.core.CoapResponse
 import itunibo.outgui.outguiSupport
 import java.awt.Color
  
-object Listener : CoapHandler {
-
-	val outDev = outguiSupport.create("Resource Coap OBSERVER", Color.green)
+object resourceObserverCoapClient : CoapHandler {
+	val robotResourceAddr = "coap://localhost:5683/resourcemodel" // "coap://192.168.43.67:5683"
+	val outDev            = outguiSupport.create("Resource Coap OBSERVER", Color.green)
 	
 	override fun onLoad(response: CoapResponse?) {
 		val content = response!!.getResponseText()
 		outguiSupport.output("$content"  )
 	}
 	override fun onError() {
-		outguiSupport.output("Listener Error")
+		outguiSupport.output("resourceObserverCoapClient Error")
+	}
+	
+	fun create(resourceAddr : String = robotResourceAddr){
+		val client   = CoapClient( resourceAddr )
+		//val relation =
+			client.observe(  resourceObserverCoapClient )   
+		//relation!!.proactiveCancel()   /AT THE END
 	}
 }
 
 	fun main( ) {
-		val client = CoapClient("coap://localhost:5683/resourcemodel")
-		//val client = CoapClient("coap://192.168.43.67:5683/resourcemodel")
-// observe
+//		//val client = CoapClient("coap://localhost:5683/resourcemodel")
+//		val client = CoapClient( "${CoapHandler.hostAddr}/resourcemodel")
+//// observe
+//		val relation = client.observe(  CoapHandler )  //CoapHandler
+
+		resourceObserverCoapClient.create( "${resourceObserverCoapClient.robotResourceAddr}" )
 		println("CoapLedObserverClient.java: OBSERVE (press enter to exit)")
  
-		val relation = client.observe(  Listener )  //CoapHandler
 		 
 // After you have setup your observe relation you need to make sure your program is still doing something
 		// wait for user
@@ -39,7 +48,7 @@ object Listener : CoapHandler {
 		try {
 			br.readLine()
 			println("CoapLedObserverClient.java: CANCELLATION")
-			relation!!.proactiveCancel()
+			//relation!!.proactiveCancel()
 		} catch (e: IOException) {
 		}
 	}

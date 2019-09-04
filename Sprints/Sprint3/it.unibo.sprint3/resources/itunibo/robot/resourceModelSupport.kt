@@ -5,10 +5,10 @@ import kotlinx.coroutines.launch
 import itunibo.coap.modelResourceCoap
 
 object resourceModelSupport{
-lateinit var resourcecoap : modelResourceCoap
+lateinit var resourceFridgeCoap : modelResourceCoap
 	
 	fun setCoapResource( rescoap : modelResourceCoap ){
-		resourcecoap = rescoap
+		resourceFridgeCoap = rescoap
 	}
 	
 	fun updateRobotModel( actor: ActorBasic, content: String ){
@@ -19,7 +19,7 @@ lateinit var resourcecoap : modelResourceCoap
 			actor.scope.launch{
  				actor.emit( "modelChanged" , "modelChanged(  robot,  $content)" )  //for the robotmind
 				actor.emit( "modelContent" , "content( robot( $RobotState ) )" )
-				resourcecoap.updateState( "robot( $RobotState )" )
+				resourceFridgeCoap.updateState( "robot( $RobotState )" )
   			}
 	}	
 	fun updateSonarRobotModel( actor: ActorBasic, content: String ){
@@ -29,7 +29,7 @@ lateinit var resourcecoap : modelResourceCoap
 			//println("			resourceModelSupport updateSonarRobotModel SonarState=$SonarState")
 			actor.scope.launch{
  				actor.emit( "modelContent" , "content( sonarRobot( $SonarState ) )" )
-				resourcecoap.updateState( "sonarRobot( $SonarState )" )
+				resourceFridgeCoap.updateState( "sonarRobot( $SonarState )" )
  			}	
 	}	
  	
