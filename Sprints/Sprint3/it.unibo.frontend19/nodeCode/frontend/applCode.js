@@ -171,16 +171,21 @@ var publishMsg = function( cmd ){
 	
    	break;
   	case "stop":
-  	//var msgstr = "msg(clear,dispatch,js,missionsolver,clear(X),1)"  ;  
-  	//console.log("publishMsg forward> "+ msgstr);
-   	//mqttUtils.publish( msgstr, "unibo/qak/missionsolver" );
-   	
+		var msgstr = "msg(stop,dispatch,js,onerotateforward,stop(X),1)"  ;  
+		console.log("publishMsg forward> "+ msgstr);
+		mqttUtils.publish( msgstr, "unibo/qak/onerotateforward" );
+   		msgstr = "msg(stop,dispatch,js,onecellforward,stop(X),1)"  ;  
+		console.log("publishMsg forward> "+ msgstr);
+		mqttUtils.publish( msgstr, "unibo/qak/onecellforward" );
 	break;
   	case "resume":
-  	//var msgstr = "msg(clear,dispatch,js,missionsolver,clear(X),1)"  ;  
-  	//console.log("publishMsg forward> "+ msgstr);
-   	//mqttUtils.publish( msgstr, "unibo/qak/missionsolver" );
-   	
+		var msgstr = "msg(resume,dispatch,js,onerotateforward,resume(X),1)"  ;  
+		console.log("publishMsg forward> "+ msgstr);
+		mqttUtils.publish( msgstr, "unibo/qak/onerotateforward" );
+   		msgstr = "msg(resume,dispatch,js,onecellforward,resume(X),1)"  ;  
+		console.log("publishMsg forward> "+ msgstr);
+		mqttUtils.publish( msgstr, "unibo/qak/onecellforward" );
+		
     break;
   	default:
   	console.log("error, cmd not found in switch case publishMsg, check code.")

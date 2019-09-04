@@ -19,6 +19,9 @@ Dispatch robotCmd     : robotCmd( CMD )				  //sent by the mind to the basicrobo
 Dispatch modelChange  : modelChange( TARGET, VALUE )  //force a resource-model change
 Dispatch modelUpdate  : modelUpdate( TARGET, VALUE )  //sent by the mind
 
+Dispatch stop  : stop(V )  
+Dispatch resume  : resume( V )  
+
 
 
 Context ctxRobot ip[host="localhost" port=8038] -mqtt
@@ -125,7 +128,12 @@ QActor onerotateforward context ctxRobot {
 	
 	State ready{
 	}Transition t0 whenMsg onerotationstep -> doRotationForward
-	
+					whenMsg stop -> paused
+					
+	State paused{
+		println("onerotateforward is PAUSED")
+	}Transition t0 whenMsg resume -> ready
+		
 	State doRotationForward{		  
 
 		["storeCurrentMessageForReply()"]		
@@ -170,16 +178,19 @@ QActor onerotateforward context ctxRobot {
 QActor onecellforward context ctxRobot {
 	["var foundObstacle = false; var StepTime = 0L; var Duration : Long =0"]  
 	State s0 initial {	 
-		println("Start onecellforward")  
-		
+		println("Start onecellforward")  		
 	} Goto ready
 	
 	State ready{
-		["
-			foundObstacle = false 
-		"]	
+		["foundObstacle = false"]	
 	}
 	Transition t0 whenMsg onestep -> doMoveForward
+					whenMsg stop -> paused
+					
+	State paused{
+		println("onecellforward is PAUSED")
+	}Transition t0 whenMsg resume -> ready
+		
 
 	State doMoveForward{		 
 		["storeCurrentMessageForReply()"] 

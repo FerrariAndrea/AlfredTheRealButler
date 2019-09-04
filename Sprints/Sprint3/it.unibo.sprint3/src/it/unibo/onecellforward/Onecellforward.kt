@@ -25,10 +25,16 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				}	 
 				state("ready") { //this:State
 					action { //it:State
-						
-									foundObstacle = false 
+						foundObstacle = false
 					}
-					 transition(edgeName="t06",targetState="doMoveForward",cond=whenDispatch("onestep"))
+					 transition(edgeName="t08",targetState="doMoveForward",cond=whenDispatch("onestep"))
+					transition(edgeName="t09",targetState="paused",cond=whenDispatch("stop"))
+				}	 
+				state("paused") { //this:State
+					action { //it:State
+						println("onecellforward is PAUSED")
+					}
+					 transition(edgeName="t010",targetState="ready",cond=whenDispatch("resume"))
 				}	 
 				state("doMoveForward") { //this:State
 					action { //it:State
@@ -42,8 +48,8 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						stateTimer = TimerActor("timer_doMoveForward", 
 							scope, context!!, "local_tout_onecellforward_doMoveForward", StepTime )
 					}
-					 transition(edgeName="t07",targetState="endDoMoveForward",cond=whenTimeout("local_tout_onecellforward_doMoveForward"))   
-					transition(edgeName="t08",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
+					 transition(edgeName="t011",targetState="endDoMoveForward",cond=whenTimeout("local_tout_onecellforward_doMoveForward"))   
+					transition(edgeName="t012",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
 				}	 
 				state("endDoMoveForward") { //this:State
 					action { //it:State

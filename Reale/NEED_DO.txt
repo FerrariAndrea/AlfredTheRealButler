@@ -1,0 +1,1 @@
++modifica il onestep e il one-rotate per ascoltare lo "stop" e la "resume" come il virtuale

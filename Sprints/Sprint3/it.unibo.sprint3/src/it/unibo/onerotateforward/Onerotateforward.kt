@@ -29,6 +29,13 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 					action { //it:State
 					}
 					 transition(edgeName="t05",targetState="doRotationForward",cond=whenDispatch("onerotationstep"))
+					transition(edgeName="t06",targetState="paused",cond=whenDispatch("stop"))
+				}	 
+				state("paused") { //this:State
+					action { //it:State
+						println("onerotateforward is PAUSED")
+					}
+					 transition(edgeName="t07",targetState="ready",cond=whenDispatch("resume"))
 				}	 
 				state("doRotationForward") { //this:State
 					action { //it:State
