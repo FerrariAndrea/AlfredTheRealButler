@@ -13,6 +13,7 @@ Dispatch modelUpdate  : modelUpdate( TARGET, VALUE )  //sent by the mind
  Dispatch modelRequest : modelRequest( TARGET,PROP)
  //risposte 
  Dispatch modelRobotResponse : modelRobotResponse( X,Y,O ) 
+ Dispatch modelMapResponse : modelMapResponse( X,Y ) 
  Dispatch modelErrorResponse : modelErrorResponse( ERROR )
  
 //Dispatch kbModelUpdate  : kbModelUpdate( TARGET, VALUE )  //force a resource-model change
@@ -108,6 +109,19 @@ QActor kb context ctxResourceModel{
 				
 				}
 			}
+			if "Target==\"map\""{
+				solve(actualRobotPos(Prop,X,Y))
+				ifSolved { 					
+					["
+						var X = getCurSol(\"X\").toString()
+						var Y = getCurSol(\"Y\").toString()
+					"]
+					["replyToCaller(\"modelMapResponse\", \"modelMapResponse( $X,$Y )\")"]
+				}else{
+					["replyToCaller(\"modelErrorResponse\", \"modelErrorResponse(-1)\")"]
+				
+				}
+			}
 		
 		}
 		onMsg(  modelUpdate:  modelUpdate( TARGET, VALUE ) ) { 
@@ -119,6 +133,9 @@ QActor kb context ctxResourceModel{
 			"]
 			if "Target==\"robot\""{
 				solve(updateRobotStateFromMove($Value))				
+			}
+			if "Target==\"map\""{
+					solve(updatePos($Value))//in this case $Value is "pos(NAME,X,Y)"
 			}
 			println("----------->KB[$Target][$Value]")
 		

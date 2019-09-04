@@ -43,6 +43,16 @@ class Kb ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope){
 								{ replyToCaller("modelErrorResponse", "modelErrorResponse(-1)")
 								 }
 								 }
+								if(Target=="map"){ solve("actualRobotPos(Prop,X,Y)","") //set resVar	
+								if(currentSolution.isSuccess()) { 
+														var X = getCurSol("X").toString()
+														var Y = getCurSol("Y").toString()
+								replyToCaller("modelMapResponse", "modelMapResponse( $X,$Y )")
+								 }
+								else
+								{ replyToCaller("modelErrorResponse", "modelErrorResponse(-1)")
+								 }
+								 }
 						}
 						if( checkMsgContent( Term.createTerm("modelUpdate(TARGET,VALUE)"), Term.createTerm("modelUpdate(TARGET,VALUE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
@@ -51,6 +61,8 @@ class Kb ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope){
 												var Value=payloadArg(1)
 												
 								if(Target=="robot"){ solve("updateRobotStateFromMove($Value)","") //set resVar	
+								 }
+								if(Target=="map"){ solve("updatePos($Value)","") //set resVar	
 								 }
 								println("----------->KB[$Target][$Value]")
 						}

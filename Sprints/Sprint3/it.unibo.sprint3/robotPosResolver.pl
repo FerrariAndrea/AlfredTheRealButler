@@ -1,6 +1,6 @@
 /*
 ===============================================================
-resourceModel.pl
+robotPosResolver.pl
 ===============================================================
 */
 robotPosX(0).
@@ -31,3 +31,14 @@ updateRobotStateFromMove("s"):-robotOrientation(1),!,robotPosX(X),X2 is X+1,upda
 updateRobotStateFromMove("s"):-robotOrientation(2),!,robotPosY(Y),Y2 is Y+1,updateRobotPosY(Y2).
 updateRobotStateFromMove("s"):-robotOrientation(3),!,robotPosX(X),X2 is X-1,updateRobotPosX(X2).
 
+/*
+===============================================================
+obstaclePosResolver.pl
+===============================================================
+*/
+pos(home,5,3).
+pos(table,0,0).
+pos(fridge,5,0).
+pos(pantry,0,4).
+pos(dishwasher,4,5).
+updatePos(NAME,X,Y):-retract(pos(NAME,_,_)), assert(pos(NAME,X,Y)).
