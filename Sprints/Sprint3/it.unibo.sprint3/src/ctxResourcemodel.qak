@@ -110,7 +110,7 @@ QActor kb context ctxResourceModel{
 				}
 			}
 			if "Target==\"map\""{
-				solve(actualRobotPos(Prop,X,Y))
+				solve(pos(Props,X,Y))
 				ifSolved { 					
 					["
 						var X = getCurSol(\"X\").toString()

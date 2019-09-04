@@ -43,7 +43,7 @@ class Kb ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope){
 								{ replyToCaller("modelErrorResponse", "modelErrorResponse(-1)")
 								 }
 								 }
-								if(Target=="map"){ solve("actualRobotPos(Prop,X,Y)","") //set resVar	
+								if(Target=="map"){ solve("pos(Props,X,Y)","") //set resVar	
 								if(currentSolution.isSuccess()) { 
 														var X = getCurSol("X").toString()
 														var Y = getCurSol("Y").toString()
