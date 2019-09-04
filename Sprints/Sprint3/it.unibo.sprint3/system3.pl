@@ -8,4 +8,5 @@ context(ctxdummy, "dummyhost",  "MQTT", "0" ).
   qactor( resourcemodel, ctxdummy, "external").
   qactor( onecellforward, ctxdummy, "external").
   qactor( onerotateforward, ctxdummy, "external").
+  qactor( missionsolver, ctxexplorer, "it.unibo.missionsolver.Missionsolver").
   qactor( explorer, ctxexplorer, "it.unibo.explorer.Explorer").

@@ -9,7 +9,9 @@ Dispatch onerotationstep   : onerotationstep(MOVE)
 Dispatch rotationOk        : rotationOk(STALL)
 
 Dispatch goTo  : goTo( X,Y )
-Dispatch testCmd: testCmd(cmd)
+Dispatch goToOk  : goToOk( V )
+Dispatch goToFail  : goToFail( V )
+//Dispatch testCmd: testCmd(cmd)
 
 //Macro dispatch
 Dispatch addFood : addFood(X) //1 or 2: payload for now is ignored.
@@ -31,40 +33,18 @@ ExternalQActor onerotateforward context ctxDummy
  *  Fridge Position is given *a priori*
  */
 
-QActor explorer context ctxExplorer{     
-	["
-	var fridge_position_x = 6;
-	var fridge_position_y = 0;
-	var goingHome  = false
-	var stepCounter = 0 
-	var Move = \"\"
-	var StepTime   = 350L	//for virtual
-	var RotateTime = 300L	//for virtual
-	var PauseTime  = 250L 
-	var Direction = \"\"
-	var RepeatAction = 1
-	var addingFood = false
-	var preparing = false
-	var clearing = false
-	"]	
+QActor missionsolver context ctxExplorer{ 
 	State s0 initial {	
-		println("Actor: Explorer; State: initial")
-	    solve( consult("moves.pl")	 )
-		run itunibo.planner.plannerUtil.initAI()
-		println("Actor: Explorer; State: handleStepFail; Payload: INITIAL MAP")
- 		run itunibo.planner.plannerUtil.showMap()
- 	} Goto readyForAction
- 	
- 	State readyForAction {
- 		println("Waiting for mission... Please send an action!")
- 	} 	
-	Transition t0 whenEvent   goTo  -> goToPosition
-				  whenEvent	  addFood -> addingFood
+		println("Actor: Explorer; State: initial")	
+	}Goto waiting
+	
+	State waiting{
+			println("Waiting for mission... Please send an action!") 	
+	}	Transition t0 whenEvent	  addFood -> addingFood
 				  whenEvent   prepare -> preparingRoom
 				  whenEvent   clear -> clearingRoom
-				  //qui handleStop -> stopped
-	
-	// ------------------ MACRO COMMANDS ------------------
+				  
+				  // ------------------ MACRO COMMANDS ------------------
 	
 	State addingFood {
 		//SI DEVE AGGIUNGERE IL PAYLOAD, OVVERO SE SI AGGIUNGE IL TIPO 1 DI CIBO (PIZZA) OPPURE IL TIPO 2 (CRESCENTINA)
@@ -129,14 +109,47 @@ QActor explorer context ctxExplorer{
 		"]
 		run itunibo.planner.moveUtils.doPlan( myself )
  	} 	Goto executePlannedActions  if "itunibo.planner.moveUtils.existPlan()" else endOfJob 
-	
-	State stopped{
-		//waiting
-	}//Transition t0  whenEvent   Resume  -> readyForAction
-	
-	
+ 	
+	State goalOk{		  
+ 		println("Explorer: on the target cell!")
+ 		delay 2000 // to simulate the action
+ 	} Goto checkAddingFood
+ 	
+ 	// Nota di Luca: E' l'unico modo per fare dei controlli innestati (come uno switch case).
+ 	State checkAddingFood {} Goto goToTable if "addingFood" else checkPreparingRoom
+ 	State checkPreparingRoom {} Goto goToTable if "preparing" else checkClearingRoom
+ 	State checkClearingRoom {} Goto goToDishwasher if "clearing" else checkGoingHome
+ 	State checkGoingHome {} Goto atHome if "goingHome" else goHome
+}
+
+QActor explorer context ctxExplorer{     
+	["
+	var goingHome  = false
+	var stepCounter = 0 
+	var Move = \"\"
+	var StepTime   = 350L	//for virtual
+	var RotateTime = 300L	//for virtual
+	var PauseTime  = 250L 
+	var Direction = \"\"
+	var RepeatAction = 1
+	var addingFood = false
+	var preparing = false
+	var clearing = false
+	"]	
+	State s0 initial {	
+		println("Actor: Explorer; State: initial")
+	    solve( consult("moves.pl")	 )
+		run itunibo.planner.plannerUtil.initAI()
+		//println("Actor: Explorer; State: handleStepFail; Payload: INITIAL MAP")
+ 		run itunibo.planner.plannerUtil.showMap()
+ 	}Goto ready
+ 	
+ 	State ready {
+ 		println("Actor: Explorer; State: ready") 		
+ 	} Transition t0 whenEvent   goTo  -> goToPosition
+ 	
 	State goToPosition{
-	 	
+	 	["storeCurrentMessageForReply()"]
 	 	onMsg(   goTo:  goTo(X,Y) ) { 
 			
 			["
@@ -152,9 +165,7 @@ QActor explorer context ctxExplorer{
 		["goingHome=false"]	
 		run itunibo.planner.moveUtils.doPlan( myself )
 		}
- 	} 	
-  		
-	Goto executePlannedActions  if "itunibo.planner.moveUtils.existPlan()" else endOfJob 
+ 	}Goto executePlannedActions  if "itunibo.planner.moveUtils.existPlan()" else endOfJobFail 
 	
 	State executePlannedActions{ 
 		//solve( showMoves ) 
@@ -163,20 +174,9 @@ QActor explorer context ctxExplorer{
 			["Move = getCurSol(\"M\").toString()"]
 		} else { ["Move = \"\""]  } 
  	}
-	Goto doTheMove  if "(Move.length>0) " else goalOk 
+	Goto doTheMove  if "(Move.length>0) " else endOfJobOk
  	
- 	State goalOk{		  
- 		println("Explorer: on the target cell!")
- 		delay 2000 // to simulate the action
- 	} Goto checkAddingFood
- 	
- 	// Nota di Luca: E' l'unico modo per fare dei controlli innestati (come uno switch case).
- 	State checkAddingFood {} Goto goToTable if "addingFood" else checkPreparingRoom
- 	State checkPreparingRoom {} Goto goToTable if "preparing" else checkClearingRoom
- 	State checkClearingRoom {} Goto goToDishwasher if "clearing" else checkGoingHome
- 	State checkGoingHome {} Goto atHome if "goingHome" else goHome
- 	
-	State doTheMove{
+ 	State doTheMove{
 		if "Move==\"a\" || Move==\"d\" " {//ROTATION			
 			forward onerotateforward -m onerotationstep : onerotationstep($Move)	
 		} else{ // W			
@@ -184,7 +184,7 @@ QActor explorer context ctxExplorer{
 		}	
 	}
 	Transition t0   whenMsg stepOk   	-> handleStepOk   
-					whenMsg stepFail 	-> handleStepFail  
+					whenMsg stepFail 	-> endOfJobFail  
 					whenMsg rotationOk 	-> handleStepOk
 					//qui handleStop
 	 	
@@ -194,20 +194,8 @@ QActor explorer context ctxExplorer{
 	}
 	Goto executePlannedActions
 	
-	State handleStepFail{ 
-		println("Actor: Explorer; State: handleStepFail; Payload: Fail step :(")
-		run itunibo.planner.plannerUtil.showMap()	
-		println("Actor: Explorer; State: handleStepFail; Payload: Replan and return at home.")
-		delay 500
-	}	
- 	Goto goHome
- 	
-/*
- * Exploration step done: go back to home
- * If we use the planner - setGoal(0,0) - then the robot could 
- * find an obstacle in the return path
- */	 
-	 
+
+ 	/*
 	State goHome{
 		println("Actor: Explorer; State: backToHome")
  		solve( direction(D) )
@@ -235,6 +223,8 @@ QActor explorer context ctxExplorer{
 	}
 	Goto rotateSouth
 	
+	 */
+	
 	State rotateSouth{
 		["Move=\"a\""]
 		delayVar StepTime
@@ -248,13 +238,17 @@ QActor explorer context ctxExplorer{
 		["Direction = getCurSol(\"D\").toString() "]
 		println("Actor: Explorer; State: rotateSouth; Payload: $Direction")
 	}
-	Goto rotateSouth  if "(Direction!=\"downDir\")" else endOfJob
+	Goto rotateSouth  if "(Direction!=\"downDir\")" else endOfJobOk
 	
-	State endOfJob{
-		println("Explorer: EndOfJob, go to ReadyForAction")
-	} Goto readyForAction if "(RepeatAction > 0)" else end
+	State endOfJobOk{
+		println("Explorer: on the target cell!")
+		["replyToCaller(\"goToOk\", \"goToOk(ok)\")"]	
+	} Goto ready 
 	
-	State end {
-		println("Explorer: END")
-	}
+	State endOfJobFail{
+		println("Actor: Explorer; State: handleStepFail; Payload: Fail step :(")
+		run itunibo.planner.plannerUtil.showMap()	
+		println("Actor: Explorer; State: handleStepFail; Payload: Replan and return at home.")
+		["replyToCaller(\"goToFail\", \"goToFail(fail)\")"]	
+	} Goto ready 
 }	
