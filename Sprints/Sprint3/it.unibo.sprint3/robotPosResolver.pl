@@ -36,8 +36,8 @@ updateRobotStateFromMove("s"):-robotOrientation(3),!,robotPosX(X),X2 is X-1,upda
 obstaclePosResolver.pl
 ===============================================================
 */
-pos(home,5,3).
-pos(table,0,0).
+pos(home,0,0).
+pos(table,5,3).
 pos(fridge,5,0).
 pos(pantry,0,4).
 pos(dishwasher,4,5).

@@ -6,7 +6,6 @@ Dispatch local_modelChanged   : modelChanged( TARGET, VALUE )
 Dispatch modelChange  : modelChange( TARGET, VALUE )  //force a resource-model change
 Dispatch modelUpdate  : modelUpdate( TARGET, VALUE )  //sent by the mind
  
-
  
  //richieste
  Dispatch modelRequest : modelRequest( TARGET,PROP) 
@@ -109,7 +108,7 @@ QActor kb context ctxResourceModel{
 				}
 			}
 			if "Target==\"map\""{
-				solve(pos(Props,X,Y))
+				solve(pos($Prop,X,Y))
 				ifSolved { 					
 					["
 						var X = getCurSol(\"X\").toString()

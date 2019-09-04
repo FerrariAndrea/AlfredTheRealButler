@@ -165,7 +165,7 @@ QActor explorer context ctxExplorer{
 		run itunibo.planner.moveUtils.doPlan( myself )
 		}
  	}Goto executePlannedActions  if "itunibo.planner.moveUtils.existPlan()" else endOfJobFail 
-	
+
 	State executePlannedActions{ 
 		//solve( showMoves ) 
 		solve( retract( move(M) ) ) //consume a move
