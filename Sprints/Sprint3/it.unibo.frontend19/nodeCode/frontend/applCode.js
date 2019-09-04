@@ -72,8 +72,8 @@ app.get('/appl', function(req, res) {
 	app.post("/clear", function(req, res,next) { superHandlePostMove("clear","clearing room", req,res,next); });	
 	
 	//PER ANDREA FERRARI: LEGGI LE DUE SEGUENTI LINEE
-	app.post("/stop", function(req, res,next) { handlePostMove("stop","freezing time", req,res,next); });	
-	app.post("/resume", function(req, res,next) { handlePostMove("resume","resuming time", req,res,next); });	
+	app.post("/stop", function(req, res,next) { superHandlePostMove("stop","freezing time", req,res,next); });	
+	app.post("/resume", function(req, res,next) { superHandlePostMove("resume","resuming time", req,res,next); });	
 
 
 /*
@@ -121,7 +121,7 @@ app.setIoSocket = function( iosock ){
 }
 
 function superDelegate( cmd, newState, req, res ){
-   publishMsgToExplorer(cmd)
+   publishMsg(cmd)
 } 
 
 function delegate( cmd, newState, req, res ){
@@ -144,34 +144,46 @@ function delegateForAppl( cmd, req, res, next ) {
 
 // We are going to communicate only with the Explorer so we're most likely to use only this method
 // Note: So far it goes ALWAYS to (3,0). CMD is IGNORED, needs to be modified so that the method can be used to do many things.
-var publishMsgToExplorer = function( cmd ){
+var publishMsg = function( cmd ){
 	switch(cmd) {
   	case "addFood1":
-  	var msgstr = "msg(addFood,dispatch,js,explorer,addFood(1),1)"  ;  
-  	console.log("publishMsgToExplorer forward> "+ msgstr);
-   	mqttUtils.publish( msgstr, "unibo/qak/explorer" );
+  	var msgstr = "msg(addFood,dispatch,js,missionsolver,addFood(1),1)"  ;  
+  	console.log("publishMsg forward> "+ msgstr);
+   	mqttUtils.publish( msgstr, "unibo/qak/missionsolver" );
 
     break;
   	case "addFood2":
-  	var msgstr = "msg(addFood,dispatch,js,explorer,addFood(2),1)"  ;  
-  	console.log("publishMsgToExplorer forward> "+ msgstr);
-   	mqttUtils.publish( msgstr, "unibo/qak/explorer" );
+  	var msgstr = "msg(addFood,dispatch,js,missionsolver,addFood(2),1)"  ;  
+  	console.log("publishMsg forward> "+ msgstr);
+   	mqttUtils.publish( msgstr, "unibo/qak/missionsolver" );
 
     break;
   	case "prepare":
-  	var msgstr = "msg(prepare,dispatch,js,explorer,prepare(X),1)"  ;  
-  	console.log("publishMsgToExplorer forward> "+ msgstr);
-   	mqttUtils.publish( msgstr, "unibo/qak/explorer" );
+  	var msgstr = "msg(prepare,dispatch,js,missionsolver,prepare(X),1)"  ;  
+  	console.log("publishMsg forward> "+ msgstr);
+   	mqttUtils.publish( msgstr, "unibo/qak/missionsolver" );
 
     break;
   	case "clear":
-  	var msgstr = "msg(clear,dispatch,js,explorer,clear(X),1)"  ;  
-  	console.log("publishMsgToExplorer forward> "+ msgstr);
-   	mqttUtils.publish( msgstr, "unibo/qak/explorer" );
+  	var msgstr = "msg(clear,dispatch,js,missionsolver,clear(X),1)"  ;  
+  	console.log("publishMsg forward> "+ msgstr);
+   	mqttUtils.publish( msgstr, "unibo/qak/missionsolver" );
+	
+   	break;
+  	case "stop":
+  	//var msgstr = "msg(clear,dispatch,js,missionsolver,clear(X),1)"  ;  
+  	//console.log("publishMsg forward> "+ msgstr);
+   	//mqttUtils.publish( msgstr, "unibo/qak/missionsolver" );
+   	
+	break;
+  	case "resume":
+  	//var msgstr = "msg(clear,dispatch,js,missionsolver,clear(X),1)"  ;  
+  	//console.log("publishMsg forward> "+ msgstr);
+   	//mqttUtils.publish( msgstr, "unibo/qak/missionsolver" );
    	
     break;
   	default:
-  	console.log("error, cmd not found in switch case publishMsgToExplorer, check code.")
+  	console.log("error, cmd not found in switch case publishMsg, check code.")
 }
 }
 

@@ -162,7 +162,6 @@ QActor explorer context ctxExplorer{
    		println("Actor: Explorer; State: goToPosition; Payload: direction at start: ${getCurSol(\"D\").toString()}")
 		run itunibo.planner.plannerUtil.showMap()		
 		run itunibo.planner.plannerUtil.setGoal(X,Y)
-		["goingHome=false"]	
 		run itunibo.planner.moveUtils.doPlan( myself )
 		}
  	}Goto executePlannedActions  if "itunibo.planner.moveUtils.existPlan()" else endOfJobFail 

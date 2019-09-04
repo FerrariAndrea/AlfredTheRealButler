@@ -51,7 +51,6 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 								println("Actor: Explorer; State: goToPosition; Payload: direction at start: ${getCurSol("D").toString()}")
 								itunibo.planner.plannerUtil.showMap(  )
 								itunibo.planner.plannerUtil.setGoal( X, Y  )
-								goingHome=false
 								itunibo.planner.moveUtils.doPlan(myself)
 						}
 					}
