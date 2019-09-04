@@ -11,7 +11,9 @@ Dispatch rotationOk        : rotationOk(STALL)
 Dispatch goTo  : goTo( X,Y )
 Dispatch goToOk  : goToOk( V )
 Dispatch goToFail  : goToFail( V )
-//Dispatch testCmd: testCmd(cmd)
+
+Dispatch modelRequest : modelRequest( TARGET,PROP)  
+Dispatch modelMapResponse : modelMapResponse( X,Y ) 
 
 //Macro dispatch
 Dispatch addFood : addFood(X) //1 or 2: payload for now is ignored.
@@ -24,6 +26,7 @@ Context ctxExplorer ip[host="localhost" port=8039] -mqtt
 Context ctxDummy ip[host="dummyhost" port=9999] -mqtt 
 
 ExternalQActor maitre context ctxDummy
+ExternalQActor kb context ctxDummy
 ExternalQActor resourcemodel context ctxDummy
 ExternalQActor onecellforward context ctxDummy
 ExternalQActor onerotateforward context ctxDummy
@@ -34,6 +37,12 @@ ExternalQActor onerotateforward context ctxDummy
  */
 
 QActor missionsolver context ctxExplorer{ 
+	["	
+	var addingFood = false
+	var preparing = false
+	var clearing = false
+	var goingHome =false
+	"]
 	State s0 initial {	
 		println("Actor: Explorer; State: initial")	
 	}Goto waiting
@@ -70,71 +79,62 @@ QActor missionsolver context ctxExplorer{
 	// ------------------ REACH OBJECTS ------------------
 	
 	State goToFridge {
-		solve( direction(D) )   
-   		println("Actor: Explorer; State: goToFridge; Payload: direction at start: ${getCurSol(\"D\").toString()}")
-		run itunibo.planner.plannerUtil.showMap()		
-		run itunibo.planner.plannerUtil.setGoal(5,0)
-		["goingHome=false"]	
-		run itunibo.planner.moveUtils.doPlan( myself )
-	} Goto executePlannedActions  if "itunibo.planner.moveUtils.existPlan()" else endOfJob 
+		forward kb -m modelRequest : modelRequest(map,fridge)
+	} Transition t0   whenMsg modelMapResponse  -> handlePos
 	
 	State goToPantry {
-		solve( direction(D) )   
-   		println("Actor: Explorer; State: goToPantry; Payload: direction at start: ${getCurSol(\"D\").toString()}")
-		run itunibo.planner.plannerUtil.showMap()		
-		run itunibo.planner.plannerUtil.setGoal(0,4)
 		["goingHome=false"]	
-		run itunibo.planner.moveUtils.doPlan( myself )
-	} Goto executePlannedActions  if "itunibo.planner.moveUtils.existPlan()" else endOfJob 
+		forward kb -m modelRequest : modelRequest(map,pantry)
+	} Transition t0   whenMsg modelMapResponse  -> handlePos
 	
 	State goToDishwasher {
-		solve( direction(D) )   
-   		println("Actor: Explorer; State: goToDishwasher; Payload: direction at start: ${getCurSol(\"D\").toString()}")
-		run itunibo.planner.plannerUtil.showMap()		
-		run itunibo.planner.plannerUtil.setGoal(4,5)
-		["goingHome=false
-		  clearing=false
-		"]	
-		run itunibo.planner.moveUtils.doPlan( myself )
-	} Goto executePlannedActions  if "itunibo.planner.moveUtils.existPlan()" else endOfJob
+		["goingHome=false; clearing=false"]	
+		forward kb -m modelRequest : modelRequest(map,dishwasher)
+	} Transition t0   whenMsg modelMapResponse  -> handlePos
 	
-	 State goToTable {
- 		solve( direction(D) )   
-   		println("Actor: Explorer; State: goToTable; Payload: direction at start: ${getCurSol(\"D\").toString()}")
-		run itunibo.planner.plannerUtil.showMap()
-		run itunibo.planner.plannerUtil.setGoal(5,3)
-		["
-		addingFood=false
-		preparing=false
-		"]
-		run itunibo.planner.moveUtils.doPlan( myself )
- 	} 	Goto executePlannedActions  if "itunibo.planner.moveUtils.existPlan()" else endOfJob 
+	State goToTable {
+		["addingFood=false;preparing=false"]	
+		forward kb -m modelRequest : modelRequest(map,table)
+	} Transition t0   whenMsg modelMapResponse  -> handlePos
+	
+	State goToHome {
+		forward kb -m modelRequest : modelRequest(map,home)
+	} Transition t0   whenMsg modelMapResponse  -> handlePos
+	
+ 	State  handlePos{
+ 		["var X=0;var Y=0;"]
+ 		onMsg(   modelMapResponse:  modelMapResponse(X,Y) ) {			
+			["X=payloadArg(0).toInt();Y=payloadArg(1).toInt()"]				
+		}
+		forward explorer -m goTo : goTo($X,$Y)
+ 	} Transition t0   whenMsg goToOk  -> goalOk
+ 						whenMsg goToFail  -> fail
+	
+ 	State fail{
+ 		println("Explorer: fail, return at home in 2s!")
+ 		delay 2000
+ 		//here send msg if you want see error msg on frontend 		
+ 	}Goto goToHome
  	
 	State goalOk{		  
- 		println("Explorer: on the target cell!")
+ 		println("Explorer: on the target cell (simulate action 2s)!")
  		delay 2000 // to simulate the action
  	} Goto checkAddingFood
  	
- 	// Nota di Luca: E' l'unico modo per fare dei controlli innestati (come uno switch case).
  	State checkAddingFood {} Goto goToTable if "addingFood" else checkPreparingRoom
  	State checkPreparingRoom {} Goto goToTable if "preparing" else checkClearingRoom
  	State checkClearingRoom {} Goto goToDishwasher if "clearing" else checkGoingHome
- 	State checkGoingHome {} Goto atHome if "goingHome" else goHome
+ 	State checkGoingHome {} Goto goToHome if "goingHome" else waiting
 }
 
 QActor explorer context ctxExplorer{     
 	["
-	var goingHome  = false
 	var stepCounter = 0 
 	var Move = \"\"
 	var StepTime   = 350L	//for virtual
 	var RotateTime = 300L	//for virtual
 	var PauseTime  = 250L 
 	var Direction = \"\"
-	var RepeatAction = 1
-	var addingFood = false
-	var preparing = false
-	var clearing = false
 	"]	
 	State s0 initial {	
 		println("Actor: Explorer; State: initial")

@@ -10,7 +10,7 @@ Dispatch modelUpdate  : modelUpdate( TARGET, VALUE )  //sent by the mind
 
  
  //richieste
- Dispatch modelRequest : modelRequest( TARGET,PROP)
+ Dispatch modelRequest : modelRequest( TARGET,PROP) 
  //risposte 
  Dispatch modelRobotResponse : modelRobotResponse( X,Y,O ) 
  Dispatch modelMapResponse : modelMapResponse( X,Y ) 
@@ -135,7 +135,8 @@ QActor kb context ctxResourceModel{
 				solve(updateRobotStateFromMove($Value))				
 			}
 			if "Target==\"map\""{
-					solve(updatePos($Value))//in this case $Value is "pos(NAME,X,Y)"
+					["val Temp = \"pos($Value,X,Y)\""]
+					solve(updatePos($Temp))//in this case $Value is NAME of "pos(NAME,X,Y)"
 			}
 			println("----------->KB[$Target][$Value]")
 		
