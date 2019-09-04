@@ -31,6 +31,7 @@ ExternalQActor onerotateforward context ctxDummy
  *  Fridge Position is given *a priori*
  */
 
+
 QActor explorer context ctxExplorer{     
 	["
 	var fridge_position_x = 6;
