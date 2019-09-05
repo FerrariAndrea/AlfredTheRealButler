@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>ResourceAccess</title>
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+<script>
+       var socket  = io.connect();
+       socket.on('connect', function(){ console.log("socket connected");});
+       socket.on('message', function(v){
+         console.log(v);
+			if( v.indexOf("robot") >= 0 ){document.getElementById('robotDisplay').innerHTML=v; }
+			if( v.indexOf("fridge") >= 0 ){document.getElementById('food').innerHTML=v; } //FOOD 1 
+			if( v.indexOf("robot") >= 0 ){document.getElementById('robotDisplay4').innerHTML=v; } //DISHWASHER 
+			if( v.indexOf("robot") >= 0 ){document.getElementById('robotDisplay5').innerHTML=v; } //PANTRY
+
+       		if( v.indexOf("sonarRobot") >= 0 ){document.getElementById('sonarRobotDisplay').innerHTML=v.split('(')[2].split(')')[0]; }
+            if( v.indexOf("sonarLeft") >= 0 ){document.getElementById('sonarRobotLDisplay').innerHTML=v.split('(')[2].split(')')[0]; }
+            if( v.indexOf("sonarRight") >= 0 ){document.getElementById('sonarRobotRDisplay').innerHTML=v.split('(')[2].split(')')[0]; }
+
+          	}
+       	);
+</script>
+<!-- <script type="text/javascript" src="QActorWebUI.js"></script> -->
+</head>
+
+<body style="background-color: #37464f">
+
+<div style="background-color: #37464f">
+	<center>
+<h2 style="color:white;background-color: black;padding: 10px;">Maître de salle Console</h2>
+</center>
+
+</div>
+<div style="background-color: rgb(131, 255, 148)">
+	<div>
+ 		<b>ROBOT STATE</b>: <span id="robotDisplay"></span>
+  	</div>
+	<div>
+  		<b>SONAR STATE</b>: <span id="sonarRobotDisplay"></span>
+	</div>
+  <div>
+    <b>SONAR LEFT STATE</b>: <span id="sonarRobotLDisplay"></span>
+  </div>
+  <div>
+    <b>SONAR RIGHT STATE</b>: <span id="sonarRobotRDisplay"></span>
+  </div>
+  </div>
+
+</div>
+
+</div>
+
+<br></br>
+<center>
+	<table>
+			<!-- FIRST ROW -->
+					<tr>
+						<td></td>
+						<td align="center">
+							<form action="/prepare" method="post">
+							  	<input type="submit" style="font-size:20px;" value="PREPARE" >
+							</form>
+						</td>
+					</tr>
+
+
+			<!-- INVISIBLE ROW -->
+					<tr>
+						<tr><td align="center"><span style="opacity:0;">This sentence is invisible</span></td>
+					</tr>
+
+
+			<!-- SECOND ROW -->
+					<tr>
+						<td align="center">
+							<form action="/addFood1" method="post">
+								<font size="1" color="black">
+							  		<input type="submit" style="font-size:20px;"  value="ADD PIZZA"  >
+							  	</font>
+							</form>
+						</td>
+						<td></td>
+						<td align="center">
+							<form action="/addFood2" method="post">
+								<font size="1" color="black">
+							  		<input type="submit" style="font-size:20px;"  value="ADD CRESCENTINA"  >
+							  	</font>
+							</form>
+						</td>
+					</tr>
+
+			<!-- INVISIBLE ROW -->
+			<tr>
+					<tr><td align="center"><span style="opacity:0;">This sentence is invisible</span></td>
+			</tr>
+
+
+			<!-- THIRD ROW -->
+					<tr>
+						<td></td>
+						<td align="center">
+							<form action="/clear" method="post">
+							  	<input type="submit" style="font-size:20px;" value="CLEAR"  >
+							</form>
+						</td>
+					</tr>
+
+			<!-- INVISIBLE ROW -->
+			<tr>
+					<tr><td align="center"><span style="opacity:0;">This sentence is invisible</span></td>
+			</tr>
+
+
+			<!-- FOURTH ROW -->
+					<tr>
+						<td align="center">
+							<form action="/stop" method="post">
+								<font size="3" color="red">
+							  		<input type="submit" style="font-size:40px;"  value="STOP"  >
+							  	</font>
+							</form>
+						</td>
+						<td></td>
+						<td align="center">
+							<form action="/resume" method="post">
+								<font size="3" color="red">
+							  		<input type="submit" style="font-size:40px;"  value="RESUME"  >
+							  	</font>
+							</form>
+						</td>
+					</tr>
+	</table>
+</center>
+</div>
+
+<br><br>
+
+<div style="background-color: #FAF19C">
+	<div style = "background-color: rgb(240, 225, 95)"">
+		<b style="font-weight: bold;">CAPABILITIES</b>:
+	</div>
+	<div>
+		 <b>Fridge</b>:
+		 <ul>
+			<li>Capacity: <span id="food"></span> </li>
+		 </ul>
+  	</div>
+	<div>
+  		<b>Dishwasher</b>: <span id="robotDisplay4"></span> dishes
+	</div>
+	<div>
+		<b>Pantry</b>: <span id="robotDisplay5"></span> dishes
+	</div>
+</div>
+
+</body>
+</html>
