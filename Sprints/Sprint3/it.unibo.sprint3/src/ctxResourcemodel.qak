@@ -132,7 +132,7 @@ QActor kb context ctxResourceModel{
 				solve(updateRobotStateFromMove($Value))				
 			}
 			if "Target==\"map\""{
-				println("RICEVUTO MESSAGGIO con $Valu (da fare il salvataggio sulla kb)")
+				println("RICEVUTO MESSAGGIO con $Value (da fare il salvataggio sulla kb)")
 					//["val Temp = \"pos($Value,X,Y)\""]
 					//solve(updatePos($Temp))//in this case $Value is NAME of "pos(NAME,X,Y)"
 			}

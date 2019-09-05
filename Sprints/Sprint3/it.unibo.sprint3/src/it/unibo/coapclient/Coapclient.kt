@@ -19,7 +19,7 @@ class Coapclient ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 				state("s0") { //this:State
 					action { //it:State
 						println("CoapClient Started")
-						itunibo.coap.observer.resourceObserverCoapClient.create( "coap://localhost:5684/fridge"  )
+						itunibo.coap.observer.resourceObserverCoapClient.create( "coap://localhost/fridge"  )
 					}
 					 transition( edgeName="goto",targetState="sendMsg", cond=doswitch() )
 				}	 
