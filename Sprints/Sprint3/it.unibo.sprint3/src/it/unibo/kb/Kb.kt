@@ -62,8 +62,7 @@ class Kb ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope){
 												
 								if(Target=="robot"){ solve("updateRobotStateFromMove($Value)","") //set resVar	
 								 }
-								if(Target=="map"){ val Temp = "pos($Value,X,Y)"
-								solve("updatePos($Temp)","") //set resVar	
+								if(Target=="map"){ println("RICEVUTO MESSAGGIO con $Valu (da fare il salvataggio sulla kb)")
 								 }
 								println("----------->KB[$Target][$Value]")
 						}

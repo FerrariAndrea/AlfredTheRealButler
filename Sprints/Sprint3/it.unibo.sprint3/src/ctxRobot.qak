@@ -194,7 +194,6 @@ QActor onecellforward context ctxRobot {
 		
 
 	State doMoveForward{	
-		println("MOVEFORWARD")	 
 		["storeCurrentMessageForReply()"] 
 		onMsg( onestep : onestep( TIME ) ) {
 			["StepTime = payloadArg(0).toLong()"]

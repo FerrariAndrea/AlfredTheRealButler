@@ -184,7 +184,6 @@ QActor explorer context ctxExplorer{
 			forward onecellforward -m onestep : onestep($StepTime)	
 		}	
 		
-		println("hereeeee3")
 	}
 	Transition t0   whenMsg stepOk   	-> handleStepOk   
 					whenMsg stepFail 	-> endOfJobFail  
