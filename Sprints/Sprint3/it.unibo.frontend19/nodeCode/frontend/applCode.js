@@ -13,7 +13,9 @@ var io              ; 	//Upgrade for socketIo;
 
 //for delegate
 const mqttUtils     = require('./uniboSupports/mqttUtils');  
-const coap          = require('./uniboSupports/coapClientToResourceModel');  
+const coapCToRM     = require('./uniboSupports/coapClientToResourceModel');
+const coapCToF      = require('./uniboSupports/coapClientToFridge');  
+
 //require("node-coap-client").CoapClient; 
 
 var app              = express();
@@ -52,9 +54,12 @@ app.get('/', function(req, res) {
 	res.render("index");
 });	
 
+app.get('/fridgemodel', function(req, res) {
+	res.send(mqttUtils.getfridgemodel() )
+});
 app.get('/robotmodel', function(req, res) {
 	res.send( mqttUtils.getrobotmodel() )
-});	
+});
 app.get('/sonarrobotmodel', function(req, res) {
 	res.send( mqttUtils.getsonarrobotmodel() )
 });	
@@ -206,7 +211,12 @@ var publishMsgToResourceModel = function( target, cmd ){
 
 var changeResourceModelCoap = function( cmd ){  
     console.log("coap PUT> "+ cmd);
-	coap.coapPut(cmd);
+		coapCToRM.coapPut(cmd);
+}
+
+var changeFridgeCoap = function ( cmd ) {
+		console.log("coap PUT> "+ cmd);
+		coapCToF.coapPut(cmd);
 }
 
 var publishEmitUserCmd = function( cmd ){  

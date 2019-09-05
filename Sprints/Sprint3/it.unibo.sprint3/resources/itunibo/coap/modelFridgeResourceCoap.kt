@@ -23,11 +23,12 @@ class modelFridgeResourceCoap (name : String ) : CoapResource(name) {
 		
 		fun create( a: ActorBasic, name: String  ){
 			actor = a
-			val server   = CoapServer(5683);		//COAP SERVER
+			val port = 5684
+			val server   = CoapServer(port);		//COAP SERVER
 			resourceFridgeCoap = modelFridgeResourceCoap( name )
 			server.add( resourceFridgeCoap );
 			println("--------------------------------------------------")
-			println("Coap Server started");	
+			println("Coap Server started on port "+port);	
 			println("--------------------------------------------------")
 			server.start();
 			resourceFridgeModelSupport.setCoapResource(resourceFridgeCoap)  //Injects a reference

@@ -14,6 +14,7 @@ var client   = mqtt.connect(mqttAddr);
 var io  ; 	//Upgrade for socketIo;
 var robotModel    = "none";
 var sonarModel    = "none";
+var fridgeModel   = "none";
 
 console.log("mqtt client= " + client );
 
@@ -36,17 +37,21 @@ client.on('message', function (topic, message){
   var msgStr          = message.toString();
   var spRobot         = msgStr.indexOf("robot");
   var spSonarRobot    = msgStr.indexOf("sonarRobot");
+  var spFridge        = msgStr.indexOf("fridge");
   var sp1    = msgStr.indexOf("state");
   var msgStr = msgStr.substr(sp1);
   var sp2    = msgStr.indexOf("))");
-  if( spRobot > 0 )
-  var msg    = "";
+  if( spRobot > 0 ) var msg    = "";
+  if( spFridge > 0 ) var msg   = "";
   var content =  message.toString().substr(sp1,sp2+1);
   if( spRobot > 0 )      { msg = "robot - "; robotModel=msg+content        }
+  if( spFridge > 0 )     { msg = "fridge - "; fridgeModel=msg+content      }
   if( spSonarRobot > 0 ) { msg = "sonarRobot - "; sonarModel = msg+content }
   msg = msg + content// message.toString().substr(sp1,sp2+1);
+  console.log("mqttUtils initial msg: "+msgStr);
+  console.log("mqttUtils msg: "+msg);
   //---------------------------------------Fix for real
-  if(msg===undefined || msg==="undefined"|| msg ===""|| msg === "sonarRobot - "){
+  if(msg===undefined || msg==="undefined"|| msg ===""|| msg === "sonarRobot - " ){
     msg=message.toString();
   }
   io.sockets.send( msg );
@@ -62,4 +67,7 @@ exports.getrobotmodel = function(){
 }
 exports.getsonarrobotmodel = function(){
 	return sonarModel;
+}
+exports.getfridgemodel = function() {
+  return fridgeModel;
 }

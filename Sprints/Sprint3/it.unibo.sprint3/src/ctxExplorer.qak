@@ -44,7 +44,7 @@ QActor missionsolver context ctxExplorer{
 	var goingHome =false
 	"]
 	State s0 initial {	
-		println("Actor: Explorer; State: initial")	
+		println("Actor: Mission Solver; State: initial")	
 	}Goto waiting
 	
 	State waiting{

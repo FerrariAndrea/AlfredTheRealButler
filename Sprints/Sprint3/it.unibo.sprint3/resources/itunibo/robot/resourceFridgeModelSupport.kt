@@ -11,14 +11,14 @@ lateinit var resourceFridgeCoap : modelFridgeResourceCoap
 		resourceFridgeCoap = rescoap
 	}
 	
-	fun updateRobotModel( actor: ActorBasic, content: String ){
+	fun updateFridgeModel( actor: ActorBasic, content: String ){
  			//actor.solve(  "action(robot, move($content) )" ) //change the robot state model
 			//actor.solve(  "model( A, robot, STATE )" )
 			//val RobotState = actor.getCurSol("STATE")
 			//println("			resourceModelSupport updateModel RobotState=$RobotState")
 			actor.scope.launch{
- 				//actor.emit( "modelChanged" , "modelChanged(  robot,  $content)" )  //for the robotmind
-				//actor.emit( "modelContent" , "content( robot( $RobotState ) )" )
+ 				actor.emit( "modelChanged" , "modelChanged(  fridge,  $content)" )  //for the robotmind
+				//actor.emit( "modelContent" , "content( fridge( $RobotState ) )" )
 				resourceFridgeCoap.updateState( content )
   			}
 	}	

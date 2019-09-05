@@ -23,7 +23,7 @@ class Missionsolver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
-						println("Actor: Explorer; State: initial")
+						println("Actor: Mission Solver; State: initial")
 					}
 					 transition( edgeName="goto",targetState="waiting", cond=doswitch() )
 				}	 

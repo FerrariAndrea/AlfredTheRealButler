@@ -12,7 +12,7 @@ ExternalQActor fridge context ctxDummy
 QActor coapclient context ctxCoapClient {
 	State s0 initial { 
 		println("CoapClient Started")
-		run itunibo.coap.observer.resourceObserverCoapClient.create("coap://localhost/fridge")
+		run itunibo.coap.observer.resourceObserverCoapClient.create("coap://localhost:5684/fridge")
 	} Goto sendMsg
 	
 	State sendMsg {

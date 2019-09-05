@@ -28,11 +28,12 @@ QActor fridge context ctxFridge {
 			if "X == 1" {
 			["food1 = food1 - 1"]
 			} else {
-			["food2 = food2 - 1"] }		
+			["food2 = food2 - 1"]
+			}		
 		}
 	} Goto updateModelFridge
 	
 	State updateModelFridge {
-		run itunibo.robot.resourceFridgeModelSupport.updateRobotModel(myself,"FOOD 1: $food1; FOOD 2: $food2")
+		run itunibo.robot.resourceFridgeModelSupport.updateFridgeModel(myself,"FOOD 1: $food1; FOOD 2: $food2")
 	} Goto waitCmd
 }
