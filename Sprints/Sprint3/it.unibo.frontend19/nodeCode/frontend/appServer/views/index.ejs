@@ -11,8 +11,7 @@
        socket.on('message', function(v){
          console.log(v);
 			if( v.indexOf("robot") >= 0 ){document.getElementById('robotDisplay').innerHTML=v; }
-			if( v.indexOf("fridge") >= 0 ){document.getElementById('food1').innerHTML=v; } //FOOD 1 
-			if( v.indexOf("fridge") >= 0 ){document.getElementById('food2').innerHTML=v; } //FOOD 2
+			if( v.indexOf("fridge") >= 0 ){document.getElementById('food').innerHTML=v; } //FOOD 1 
 			if( v.indexOf("robot") >= 0 ){document.getElementById('robotDisplay4').innerHTML=v; } //DISHWASHER 
 			if( v.indexOf("robot") >= 0 ){document.getElementById('robotDisplay5').innerHTML=v; } //PANTRY
 
@@ -145,8 +144,7 @@
 	<div>
 		 <b>Fridge</b>:
 		 <ul>
-			<li>Crescentine: <span id="food1"></span> </li>
-			<li>Pizze: <span id="food2"></span></li>
+			<li>Capacity: <span id="food"></span> </li>
 		 </ul>
   	</div>
 	<div>
