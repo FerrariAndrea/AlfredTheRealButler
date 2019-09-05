@@ -39,6 +39,7 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 				}	 
 				state("doRotationForward") { //this:State
 					action { //it:State
+						println("ROTATION")
 						storeCurrentMessageForReply()
 						if( checkMsgContent( Term.createTerm("onerotationstep(MOVE)"), Term.createTerm("onerotationstep(ORIENTATION)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList

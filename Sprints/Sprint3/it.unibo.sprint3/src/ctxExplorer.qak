@@ -166,7 +166,9 @@ QActor explorer context ctxExplorer{
 		}
  	}Goto executePlannedActions  if "itunibo.planner.moveUtils.existPlan()" else endOfJobFail 
 
+
 	State executePlannedActions{ 
+		
 		//solve( showMoves ) 
 		solve( retract( move(M) ) ) //consume a move
 		ifSolved {  
@@ -181,6 +183,8 @@ QActor explorer context ctxExplorer{
 		} else{ // W			
 			forward onecellforward -m onestep : onestep($StepTime)	
 		}	
+		
+		println("hereeeee3")
 	}
 	Transition t0   whenMsg stepOk   	-> handleStepOk   
 					whenMsg stepFail 	-> endOfJobFail  

@@ -76,6 +76,7 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						else
 						 { forward("onestep", "onestep($StepTime)" ,"onecellforward" ) 
 						  }
+						println("hereeeee3")
 					}
 					 transition(edgeName="t011",targetState="handleStepOk",cond=whenDispatch("stepOk"))
 					transition(edgeName="t012",targetState="endOfJobFail",cond=whenDispatch("stepFail"))

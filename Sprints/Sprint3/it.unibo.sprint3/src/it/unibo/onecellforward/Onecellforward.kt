@@ -38,6 +38,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				}	 
 				state("doMoveForward") { //this:State
 					action { //it:State
+						println("MOVEFORWARD")
 						storeCurrentMessageForReply()
 						if( checkMsgContent( Term.createTerm("onestep(DURATION)"), Term.createTerm("onestep(TIME)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList

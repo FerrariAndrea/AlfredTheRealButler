@@ -135,7 +135,7 @@ QActor onerotateforward context ctxRobot {
 	}Transition t0 whenMsg resume -> ready
 		
 	State doRotationForward{		  
-
+		println("ROTATION")
 		["storeCurrentMessageForReply()"]		
 		onMsg( onerotationstep : onerotationstep(ORIENTATION) ) {
 			["RealMove = payloadArg(0)"]
@@ -175,6 +175,7 @@ QActor onerotateforward context ctxRobot {
 }
 
 
+
 QActor onecellforward context ctxRobot {
 	["var foundObstacle = false; var StepTime = 0L; var Duration : Long =0"]  
 	State s0 initial {	 
@@ -192,7 +193,8 @@ QActor onecellforward context ctxRobot {
 	}Transition t0 whenMsg resume -> ready
 		
 
-	State doMoveForward{		 
+	State doMoveForward{	
+		println("MOVEFORWARD")	 
 		["storeCurrentMessageForReply()"] 
 		onMsg( onestep : onestep( TIME ) ) {
 			["StepTime = payloadArg(0).toLong()"]
