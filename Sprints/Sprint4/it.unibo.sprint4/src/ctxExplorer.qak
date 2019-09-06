@@ -25,7 +25,6 @@ Event  sonarRobot     : sonar( DISTANCE )	     //from  sonar on robot
 Context ctxExplorer ip[host="localhost" port=8039] -mqtt
 Context ctxDummy ip[host="dummyhost" port=9999] -mqtt 
 
-ExternalQActor maitre context ctxDummy
 ExternalQActor kb context ctxDummy
 ExternalQActor resourcemodel context ctxDummy
 ExternalQActor onecellforward context ctxDummy
@@ -58,7 +57,7 @@ QActor missionsolver context ctxExplorer{
 	State addingFood {
 		//SI DEVE AGGIUNGERE IL PAYLOAD, OVVERO SE SI AGGIUNGE IL TIPO 1 DI CIBO (PIZZA) OPPURE IL TIPO 2 (CRESCENTINA)
 		//COSA FA QUESTO TASK?
-		//SE IL CIBO E' PRESENTE NEL FRIGO, LO AGGIUNGE AL TAVOLO; IN CASO CONTRARIO, NOTIFICA IL MAITRE
+		//SE IL CIBO E' PRESENTE NEL FRIGO, LO AGGIUNGE AL TAVOLO; IN CASO CONTRARIO, NOTIFICA IL MAITRE (ANCORA DA FARE)
 		//RITORNA NELLA POSIZIONE HOME
 		println("ADDING FOOD: Go to Fridge")
 		["addingFood = true"]
@@ -108,7 +107,7 @@ QActor missionsolver context ctxExplorer{
 		}
 		forward explorer -m goTo : goTo($X,$Y)
  	} Transition t0   whenMsg goToOk  -> goalOk
- 						whenMsg goToFail  -> fail
+ 					  whenMsg goToFail  -> fail
 	
  	State fail{
  		println("Explorer: fail, return at home in 2s!")

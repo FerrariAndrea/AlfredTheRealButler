@@ -1,0 +1,154 @@
+System system7
+mqttBroker "localhost" : 1883
+
+Event  collision     : collision(OBJECT)	     //from  sonar on robot 
+
+Dispatch stepOk        : stepOk(V)		//TODO eliminate  V
+Dispatch stepFail      : stepFail(R,T) //R=ok | obstacle, T = time
+Dispatch modelUpdate  : modelUpdate( TARGET, VALUE )
+Dispatch onestep       : onestep(DURATION)
+Dispatch onerotationstep   : onerotationstep(MOVE)
+
+Context ctxExplorerRoom ip[host="localhost" port=8039] -mqtt
+Context ctxDummy ip[host="dummyhost" port=9999] -mqtt 
+
+//Explore perimeter
+ExternalQActor resourcemodel context ctxDummy
+ExternalQActor onestepahead  context ctxDummy
+ExternalQActor onecellforward context ctxDummy
+ExternalQActor onerotateforward context ctxDummy
+ExternalQActor kb context ctxDummy
+
+QActor roomexplorer context ctxExplorerRoom {
+	["
+	var mapEmpty    = false
+	val mapname     = \"roomBoundary\"  //\"roomMbot3\"		// 
+	var Tback       = 0
+	var NumStep     = 0
+ 
+	//REAL ROBOT
+	//var StepTime   = 1000	 
+	//var PauseTime  = 500 
+
+	//VIRTUAL ROBOT
+	var StepTime   = 330	 
+	var PauseTime  = 250
+	var RotateTime = 300
+
+	//OTHER
+	var Move = \"\"
+	//var PauseTimeL  = PauseTime.toLong()
+	var secondLap : Boolean = false
+	var mustStop : Boolean = false
+
+	var xTemp : Int = 0
+	var yTemp : Int = 0
+"]
+	State s0 initial {
+		run itunibo.coap.observer.resourceObserverCoapClient.create( "coap://localhost:5683/resourcemodel" )
+ 		run itunibo.planner.plannerUtil.initAI()
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+	} Goto waitForCmd
+	
+	State waitForCmd {
+		//If you want to start directly from secondLap (perimeter walked in the opposite way) flag this.
+		//["secondLap=true"]
+	} 
+	Goto detectPerimeter if "secondLap == false" else rotateEast
+	
+	State rotateEast {
+		["NumStep=0"]
+		run itunibo.planner.moveUtils.rotateLeft90tuning( myself )		
+	} Goto detectPerimeter
+	
+	State detectPerimeter {
+		["NumStep++"]
+      	//NO GOAL : JUST ONE STEP ahead
+  		run itunibo.planner.plannerUtil.showMap()  	
+	} Goto goOneStepAhead if "(NumStep<5)" else perimeterWalked
+	
+	State goOneStepAhead {
+		printCurrentMessage
+   		run itunibo.planner.moveUtils.attemptTomoveAhead(myself, StepTime, "onecellforward")
+   		//forward onecellforward -m onestep : onestep($StepTime)	
+	} 
+	Transition t0 whenMsg stepOk -> handleStepOk
+				  whenMsg stepFail -> preCheckingObject
+
+	State handleStepOk {
+		run itunibo.planner.moveUtils.updateMapAfterAheadOk(myself)
+		delay 500
+	} Goto goOneStepAhead
+
+	//Per intercettare l'evento di collisione
+	State preCheckingObject {} Transition t0 whenEvent collision -> checkingObject
+					  
+	State checkingObject {
+		onMsg(collision : collision(OBJECT)) {
+			["var objName = payloadArg(0)"]
+			println("OGGETTO IN COLLISIONE: $objName")
+			if "objName.equals(\"pantry\")" {
+				["
+				xTemp = itunibo.planner.plannerUtil.getPosX()
+				yTemp = itunibo.planner.plannerUtil.getPosY()				
+				"]
+				
+			} else {
+				if "objName.equals(\"dishwasher\")" {
+				["
+				xTemp = itunibo.planner.plannerUtil.getPosX()
+				yTemp = itunibo.planner.plannerUtil.getPosY()				
+				"]					
+					}
+				else {
+				if "objName.equals(\"fridge\")" {
+				["
+				xTemp = itunibo.planner.plannerUtil.getPosX()
+				yTemp = itunibo.planner.plannerUtil.getPosY()				
+				"]					
+					}
+				}
+			}
+			["var msgContent = \"\"+xTemp+\",\"+yTemp+\",\"+objName"]
+			println(msgContent)
+			forward kb -m modelUpdate : modelUpdate(map, msgContent)
+		}
+	} Goto handleStepFail
+	
+	State handleStepFail {
+		println("&&& Found Wall")
+		["
+		val MapStr =  itunibo.planner.plannerUtil.getMapOneLine()
+		//println(\"MapStr:\"+MapStr)
+		"]
+		forward resourcemodel -m modelUpdate : modelUpdate(roomMap, $MapStr)
+		
+		onMsg(stepFail : stepFail(Obs,Time)) {
+			["Tback=payloadArg(1).toString().toInt() / 4"] //back just a little ..
+ 			println("stepFailed ${payloadArg(1).toString()}")
+		}
+		run itunibo.planner.moveUtils.backToCompensate(myself, Tback, Tback)   
+		run itunibo.planner.plannerUtil.wallFound()
+		if "secondLap == false" {
+			run itunibo.planner.moveUtils.rotateLeft90tuning( myself )
+		} else {
+			run itunibo.planner.moveUtils.rotateRight90tuning( myself )			
+		}
+		//run itunibo.planner.moveUtils.doPlannedMove(myself, "l")
+	} Goto detectPerimeter
+
+	State perimeterWalked {
+		if "secondLap == false" {
+			println("FINAL MAP")
+			run itunibo.planner.moveUtils.showCurrentRobotState()
+			run itunibo.planner.plannerUtil.saveMap(mapname)
+			["secondLap = true"]
+		} else {
+			["mustStop = true"]
+		}
+	} Goto waitForCmd if "mustStop == false" else endOfJob
+	
+	State endOfJob {
+		println("Perimeter completely walked. Exit.")
+	}
+}

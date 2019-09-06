@@ -1,19 +1,25 @@
-package itunibo.planner;
+package itunibo.planner.model;
 
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
-import it.unibo.exploremap.stella.model.RobotState;
-
 public class RoomMap implements Serializable{
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 1L;
+	
 	private static RoomMap singletonRoomMap;
 	public static RoomMap getRoomMap() {
 		if (singletonRoomMap == null)
 			singletonRoomMap = new RoomMap();
 		return singletonRoomMap;
 	}
- 	
+	public static void setRoomMap( RoomMap map ) { 
+		singletonRoomMap = map;
+ 	}
+	
 	private List<ArrayList<Box>> roomMap = new ArrayList<ArrayList<Box>>();
 	
 	private RoomMap() {
@@ -30,7 +36,8 @@ public class RoomMap implements Serializable{
 //	public Map<Coordinate, Box> getMapClone() {
 //		return new HashMap<>(this.roomMap);
 //	}
-	
+
+
 	public void put(int x, int y, Box box) {
 		try {
 			roomMap.get(y);

@@ -80,9 +80,10 @@ import alice.tuprolog.*
                                 //val m = MsgUtil.buildEvent( "tcp", "collision","collision($objectName)")
 								//println("clientWenvObjTcp | emit $m")
                                 //emitLocalStreamEvent( m )
- 							     actor.emit("sonarRobot","sonar(5)"
-									.replace("TARGET", objectName
-									.replace("-", "")));
+								actor.emit("collision","collision($objectName)")
+ 							    actor.emit("sonarRobot","sonar(5)"
+ 							    		.replace("TARGET", objectName
+ 							    		.replace("-", "")));
                            }
                         }
                     } catch (e: IOException) {
