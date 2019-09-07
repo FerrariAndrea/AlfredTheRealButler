@@ -59,7 +59,7 @@ QActor roomexplorer context ctxExplorerRoom {
 	
 	State rotateEast {
 		["NumStep=0"]
-		run itunibo.planner.moveUtils.rotateLeft90tuning( myself )		
+		run itunibo.planner.moveUtils.rotateLeft90( myself )//si potrebbe sostituire con il nostro onerotate	
 	} Goto detectPerimeter
 	
 	State detectPerimeter {
@@ -74,8 +74,8 @@ QActor roomexplorer context ctxExplorerRoom {
    		//forward onecellforward -m onestep : onestep($StepTime)	
 	} 
 	Transition t0 whenMsg stepOk -> handleStepOk
-				  whenMsg stepFail -> preCheckingObject
-				  whenEvent collision -> checkingObject//aggiunto per test
+				  //whenMsg stepFail -> preCheckingObject
+				  whenEvent collision -> checkingObject
 
 	State handleStepOk {
 		run itunibo.planner.moveUtils.updateMapAfterAheadOk(myself)
@@ -83,7 +83,7 @@ QActor roomexplorer context ctxExplorerRoom {
 	} Goto goOneStepAhead
 
 	//Per intercettare l'evento di collisione
-	State preCheckingObject {} Transition t0 whenEvent collision -> checkingObject
+	//State preCheckingObject {} Transition t0 whenEvent collision -> checkingObject
 					  
 	State checkingObject {
 		onMsg(collision : collision(OBJECT)) {
@@ -124,16 +124,16 @@ QActor roomexplorer context ctxExplorerRoom {
 		"]
 		forward resourcemodel -m modelUpdate : modelUpdate(roomMap, $MapStr)
 		
-		onMsg(stepFail : stepFail(Obs,Time)) {
+		onMsg(stepFail : stepFail(Obs,Time)) {//probabilmente questo non va
 			["Tback=payloadArg(1).toString().toInt() / 4"] //back just a little ..
  			println("stepFailed ${payloadArg(1).toString()}")
 		}
 		run itunibo.planner.moveUtils.backToCompensate(myself, Tback, Tback)   
 		run itunibo.planner.plannerUtil.wallFound()
 		if "secondLap == false" {
-			run itunibo.planner.moveUtils.rotateLeft90tuning( myself )
+			run itunibo.planner.moveUtils.rotateLeft90( myself ) //si potrebbe sostituire con il nostro onerotate
 		} else {
-			run itunibo.planner.moveUtils.rotateRight90tuning( myself )			
+			run itunibo.planner.moveUtils.rotateRight90( myself )		//si potrebbe sostituire con il nostro onerotate	
 		}
 		//run itunibo.planner.moveUtils.doPlannedMove(myself, "l")
 	} Goto detectPerimeter

@@ -56,7 +56,7 @@ class Roomexplorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 				state("rotateEast") { //this:State
 					action { //it:State
 						NumStep=0
-						itunibo.planner.moveUtils.rotateLeft90tuning(myself)
+						itunibo.planner.moveUtils.rotateLeft90(myself)
 					}
 					 transition( edgeName="goto",targetState="detectPerimeter", cond=doswitch() )
 				}	 
@@ -74,8 +74,7 @@ class Roomexplorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 						itunibo.planner.moveUtils.attemptTomoveAhead(myself ,StepTime, "onecellforward" )
 					}
 					 transition(edgeName="t00",targetState="handleStepOk",cond=whenDispatch("stepOk"))
-					transition(edgeName="t01",targetState="preCheckingObject",cond=whenDispatch("stepFail"))
-					transition(edgeName="t02",targetState="checkingObject",cond=whenEvent("collision"))
+					transition(edgeName="t01",targetState="checkingObject",cond=whenEvent("collision"))
 				}	 
 				state("handleStepOk") { //this:State
 					action { //it:State
@@ -83,11 +82,6 @@ class Roomexplorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 						delay(500) 
 					}
 					 transition( edgeName="goto",targetState="goOneStepAhead", cond=doswitch() )
-				}	 
-				state("preCheckingObject") { //this:State
-					action { //it:State
-					}
-					 transition(edgeName="t03",targetState="checkingObject",cond=whenEvent("collision"))
 				}	 
 				state("checkingObject") { //this:State
 					action { //it:State
@@ -131,10 +125,10 @@ class Roomexplorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 						}
 						itunibo.planner.moveUtils.backToCompensate(myself ,Tback, Tback )
 						itunibo.planner.plannerUtil.wallFound(  )
-						if(secondLap == false){ itunibo.planner.moveUtils.rotateLeft90tuning(myself)
+						if(secondLap == false){ itunibo.planner.moveUtils.rotateLeft90(myself)
 						 }
 						else
-						 { itunibo.planner.moveUtils.rotateRight90tuning(myself)
+						 { itunibo.planner.moveUtils.rotateRight90(myself)
 						  }
 					}
 					 transition( edgeName="goto",targetState="detectPerimeter", cond=doswitch() )
