@@ -130,7 +130,7 @@ object moveUtils{
 		delay( pauseTime.toLong() )
 	}
  	suspend fun rotateRight90(actor : ActorBasic ){
- 		actor.forward("modelChange", "modelChange(robot,r)", "resourcemodel")
+ 		actor.forward("modelChange", "modelChange(robot,d)", "resourcemodel")
 		delay( 800 )
  		doPlannedMove(actor, "d" )	    //update map
  	}

@@ -2,7 +2,7 @@ System system7
 mqttBroker "localhost" : 1883
 
 Event  collision     : collision(OBJECT)	     //from  sonar on robot 
-
+Dispatch modelUpdateMap  : modelUpdateMap( NAME,X,Y )
 Dispatch stepOk        : stepOk(V)		//TODO eliminate  V
 Dispatch stepFail      : stepFail(R,T) //R=ok | obstacle, T = time
 Dispatch modelUpdate  : modelUpdate( TARGET, VALUE )
@@ -41,9 +41,6 @@ QActor roomexplorer context ctxExplorerRoom {
 	//var PauseTimeL  = PauseTime.toLong()
 	var secondLap : Boolean = false
 	var mustStop : Boolean = false
-
-	var xTemp : Int = 0
-	var yTemp : Int = 0
 "]
 	State s0 initial {
 		run itunibo.coap.observer.resourceObserverCoapClient.create( "coap://localhost:5683/resourcemodel" )
@@ -74,8 +71,8 @@ QActor roomexplorer context ctxExplorerRoom {
    		//forward onecellforward -m onestep : onestep($StepTime)	
 	} 
 	Transition t0 whenMsg stepOk -> handleStepOk
-				  //whenMsg stepFail -> preCheckingObject
-				  whenEvent collision -> checkingObject
+				//whenMsg stepFail -> handleStepFail
+				whenEvent collision -> checkingObject
 
 	State handleStepOk {
 		run itunibo.planner.moveUtils.updateMapAfterAheadOk(myself)
@@ -87,55 +84,43 @@ QActor roomexplorer context ctxExplorerRoom {
 					  
 	State checkingObject {
 		onMsg(collision : collision(OBJECT)) {
-			["var objName = payloadArg(0)"]
-			println("OGGETTO IN COLLISIONE: $objName")
-			if "objName.equals(\"pantry\")" {
+			["val ObjName = payloadArg(0)"]
+			println("OGGETTO IN COLLISIONE: $ObjName")
+			if "(ObjName.equals(\"pantry\") || ObjName.equals(\"dishwasher\") || ObjName.equals(\"fridge\"))" {
 				["
-				xTemp = itunibo.planner.plannerUtil.getPosX()
-				yTemp = itunibo.planner.plannerUtil.getPosY()				
+				val XTemp = itunibo.planner.plannerUtil.getPosX()
+				val YTemp = itunibo.planner.plannerUtil.getPosY()				
 				"]
-				
-			} else {
-				if "objName.equals(\"dishwasher\")" {
-				["
-				xTemp = itunibo.planner.plannerUtil.getPosX()
-				yTemp = itunibo.planner.plannerUtil.getPosY()				
-				"]					
-					}
-				else {
-				if "objName.equals(\"fridge\")" {
-				["
-				xTemp = itunibo.planner.plannerUtil.getPosX()
-				yTemp = itunibo.planner.plannerUtil.getPosY()				
-				"]					
-					}
-				}
+				forward kb -m modelUpdateMap : modelUpdateMap($ObjName, $XTemp,$YTemp)
 			}
-			["var MsgContent = \"$xTemp,$yTemp,$objName\""]
-			forward kb -m modelUpdate : modelUpdate(map, $MsgContent)
+			
 		}
 	} Goto handleStepFail
 	
 	State handleStepFail {
-		println("&&& Found Wall")
+		//println("&&& Found Wall")
 		["
 		val MapStr =  itunibo.planner.plannerUtil.getMapOneLine()
 		//println(\"MapStr:\"+MapStr)
 		"]
 		forward resourcemodel -m modelUpdate : modelUpdate(roomMap, $MapStr)
-		
+		/*
 		onMsg(stepFail : stepFail(Obs,Time)) {//probabilmente questo non va
 			["Tback=payloadArg(1).toString().toInt() / 4"] //back just a little ..
- 			println("stepFailed ${payloadArg(1).toString()}")
+ 			println("stepFailed----> ${payloadArg(0).toString()}")
 		}
-		run itunibo.planner.moveUtils.backToCompensate(myself, Tback, Tback)   
+		run itunibo.planner.moveUtils.backToCompensate(myself, Tback, Tback) 
+		
+		*/  
 		run itunibo.planner.plannerUtil.wallFound()
 		if "secondLap == false" {
 			run itunibo.planner.moveUtils.rotateLeft90( myself ) //si potrebbe sostituire con il nostro onerotate
 		} else {
 			run itunibo.planner.moveUtils.rotateRight90( myself )		//si potrebbe sostituire con il nostro onerotate	
 		}
+		delay 1000 //necessario per una corretta rotazione
 		//run itunibo.planner.moveUtils.doPlannedMove(myself, "l")
+		
 	} Goto detectPerimeter
 
 	State perimeterWalked {
@@ -150,6 +135,7 @@ QActor roomexplorer context ctxExplorerRoom {
 	} Goto waitForCmd if "mustStop == false" else endOfJob
 	
 	State endOfJob {
+		run itunibo.planner.moveUtils.rotateRight90( myself )
 		println("Perimeter completely walked. Exit.")
 	}
 }

@@ -23,6 +23,7 @@ class Kb ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope){
 					}
 					 transition(edgeName="t02",targetState="handle",cond=whenDispatch("modelUpdate"))
 					transition(edgeName="t03",targetState="handle",cond=whenDispatch("modelRequest"))
+					transition(edgeName="t04",targetState="handle",cond=whenDispatch("modelUpdateMap"))
 				}	 
 				state("handle") { //this:State
 					action { //it:State
@@ -62,15 +63,24 @@ class Kb ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope){
 												
 								if(Target=="robot"){ solve("updateRobotStateFromMove($Value)","") //set resVar	
 								 }
-								if(Target=="map"){ println("RICEVUTO MESSAGGIO con $Value (da fare il salvataggio sulla kb)")
-								val Temp =Value.split(",");val Name =Temp[2];val Y=Temp[1]; val X=Temp[0]
+								if(Target=="map"){ val Temp =Value.split("X");val Name =Temp[2];val Y=Temp[1]; val X=Temp[0]
+								println("----------->RICEVUTO MESSAGGIO $Value")
 								solve("updatePos(pos($Name,$X,$Y))","") //set resVar	
 								 }
-								println("----------->KB[$Target][$Value]")
+						}
+						if( checkMsgContent( Term.createTerm("modelUpdateMap(NAME,X,Y)"), Term.createTerm("modelUpdateMap(NAME,X,Y)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								
+												var Name=payloadArg(0)
+												var X=payloadArg(1)
+												var Y=payloadArg(2)
+								println("----------->RICEVUTO MESSAGGIO $Name $X $Y")
+								solve("updatePos(pos($Name,$X,$Y))","") //set resVar	
 						}
 					}
-					 transition(edgeName="t04",targetState="handle",cond=whenDispatch("modelUpdate"))
-					transition(edgeName="t05",targetState="handle",cond=whenDispatch("modelRequest"))
+					 transition(edgeName="t05",targetState="handle",cond=whenDispatch("modelUpdate"))
+					transition(edgeName="t06",targetState="handle",cond=whenDispatch("modelRequest"))
+					transition(edgeName="t07",targetState="handle",cond=whenDispatch("modelUpdateMap"))
 				}	 
 			}
 		}

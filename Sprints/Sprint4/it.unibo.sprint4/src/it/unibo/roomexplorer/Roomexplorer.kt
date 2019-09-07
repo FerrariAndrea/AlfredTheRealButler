@@ -35,9 +35,6 @@ class Roomexplorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 			//var PauseTimeL  = PauseTime.toLong()
 			var secondLap : Boolean = false
 			var mustStop : Boolean = false
-		
-			var xTemp : Int = 0
-			var yTemp : Int = 0
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -87,49 +84,30 @@ class Roomexplorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 					action { //it:State
 						if( checkMsgContent( Term.createTerm("collision(OBJECT)"), Term.createTerm("collision(OBJECT)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								var objName = payloadArg(0)
-								println("OGGETTO IN COLLISIONE: $objName")
-								if(objName.equals("pantry")){ 
-												xTemp = itunibo.planner.plannerUtil.getPosX()
-												yTemp = itunibo.planner.plannerUtil.getPosY()				
+								val ObjName = payloadArg(0)
+								println("OGGETTO IN COLLISIONE: $ObjName")
+								if((ObjName.equals("pantry") || ObjName.equals("dishwasher") || ObjName.equals("fridge"))){ 
+												val XTemp = itunibo.planner.plannerUtil.getPosX()
+												val YTemp = itunibo.planner.plannerUtil.getPosY()				
+								forward("modelUpdateMap", "modelUpdateMap($ObjName,$XTemp,$YTemp)" ,"kb" ) 
 								 }
-								else
-								 { if(objName.equals("dishwasher")){ 
-								 				xTemp = itunibo.planner.plannerUtil.getPosX()
-								 				yTemp = itunibo.planner.plannerUtil.getPosY()				
-								  }
-								 else
-								  { if(objName.equals("fridge")){ 
-								  				xTemp = itunibo.planner.plannerUtil.getPosX()
-								  				yTemp = itunibo.planner.plannerUtil.getPosY()				
-								   }
-								   }
-								  }
-								var MsgContent = "$xTemp,$yTemp,$objName"
-								forward("modelUpdate", "modelUpdate(map,$MsgContent)" ,"kb" ) 
 						}
 					}
 					 transition( edgeName="goto",targetState="handleStepFail", cond=doswitch() )
 				}	 
 				state("handleStepFail") { //this:State
 					action { //it:State
-						println("&&& Found Wall")
 						
 								val MapStr =  itunibo.planner.plannerUtil.getMapOneLine()
 								//println("MapStr:"+MapStr)
 						forward("modelUpdate", "modelUpdate(roomMap,$MapStr)" ,"resourcemodel" ) 
-						if( checkMsgContent( Term.createTerm("stepFail(R,T)"), Term.createTerm("stepFail(Obs,Time)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
-								Tback=payloadArg(1).toString().toInt() / 4
-								println("stepFailed ${payloadArg(1).toString()}")
-						}
-						itunibo.planner.moveUtils.backToCompensate(myself ,Tback, Tback )
 						itunibo.planner.plannerUtil.wallFound(  )
 						if(secondLap == false){ itunibo.planner.moveUtils.rotateLeft90(myself)
 						 }
 						else
 						 { itunibo.planner.moveUtils.rotateRight90(myself)
 						  }
+						delay(1000) 
 					}
 					 transition( edgeName="goto",targetState="detectPerimeter", cond=doswitch() )
 				}	 
@@ -149,6 +127,7 @@ class Roomexplorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 				}	 
 				state("endOfJob") { //this:State
 					action { //it:State
+						itunibo.planner.moveUtils.rotateRight90(myself)
 						println("Perimeter completely walked. Exit.")
 					}
 				}	 
