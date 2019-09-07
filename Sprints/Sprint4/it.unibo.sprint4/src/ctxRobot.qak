@@ -9,6 +9,7 @@ Event  polar          : p( Distance, Angle )
 Event  collision	  : collision(OBJECT)
 
 Dispatch onestep       : onestep(DURATION)
+Dispatch onestepIW       : onestepIW(DURATION)//IgnoreWall
 Dispatch stepOk        : stepOk(V)		//TODO eliminate  V
 Dispatch stepFail      : stepFail(R,T) //R=ok | obstacle, T = time
 Dispatch onerotationstep   : onerotationstep(MOVE)
@@ -178,29 +179,43 @@ QActor onerotateforward context ctxRobot {
 
 
 QActor onecellforward context ctxRobot {
-	["var foundObstacle = false; var StepTime = 0L; var Duration : Long =0"]  
+	["
+		var foundObstacle = false;
+		var StepTime = 0L;
+		var Duration : Long =0;
+		var IgnoreWall =0
+	"]  
 	State s0 initial {	 
 		println("Start onecellforward")  		
 	} Goto ready
 	
 	State ready{
-		["foundObstacle = false"]	
+		["foundObstacle = false; IgnoreWall =0"]	
 	}
 	Transition t0 whenMsg onestep -> doMoveForward
 					whenMsg stop -> paused
+					whenMsg onestepIW -> doMoveForward
+					
 					
 	State paused{
 		println("onecellforward is PAUSED")
 	}Transition t0 whenMsg resume -> ready
 		
-
-	State doMoveForward{	
+	       
+	State doMoveForward{
 		["storeCurrentMessageForReply()"] 
 		onMsg( onestep : onestep( TIME ) ) {
 			["StepTime = payloadArg(0).toLong()"]
 			forward resourcemodel -m modelChange : modelChange(robot,w)
 			run itunibo.planner.plannerUtil.startTimer()
-			//["startTimer()"] //startTimer is built-in in the actor
+			["IgnoreWall=0"]
+		}
+		//solo per il virtuale, per trovare gli oggetti in mappa	
+		onMsg( onestepIW : onestepIW( TIME ) ) {
+			["StepTime = payloadArg(0).toLong()"]
+			forward resourcemodel -m modelChange : modelChange(robot,w)
+			run itunibo.planner.plannerUtil.startTimer()
+			["IgnoreWall=1"]
 		}
 	} 
 	Transition t0 whenTimeVar  StepTime -> endDoMoveForward		
@@ -219,7 +234,9 @@ QActor onecellforward context ctxRobot {
 		//printCurrentMessage
  		onMsg ( sonarRobot : sonar( DISTANCE ) ){     
 			["val distance = Integer.parseInt( payloadArg(0) ) 
-              foundObstacle = (distance<10) "]  
+				if (IgnoreWall ==1) {foundObstacle = (distance<=5)
+				}else{foundObstacle = (distance<10)}
+               "]  
    		}
 	}	
 	Goto stepFail if "foundObstacle" else ready

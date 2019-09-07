@@ -75,6 +75,7 @@ class Roomexplorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 					}
 					 transition(edgeName="t00",targetState="handleStepOk",cond=whenDispatch("stepOk"))
 					transition(edgeName="t01",targetState="preCheckingObject",cond=whenDispatch("stepFail"))
+					transition(edgeName="t02",targetState="checkingObject",cond=whenEvent("collision"))
 				}	 
 				state("handleStepOk") { //this:State
 					action { //it:State
@@ -86,7 +87,7 @@ class Roomexplorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 				state("preCheckingObject") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t02",targetState="checkingObject",cond=whenEvent("collision"))
+					 transition(edgeName="t03",targetState="checkingObject",cond=whenEvent("collision"))
 				}	 
 				state("checkingObject") { //this:State
 					action { //it:State
@@ -110,9 +111,8 @@ class Roomexplorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 								   }
 								   }
 								  }
-								var msgContent = ""+xTemp+","+yTemp+","+objName
-								println(msgContent)
-								forward("modelUpdate", "modelUpdate(map,msgContent)" ,"kb" ) 
+								var MsgContent = "$xTemp,$yTemp,$objName"
+								forward("modelUpdate", "modelUpdate(map,$MsgContent)" ,"kb" ) 
 						}
 					}
 					 transition( edgeName="goto",targetState="handleStepFail", cond=doswitch() )

@@ -15,7 +15,11 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 	}
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
-		var foundObstacle = false; var StepTime = 0L; var Duration : Long =0
+		
+				var foundObstacle = false;
+				var StepTime = 0L;
+				var Duration : Long =0;
+				var IgnoreWall =0
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -25,16 +29,17 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				}	 
 				state("ready") { //this:State
 					action { //it:State
-						foundObstacle = false
+						foundObstacle = false; IgnoreWall =0
 					}
 					 transition(edgeName="t08",targetState="doMoveForward",cond=whenDispatch("onestep"))
 					transition(edgeName="t09",targetState="paused",cond=whenDispatch("stop"))
+					transition(edgeName="t010",targetState="doMoveForward",cond=whenDispatch("onestepIW"))
 				}	 
 				state("paused") { //this:State
 					action { //it:State
 						println("onecellforward is PAUSED")
 					}
-					 transition(edgeName="t010",targetState="ready",cond=whenDispatch("resume"))
+					 transition(edgeName="t011",targetState="ready",cond=whenDispatch("resume"))
 				}	 
 				state("doMoveForward") { //this:State
 					action { //it:State
@@ -44,12 +49,20 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 								StepTime = payloadArg(0).toLong()
 								forward("modelChange", "modelChange(robot,w)" ,"resourcemodel" ) 
 								itunibo.planner.plannerUtil.startTimer(  )
+								IgnoreWall=0
+						}
+						if( checkMsgContent( Term.createTerm("onestepIW(DURATION)"), Term.createTerm("onestepIW(TIME)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								StepTime = payloadArg(0).toLong()
+								forward("modelChange", "modelChange(robot,w)" ,"resourcemodel" ) 
+								itunibo.planner.plannerUtil.startTimer(  )
+								IgnoreWall=1
 						}
 						stateTimer = TimerActor("timer_doMoveForward", 
 							scope, context!!, "local_tout_onecellforward_doMoveForward", StepTime )
 					}
-					 transition(edgeName="t011",targetState="endDoMoveForward",cond=whenTimeout("local_tout_onecellforward_doMoveForward"))   
-					transition(edgeName="t012",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
+					 transition(edgeName="t012",targetState="endDoMoveForward",cond=whenTimeout("local_tout_onecellforward_doMoveForward"))   
+					transition(edgeName="t013",targetState="handleSonarRobot",cond=whenEvent("sonarRobot"))
 				}	 
 				state("endDoMoveForward") { //this:State
 					action { //it:State
@@ -65,7 +78,8 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						if( checkMsgContent( Term.createTerm("sonar(DISTANCE)"), Term.createTerm("sonar(DISTANCE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								val distance = Integer.parseInt( payloadArg(0) ) 
-								              foundObstacle = (distance<10) 
+												if (IgnoreWall ==1) {foundObstacle = (distance<=5)
+												}else{foundObstacle = (distance<10)}
 						}
 					}
 					 transition( edgeName="goto",targetState="stepFail", cond=doswitchGuarded({foundObstacle}) )

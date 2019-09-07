@@ -168,6 +168,7 @@ object moveUtils{
 	suspend fun attemptTomoveAhead(actor:ActorBasic,stepTime:Int, dest:String ="onestepahead"){
  		//println("moveUtils attemptTomoveAhead stepTime=$stepTime")
 		actor.forward("onestep", "onestep(${stepTime})", dest)
+		//actor.forward("onestepIW", "onestepIW(${stepTime})", dest)
    	}
 	fun updateMapAfterAheadOk(actor : ActorBasic ){
 		doPlannedMove(actor  , "w")

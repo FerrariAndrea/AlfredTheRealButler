@@ -7,6 +7,7 @@ Dispatch stepOk        : stepOk(V)		//TODO eliminate  V
 Dispatch stepFail      : stepFail(R,T) //R=ok | obstacle, T = time
 Dispatch modelUpdate  : modelUpdate( TARGET, VALUE )
 Dispatch onestep       : onestep(DURATION)
+Dispatch onestepIW       : onestepIW(DURATION)//IgnoreWall
 Dispatch onerotationstep   : onerotationstep(MOVE)
 
 Context ctxExplorerRoom ip[host="localhost" port=8039] -mqtt
@@ -74,6 +75,7 @@ QActor roomexplorer context ctxExplorerRoom {
 	} 
 	Transition t0 whenMsg stepOk -> handleStepOk
 				  whenMsg stepFail -> preCheckingObject
+				  whenEvent collision -> checkingObject//aggiunto per test
 
 	State handleStepOk {
 		run itunibo.planner.moveUtils.updateMapAfterAheadOk(myself)
@@ -109,9 +111,8 @@ QActor roomexplorer context ctxExplorerRoom {
 					}
 				}
 			}
-			["var msgContent = \"\"+xTemp+\",\"+yTemp+\",\"+objName"]
-			println(msgContent)
-			forward kb -m modelUpdate : modelUpdate(map, msgContent)
+			["var MsgContent = \"$xTemp,$yTemp,$objName\""]
+			forward kb -m modelUpdate : modelUpdate(map, $MsgContent)
 		}
 	} Goto handleStepFail
 	
