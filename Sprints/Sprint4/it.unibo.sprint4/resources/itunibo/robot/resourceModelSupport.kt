@@ -31,7 +31,12 @@ lateinit var resourceFridgeCoap : modelResourceCoap
  				actor.emit( "modelContent" , "content( sonarRobot( $SonarState ) )" )
 				resourceFridgeCoap.updateState( "sonarRobot( $SonarState )" )
  			}	
+	}
+	fun updatePosRobotModel( actor: ActorBasic, content: String ){
+ 			actor.scope.launch{
+ 				actor.emit( "modelContent" , "posRobot( $content )" )
+				resourceFridgeCoap.updateState( "posRobot( $content )" )
+ 			}	
 	}	
- 	
 }
 

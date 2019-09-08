@@ -35,6 +35,10 @@ class Roomexplorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 			//var PauseTimeL  = PauseTime.toLong()
 			var secondLap : Boolean = false
 			var mustStop : Boolean = false
+			
+			var needExploreBound : Boolean =false
+			var tableFound : Boolean =false
+			var directionSud : Boolean =false
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -42,9 +46,27 @@ class Roomexplorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 						itunibo.planner.plannerUtil.initAI(  )
 						itunibo.planner.moveUtils.showCurrentRobotState(  )
 					}
-					 transition( edgeName="goto",targetState="waitForCmd", cond=doswitch() )
+					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
-				state("waitForCmd") { //this:State
+				state("waitCmd") { //this:State
+					action { //it:State
+					}
+					 transition(edgeName="t00",targetState="handeCmd",cond=whenDispatch("doExplor"))
+				}	 
+				state("handeCmd") { //this:State
+					action { //it:State
+						storeCurrentMessageForReply()
+						needExploreBound=false
+						if( checkMsgContent( Term.createTerm("doExplor(TARGET)"), Term.createTerm("doExplor(TARGET)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								
+												needExploreBound = (payloadArg(0)=="bound")
+						}
+					}
+					 transition( edgeName="goto",targetState="exploreBounds", cond=doswitchGuarded({needExploreBound}) )
+					transition( edgeName="goto",targetState="exploreTale", cond=doswitchGuarded({! needExploreBound}) )
+				}	 
+				state("exploreBounds") { //this:State
 					action { //it:State
 					}
 					 transition( edgeName="goto",targetState="detectPerimeter", cond=doswitchGuarded({secondLap == false}) )
@@ -67,11 +89,10 @@ class Roomexplorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 				}	 
 				state("goOneStepAhead") { //this:State
 					action { //it:State
-						println("$name in ${currentState.stateName} | $currentMsg")
 						itunibo.planner.moveUtils.attemptTomoveAhead(myself ,StepTime, "onecellforward" )
 					}
-					 transition(edgeName="t00",targetState="handleStepOk",cond=whenDispatch("stepOk"))
-					transition(edgeName="t01",targetState="checkingObject",cond=whenEvent("collision"))
+					 transition(edgeName="t01",targetState="handleStepOk",cond=whenDispatch("stepOk"))
+					transition(edgeName="t02",targetState="checkingObject",cond=whenEvent("collision"))
 				}	 
 				state("handleStepOk") { //this:State
 					action { //it:State
@@ -86,14 +107,16 @@ class Roomexplorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								val ObjName = payloadArg(0)
 								println("OGGETTO IN COLLISIONE: $ObjName")
-								if((ObjName.equals("pantry") || ObjName.equals("dishwasher") || ObjName.equals("fridge"))){ 
+								if((ObjName.equals("pantry") || ObjName.equals("dishwasher") || ObjName.equals("fridge")|| ObjName.equals("table"))){ 
 												val XTemp = itunibo.planner.plannerUtil.getPosX()
-												val YTemp = itunibo.planner.plannerUtil.getPosY()				
+												val YTemp = itunibo.planner.plannerUtil.getPosY()	
+												tableFound	=ObjName.equals("table")		
 								forward("modelUpdateMap", "modelUpdateMap($ObjName,$XTemp,$YTemp)" ,"kb" ) 
 								 }
 						}
 					}
-					 transition( edgeName="goto",targetState="handleStepFail", cond=doswitch() )
+					 transition( edgeName="goto",targetState="handleStepFail", cond=doswitchGuarded({needExploreBound}) )
+					transition( edgeName="goto",targetState="handleStepFailTable", cond=doswitchGuarded({! needExploreBound}) )
 				}	 
 				state("handleStepFail") { //this:State
 					action { //it:State
@@ -122,14 +145,44 @@ class Roomexplorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 						 { mustStop = true
 						  }
 					}
-					 transition( edgeName="goto",targetState="waitForCmd", cond=doswitchGuarded({mustStop == false}) )
-					transition( edgeName="goto",targetState="endOfJob", cond=doswitchGuarded({! mustStop == false}) )
+					 transition( edgeName="goto",targetState="exploreBounds", cond=doswitchGuarded({mustStop == false}) )
+					transition( edgeName="goto",targetState="endOfJobBounds", cond=doswitchGuarded({! mustStop == false}) )
 				}	 
-				state("endOfJob") { //this:State
+				state("endOfJobBounds") { //this:State
 					action { //it:State
 						itunibo.planner.moveUtils.rotateRight90(myself)
 						println("Perimeter completely walked. Exit.")
+						replyToCaller("endExplor", "endExplor(ok)")
 					}
+					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
+				}	 
+				state("exploreTale") { //this:State
+					action { //it:State
+						tableFound=false
+					}
+					 transition( edgeName="goto",targetState="goOneStepAhead", cond=doswitch() )
+				}	 
+				state("handleStepFailTable") { //this:State
+					action { //it:State
+						
+								val MapStr =  itunibo.planner.plannerUtil.getMapOneLine()
+						forward("modelUpdate", "modelUpdate(roomMap,$MapStr)" ,"resourcemodel" ) 
+						itunibo.planner.plannerUtil.wallFound(  )
+					}
+					 transition( edgeName="goto",targetState="rotate", cond=doswitchGuarded({(!tableFound)}) )
+					transition( edgeName="goto",targetState="endOfJobTable", cond=doswitchGuarded({! (!tableFound)}) )
+				}	 
+				state("rotate") { //this:State
+					action { //it:State
+					}
+					 transition( edgeName="goto",targetState="goOneStepAhead", cond=doswitch() )
+				}	 
+				state("endOfJobTable") { //this:State
+					action { //it:State
+						println("Table exploration end.")
+						replyToCaller("endExplor", "endExplor(ok)")
+					}
+					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
 			}
 		}

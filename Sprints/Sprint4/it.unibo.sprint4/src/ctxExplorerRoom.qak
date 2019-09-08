@@ -10,6 +10,10 @@ Dispatch onestep       : onestep(DURATION)
 Dispatch onestepIW       : onestepIW(DURATION)//IgnoreWall
 Dispatch onerotationstep   : onerotationstep(MOVE)
 
+
+Dispatch doExplor : doExplor( TARGET )  
+Dispatch endExplor : endExplor(V)
+
 Context ctxExplorerRoom ip[host="localhost" port=8039] -mqtt
 Context ctxDummy ip[host="dummyhost" port=9999] -mqtt 
 
@@ -41,14 +45,36 @@ QActor roomexplorer context ctxExplorerRoom {
 	//var PauseTimeL  = PauseTime.toLong()
 	var secondLap : Boolean = false
 	var mustStop : Boolean = false
+	
+	var needExploreBound : Boolean =false
+	var tableFound : Boolean =false
+	var directionSud : Boolean =false
 "]
 	State s0 initial {
 		run itunibo.coap.observer.resourceObserverCoapClient.create( "coap://localhost:5683/resourcemodel" )
  		run itunibo.planner.plannerUtil.initAI()
 		run itunibo.planner.moveUtils.showCurrentRobotState()
-	} Goto waitForCmd
+	}Goto waitCmd
 	
-	State waitForCmd {
+	State waitCmd{
+		
+	}Transition t0 whenMsg doExplor -> handeCmd
+		
+	State handeCmd{
+		["storeCurrentMessageForReply()"]
+		["needExploreBound=false"]
+		onMsg(   doExplor:  doExplor(TARGET) ) { 
+			
+			["
+				needExploreBound = (payloadArg(0)==\"bound\")
+			"]
+		}//else explore for table 		
+	}Goto exploreBounds if "needExploreBound" else exploreTale
+	
+	
+	
+	//----------------------------------------------------------------------------------------------------------exploreBounds
+	State exploreBounds {		
 		//If you want to start directly from secondLap (perimeter walked in the opposite way) flag this.
 		//["secondLap=true"]
 	} 
@@ -66,9 +92,8 @@ QActor roomexplorer context ctxExplorerRoom {
 	} Goto goOneStepAhead if "(NumStep<5)" else perimeterWalked
 	
 	State goOneStepAhead {
-		printCurrentMessage
+		//printCurrentMessage
    		run itunibo.planner.moveUtils.attemptTomoveAhead(myself, StepTime, "onecellforward")
-   		//forward onecellforward -m onestep : onestep($StepTime)	
 	} 
 	Transition t0 whenMsg stepOk -> handleStepOk
 				//whenMsg stepFail -> handleStepFail
@@ -86,16 +111,18 @@ QActor roomexplorer context ctxExplorerRoom {
 		onMsg(collision : collision(OBJECT)) {
 			["val ObjName = payloadArg(0)"]
 			println("OGGETTO IN COLLISIONE: $ObjName")
-			if "(ObjName.equals(\"pantry\") || ObjName.equals(\"dishwasher\") || ObjName.equals(\"fridge\"))" {
+			if "(ObjName.equals(\"pantry\") || ObjName.equals(\"dishwasher\") || ObjName.equals(\"fridge\")|| ObjName.equals(\"table\"))" {
 				["
 				val XTemp = itunibo.planner.plannerUtil.getPosX()
-				val YTemp = itunibo.planner.plannerUtil.getPosY()				
+				val YTemp = itunibo.planner.plannerUtil.getPosY()	
+				tableFound	=ObjName.equals(\"table\")		
 				"]
 				forward kb -m modelUpdateMap : modelUpdateMap($ObjName, $XTemp,$YTemp)
+				
 			}
 			
 		}
-	} Goto handleStepFail
+	} Goto handleStepFail if "needExploreBound" else handleStepFailTable
 	
 	State handleStepFail {
 		//println("&&& Found Wall")
@@ -132,10 +159,35 @@ QActor roomexplorer context ctxExplorerRoom {
 		} else {
 			["mustStop = true"]
 		}
-	} Goto waitForCmd if "mustStop == false" else endOfJob
+	} Goto exploreBounds if "mustStop == false" else endOfJobBounds
 	
-	State endOfJob {
+	State endOfJobBounds {
 		run itunibo.planner.moveUtils.rotateRight90( myself )
 		println("Perimeter completely walked. Exit.")
-	}
+		["replyToCaller(\"endExplor\", \"endExplor(ok)\")"]	
+	}Goto waitCmd
+	
+	//----------------------------------------------------------------------------------------------------------exploreTale
+	State exploreTale{
+		["tableFound=false"]
+	}Goto goOneStepAhead 
+	
+
+	
+	State handleStepFailTable {
+		["
+		val MapStr =  itunibo.planner.plannerUtil.getMapOneLine()
+		"]
+		forward resourcemodel -m modelUpdate : modelUpdate(roomMap, $MapStr)
+		run itunibo.planner.plannerUtil.wallFound()
+		
+	} Goto rotate if "(!tableFound)" else endOfJobTable
+	State rotate{
+		
+	}Goto goOneStepAhead
+	State endOfJobTable {
+		//QUI FORSE SERVE UN GO-TO-HOME
+		println("Table exploration end.")
+		["replyToCaller(\"endExplor\", \"endExplor(ok)\")"]	
+	}Goto waitCmd
 }

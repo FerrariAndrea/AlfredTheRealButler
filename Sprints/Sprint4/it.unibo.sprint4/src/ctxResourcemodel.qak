@@ -1,6 +1,8 @@
 System system2
 mqttBroker "localhost" : 1883
 
+Event  posRobot     : posRobot( POS )
+
 Dispatch local_modelChanged   : modelChanged( TARGET, VALUE )
 
 Dispatch modelChange  : modelChange( TARGET, VALUE )  //force a resource-model change
@@ -49,13 +51,18 @@ QActor resourcemodel context ctxResourceModel {
 		onMsg( modelUpdate : modelUpdate(sonarRobot,V ) ) {
 			run itunibo.robot.resourceModelSupport.updateSonarRobotModel( myself, payloadArg(1) )
 		}
-		//Start and stop msg (DONE--> comando effettuato)
+		//Messaggi di fine missione per il metre (frontend)
 		onMsg( modelUpdate : modelUpdate(metre,V ) ) {
-			//run itunibo.robot.resourceModelSupport.updateSonarRobotModel( myself, payloadArg(1) )
+			run itunibo.robot.resourceModelSupport.updateSonarRobotModel( myself, payloadArg(1) )
+		}
+		onMsg( modelUpdate : modelUpdate(pos,V ) ) {
+			run itunibo.robot.resourceModelSupport.updatePosRobotModel( myself, payloadArg(1) )
+			//emit posRobot : posRobot($payloadArg(1))
 		}
 	}	
 	Goto  waitModelChange
 	
+	//questo è da togliere siccome c'è l'attore kb che gestisce la persistenza
 	State changeModel {
 		//printCurrentMessage 
 		//ROBOT MOVE
@@ -63,11 +70,17 @@ QActor resourcemodel context ctxResourceModel {
 			//run itunibo.robot.resourceModelSupport.updateRobotModel( myself, payloadArg(1) )
 			forward mindrobot -m local_modelChanged : modelChanged(  robot,  $payloadArg(1))  //for the robotmind
 			//forward kb -m modelUpdate : modelUpdate(  robot,  $payloadArg(1))  //for kb
-		} 
-		//Start and stop msg  (richiesta comando)
+		}
+		/*
+		 // Start and stop msg  (richiesta comando)
 		onMsg( modelChange : modelChange( metre,CMD) ) {
-			//forward mindrobot -m local_modelChanged : modelChanged(  metre,  $payloadArg(1)) 
+			forward mindrobot -m local_modelChanged : modelChanged(  metre,  $payloadArg(1)) 
 		} 
+		onMsg( modelChange : modelChange(robotPos,V ) ) {
+			println("---------------->ola")
+			forward mindrobot -m local_modelChanged : modelChanged(  robotPos,  $payloadArg(1)) 		
+		}
+		*/
 	}
 	Goto  waitModelChange
 }
@@ -129,14 +142,20 @@ QActor kb context ctxResourceModel{
 				
 			"]
 			if "Target==\"robot\""{
-				solve(updateRobotStateFromMove($Value))				
+				solve(updateRobotStateFromMove($Value))	
+				//per il front-end
+				solve(actualRobotPos(X,Y,O))
+				ifSolved { 			
+					["val Position =  \"X\"+getCurSol(\"X\").toString()+\"Y\"+getCurSol(\"Y\").toString()+\"O\"+getCurSol(\"O\").toString()"]	
+					forward resourcemodel -m modelUpdate : modelUpdate(pos,$Position)
+				}
+									 		
 			}
 			if "Target==\"map\""{
 				["val Temp =Value.split(\"X\");val Name =Temp[2];val Y=Temp[1]; val X=Temp[0]"]
 				
 			println("----------->RICEVUTO MESSAGGIO $Value")
-				solve(updatePos(pos($Name,$X,$Y)))
-					
+				solve(updatePos(pos($Name,$X,$Y)))					
 			}
 					
 		}	

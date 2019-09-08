@@ -62,6 +62,10 @@ class Kb ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope){
 												var Value=payloadArg(1)
 												
 								if(Target=="robot"){ solve("updateRobotStateFromMove($Value)","") //set resVar	
+								solve("actualRobotPos(X,Y,O)","") //set resVar	
+								if(currentSolution.isSuccess()) { val Position =  "X"+getCurSol("X").toString()+"Y"+getCurSol("Y").toString()+"O"+getCurSol("O").toString()
+								forward("modelUpdate", "modelUpdate(pos,$Position)" ,"resourcemodel" ) 
+								 }
 								 }
 								if(Target=="map"){ val Temp =Value.split("X");val Name =Temp[2];val Y=Temp[1]; val X=Temp[0]
 								println("----------->RICEVUTO MESSAGGIO $Value")

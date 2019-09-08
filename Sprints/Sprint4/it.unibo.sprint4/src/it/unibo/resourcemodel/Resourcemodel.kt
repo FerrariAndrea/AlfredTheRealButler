@@ -45,6 +45,11 @@ class Resourcemodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 						}
 						if( checkMsgContent( Term.createTerm("modelUpdate(TARGET,VALUE)"), Term.createTerm("modelUpdate(metre,V)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
+								itunibo.robot.resourceModelSupport.updateSonarRobotModel(myself ,payloadArg(1) )
+						}
+						if( checkMsgContent( Term.createTerm("modelUpdate(TARGET,VALUE)"), Term.createTerm("modelUpdate(pos,V)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								itunibo.robot.resourceModelSupport.updatePosRobotModel(myself ,payloadArg(1) )
 						}
 					}
 					 transition( edgeName="goto",targetState="waitModelChange", cond=doswitch() )
@@ -54,9 +59,6 @@ class Resourcemodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 						if( checkMsgContent( Term.createTerm("modelChange(TARGET,VALUE)"), Term.createTerm("modelChange(robot,V)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								forward("local_modelChanged", "modelChanged(robot,${payloadArg(1)})" ,"mindrobot" ) 
-						}
-						if( checkMsgContent( Term.createTerm("modelChange(TARGET,VALUE)"), Term.createTerm("modelChange(metre,CMD)"), 
-						                        currentMsg.msgContent()) ) { //set msgArgList
 						}
 					}
 					 transition( edgeName="goto",targetState="waitModelChange", cond=doswitch() )

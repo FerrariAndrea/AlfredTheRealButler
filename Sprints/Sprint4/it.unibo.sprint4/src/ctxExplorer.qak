@@ -19,6 +19,7 @@ Dispatch modelMapResponse : modelMapResponse( X,Y )
 Dispatch addFood : addFood(X) //1 or 2: payload for now is ignored.
 Dispatch prepare : prepare(X) //Non so perché senza Payload non mi funziona, quindi ne metto uno che viene ignorato. Idem per clear (Luca)
 Dispatch clear : clear(X)
+Dispatch home : home(X)
 
 Event  sonarRobot     : sonar( DISTANCE )	     //from  sonar on robot 
 
@@ -51,7 +52,7 @@ QActor missionsolver context ctxExplorer{
 	}	Transition t0 whenEvent	  addFood -> addingFood
 				  whenEvent   prepare -> preparingRoom
 				  whenEvent   clear -> clearingRoom
-				  
+				  // whenEvent   home -> ... //questo è da fare, insieme alla risposta verso il frontedn di fine comando
 				  // ------------------ MACRO COMMANDS ------------------
 	
 	State addingFood {

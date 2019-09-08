@@ -79,11 +79,15 @@ app.get('/appl', function(req, res) {
 	//PER ANDREA FERRARI: LEGGI LE DUE SEGUENTI LINEE
 	app.post("/stop", function(req, res,next) { superHandlePostMove("stop","freezing time", req,res,next); });	
 	app.post("/resume", function(req, res,next) { superHandlePostMove("resume","resuming time", req,res,next); });	
+	
+	app.post("/home", function(req, res,next) { superHandlePostMove("home","going to home", req,res,next); });	
+	app.post("/exploreroom", function(req, res,next) { superHandlePostMove("exploreroom","explore bunds", req,res,next); });	
+	app.post("/exploretable", function(req, res,next) { superHandlePostMove("exploretable","explore for table", req,res,next); });	
 
 
 /*
 *
-*	COMANDI VECCHI DI NATALI
+*	COMANDI DI NATALI
 */
 	app.post("/w", function(req, res,next) { handlePostMove("w","moving forward", req,res,next); });	
 	app.post("/s", function(req, res,next) { handlePostMove("s","moving backward",req,res,next); });
@@ -175,7 +179,13 @@ var publishMsg = function( cmd ){
    	mqttUtils.publish( msgstr, "unibo/qak/missionsolver" );
 	
    	break;
-  	case "stop":
+	case "home":
+  	var msgstr = "msg(home,dispatch,js,missionsolver,home(X),1)"  ;  
+  	console.log("publishMsg forward> "+ msgstr);
+   	mqttUtils.publish( msgstr, "unibo/qak/missionsolver" );
+	
+   	break;	
+  	case "stop":	
 		var msgstr = "msg(stop,dispatch,js,onerotateforward,stop(X),1)"  ;  
 		console.log("publishMsg forward> "+ msgstr);
 		mqttUtils.publish( msgstr, "unibo/qak/onerotateforward" );
@@ -184,6 +194,7 @@ var publishMsg = function( cmd ){
 		mqttUtils.publish( msgstr, "unibo/qak/onecellforward" );
 	break;
   	case "resume":
+	
 		var msgstr = "msg(resume,dispatch,js,onerotateforward,resume(X),1)"  ;  
 		console.log("publishMsg forward> "+ msgstr);
 		mqttUtils.publish( msgstr, "unibo/qak/onerotateforward" );
@@ -191,6 +202,16 @@ var publishMsg = function( cmd ){
 		console.log("publishMsg forward> "+ msgstr);
 		mqttUtils.publish( msgstr, "unibo/qak/onecellforward" );
 		
+    break;
+	  	case "exploreroom":
+		var msgstr = "msg(doExplor,dispatch,js,roomexplorer,doExplor(bound),1)"  ;  
+		console.log("publishMsg forward> "+ msgstr);
+		mqttUtils.publish( msgstr, "unibo/qak/roomexplorer" );		
+    break;
+	case "exploretable":
+		var msgstr = "msg(doExplor,dispatch,js,roomexplorer,doExplor(table),1)"  ;  
+		console.log("publishMsg forward> "+ msgstr);
+		mqttUtils.publish( msgstr, "unibo/qak/roomexplorer" );		
     break;
   	default:
   	console.log("error, cmd not found in switch case publishMsg, check code.")
