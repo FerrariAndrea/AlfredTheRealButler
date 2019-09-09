@@ -188,8 +188,8 @@
 		
 			if( v.indexOf("robot") >= 0 ){document.getElementById('robotDisplay').innerHTML=v; }
 			if( v.indexOf("fridge") >= 0 ){document.getElementById('food').innerHTML=v; } //FOOD 1 
-			if( v.indexOf("robot") >= 0 ){document.getElementById('robotDisplay4').innerHTML=v; } //DISHWASHER 
-			if( v.indexOf("robot") >= 0 ){document.getElementById('robotDisplay5').innerHTML=v; } //PANTRY
+			if( v.indexOf("dishwasher") >= 0 ){document.getElementById('dishwasher').innerHTML=v; } //DISHWASHER 
+			if( v.indexOf("pantry") >= 0 ){document.getElementById('pantry').innerHTML=v; } //PANTRY
 
 			if( v.indexOf("sonarRobot") >= 0 ){document.getElementById('sonarRobotDisplay').innerHTML=v.split('(')[2].split(')')[0]; }
             if( v.indexOf("sonarLeft") >= 0 ){document.getElementById('sonarRobotLDisplay').innerHTML=v.split('(')[2].split(')')[0]; }
@@ -220,12 +220,14 @@
 	<div>
   		<b>SONAR STATE</b>: <span id="sonarRobotDisplay"></span>
 	</div>
+	<!--
   <div>
     <b>SONAR LEFT STATE</b>: <span id="sonarRobotLDisplay"></span>
   </div>
   <div>
     <b>SONAR RIGHT STATE</b>: <span id="sonarRobotRDisplay"></span>
-  </div>
+	</div>
+	-->
   </div>
 
 </div>
@@ -260,13 +262,13 @@
 	</th>
     <th class="tg-0lax">
 		<form action="/home" method="post">
-				<input type="submit" class="myButton"  value="Home"  >
+				<input type="submit" class="myButton"  value="GO HOME"  >
 		</form>
 		<form action="/exploreroom" method="post">
-				<input type="submit" class="myButton"  value="Explore-bound"  >
+				<input type="submit" class="myButton"  value="EXPLORE PERIMETER"  >
 		</form>
 		<form action="/exploretable" method="post">
-				<input type="submit" class="myButton"  value="Explore-table"  >
+				<input type="submit" class="myButton"  value="EXPLORE TABLE"  >
 		</form>
 	</th>
   </tr>
@@ -280,19 +282,16 @@
 
 <div style="background-color: #FAF19C">
 	<div style = "background-color: rgb(240, 225, 95)"">
-		<b style="font-weight: bold;">CAPABILITIES</b>:
+		<b style="font-weight: bold;">CAPACITY</b>:
 	</div>
 	<div>
-		 <b>Fridge</b>:
-		 <ul>
-			<li>Capacity: <span id="food"></span> </li>
-		 </ul>
+		 <b>Fridge:</b> <span id="food"></span> </li>
   	</div>
 	<div>
-  		<b>Dishwasher</b>: <span id="robotDisplay4"></span> dishes
+  		<b>Dishwasher:</b> <span id="dishwasher"></span>
 	</div>
 	<div>
-		<b>Pantry</b>: <span id="robotDisplay5"></span> dishes
+		<b>Pantry:</b> <span id="pantry"></span>
 	</div>
 </div>
 

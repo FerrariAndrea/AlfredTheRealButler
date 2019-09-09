@@ -5,7 +5,7 @@ Dispatch takeFood  : takeFood(X)
 Dispatch takeDish  : takeDish(X)
 Dispatch putDish  : putDish(X)
 
-Context ctxCoapClient ip[host="localhost" port=8035] -mqtt
+Context ctxCoapTester ip[host="localhost" port=8035] -mqtt
 Context ctxDummy ip[host="dummyhost" port=9999] -mqtt 
 
 ExternalQActor fridge context ctxDummy
@@ -13,14 +13,15 @@ ExternalQActor pantry context ctxDummy
 ExternalQActor dishwasher context ctxDummy
 
 //USATO PER TESTARE IL FRIDGE - PANTRY - DISHWASHER E LA COMUNICAZIONE COAP
-QActor coapclient context ctxCoapClient {
+QActor coaptester context ctxCoapTester {
 	State s0 initial { 
 		println("CoapClient Started")
 	} Goto waitCmd
 	
 	State waitCmd {
-	
-	} //Goto interactWithFridge
+	//Remove comment to the cmd you want to test 
+	} 
+	//Goto interactWithFridge
 	//Goto interactWithPantry
 	Goto interactWithDishwasher
 	

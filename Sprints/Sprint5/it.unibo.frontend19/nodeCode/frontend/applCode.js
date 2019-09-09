@@ -15,6 +15,8 @@ var io              ; 	//Upgrade for socketIo;
 const mqttUtils     = require('./uniboSupports/mqttUtils');  
 const coapCToRM     = require('./uniboSupports/coapClientToResourceModel');
 const coapCToF      = require('./uniboSupports/coapClientToFridge');  
+const coapCToD      = require('./uniboSupports/coapClientToDishwasher');
+const coapCToP      = require('./uniboSupports/coapClientToPantry');
 
 //require("node-coap-client").CoapClient; 
 
@@ -62,7 +64,13 @@ app.get('/robotmodel', function(req, res) {
 });
 app.get('/sonarrobotmodel', function(req, res) {
 	res.send( mqttUtils.getsonarrobotmodel() )
-});	
+});
+app.get('/dishwashermodel', function(req, res) {
+	res.send(mqttUtils.getdishwashermodel() )
+});
+app.get('/pantrymodel', function(req, res) {
+	res.send(mqttUtils.getpantrymodel() )
+});
 
 app.get('/appl', function(req, res) {
 	res.render("indexAppl");
@@ -232,12 +240,22 @@ var publishMsgToResourceModel = function( target, cmd ){
 
 var changeResourceModelCoap = function( cmd ){  
     console.log("coap PUT> "+ cmd);
-		coapCToRM.coapPut(cmd);
+		coapCToRM.coapPut(cmd); //Client to ResourceModel
 }
 
 var changeFridgeCoap = function ( cmd ) {
 		console.log("coap PUT> "+ cmd);
-		coapCToF.coapPut(cmd);
+		coapCToF.coapPut(cmd); //Client to Fridge
+}
+
+var changeDishwasherCoap = function ( cmd ) {
+		console.log("coap PUT> "+ cmd);
+		coapCToD,coapPut(cmd); //Client to Dishwasher
+}
+
+var changePantryCoap = function ( cmd ) {
+		console.log("coap PUT> "+ cmd);
+		coapCToP,coapPut(cmd); //Client to Pantry
 }
 
 var publishEmitUserCmd = function( cmd ){  
