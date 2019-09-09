@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>ResourceAccess</title>
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+<link rel="stylesheet" type="text/css" href="/public/stylesheets/buttons.css">
+<style>
+.myButtonGreen {
+	-moz-box-shadow:inset 0px 1px 0px 0px #caefab;
+	-webkit-box-shadow:inset 0px 1px 0px 0px #caefab;
+	box-shadow:inset 0px 1px 0px 0px #caefab;
+	background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #77d42a), color-stop(1, #5cb811));
+	background:-moz-linear-gradient(top, #77d42a 5%, #5cb811 100%);
+	background:-webkit-linear-gradient(top, #77d42a 5%, #5cb811 100%);
+	background:-o-linear-gradient(top, #77d42a 5%, #5cb811 100%);
+	background:-ms-linear-gradient(top, #77d42a 5%, #5cb811 100%);
+	background:linear-gradient(to bottom, #77d42a 5%, #5cb811 100%);
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#77d42a', endColorstr='#5cb811',GradientType=0);
+	background-color:#77d42a;
+	-moz-border-radius:6px;
+	-webkit-border-radius:6px;
+	border-radius:6px;
+	border:1px solid #268a16;
+	display:inline-block;
+	cursor:pointer;
+	color:#306108;
+	font-family:Arial;
+	font-size:15px;
+	font-weight:bold;
+	padding:6px 24px;
+	text-decoration:none;
+	text-shadow:0px 1px 0px #aade7c;
+	width: 200px;
+	margin: 10px 10px 10px 10px;
+}
+.myButtonGreen:hover {
+	background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #5cb811), color-stop(1, #77d42a));
+	background:-moz-linear-gradient(top, #5cb811 5%, #77d42a 100%);
+	background:-webkit-linear-gradient(top, #5cb811 5%, #77d42a 100%);
+	background:-o-linear-gradient(top, #5cb811 5%, #77d42a 100%);
+	background:-ms-linear-gradient(top, #5cb811 5%, #77d42a 100%);
+	background:linear-gradient(to bottom, #5cb811 5%, #77d42a 100%);
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#5cb811', endColorstr='#77d42a',GradientType=0);
+	background-color:#5cb811;
+}
+.myButtonGreen:active {
+	position:relative;
+	top:1px;
+}
+
+.myButtonRed {
+	-moz-box-shadow:inset 0px 1px 0px 0px #f29c93;
+	-webkit-box-shadow:inset 0px 1px 0px 0px #f29c93;
+	box-shadow:inset 0px 1px 0px 0px #f29c93;
+	background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #fe1a00), color-stop(1, #ce0100));
+	background:-moz-linear-gradient(top, #fe1a00 5%, #ce0100 100%);
+	background:-webkit-linear-gradient(top, #fe1a00 5%, #ce0100 100%);
+	background:-o-linear-gradient(top, #fe1a00 5%, #ce0100 100%);
+	background:-ms-linear-gradient(top, #fe1a00 5%, #ce0100 100%);
+	background:linear-gradient(to bottom, #fe1a00 5%, #ce0100 100%);
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#fe1a00', endColorstr='#ce0100',GradientType=0);
+	background-color:#fe1a00;
+	-moz-border-radius:6px;
+	-webkit-border-radius:6px;
+	border-radius:6px;
+	border:1px solid #d83526;
+	display:inline-block;
+	cursor:pointer;
+	color:#ffffff;
+	font-family:Arial;
+	font-size:15px;
+	font-weight:bold;
+	padding:6px 24px;
+	text-decoration:none;
+	text-shadow:0px 1px 0px #b23e35;
+	width: 200px;
+	margin: 10px 10px 10px 10px;
+}
+.myButtonRed:hover {
+	background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #ce0100), color-stop(1, #fe1a00));
+	background:-moz-linear-gradient(top, #ce0100 5%, #fe1a00 100%);
+	background:-webkit-linear-gradient(top, #ce0100 5%, #fe1a00 100%);
+	background:-o-linear-gradient(top, #ce0100 5%, #fe1a00 100%);
+	background:-ms-linear-gradient(top, #ce0100 5%, #fe1a00 100%);
+	background:linear-gradient(to bottom, #ce0100 5%, #fe1a00 100%);
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#ce0100', endColorstr='#fe1a00',GradientType=0);
+	background-color:#ce0100;
+}
+.myButtonRed:active {
+	position:relative;
+	top:1px;
+}
+
+.myButtonBlue {
+	-moz-box-shadow:inset 0px 1px 0px 0px #97c4fe;
+	-webkit-box-shadow:inset 0px 1px 0px 0px #97c4fe;
+	box-shadow:inset 0px 1px 0px 0px #97c4fe;
+	background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #3d94f6), color-stop(1, #1e62d0));
+	background:-moz-linear-gradient(top, #3d94f6 5%, #1e62d0 100%);
+	background:-webkit-linear-gradient(top, #3d94f6 5%, #1e62d0 100%);
+	background:-o-linear-gradient(top, #3d94f6 5%, #1e62d0 100%);
+	background:-ms-linear-gradient(top, #3d94f6 5%, #1e62d0 100%);
+	background:linear-gradient(to bottom, #3d94f6 5%, #1e62d0 100%);
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#3d94f6', endColorstr='#1e62d0',GradientType=0);
+	background-color:#3d94f6;
+	-moz-border-radius:6px;
+	-webkit-border-radius:6px;
+	border-radius:6px;
+	border:1px solid #337fed;
+	display:inline-block;
+	cursor:pointer;
+	color:#ffffff;
+	font-family:Arial;
+	font-size:15px;
+	font-weight:bold;
+	padding:6px 24px;
+	text-decoration:none;
+	text-shadow:0px 1px 0px #1570cd;
+	width: 200px;
+	margin: 10px 10px 10px 10px;
+}
+.myButtonBlue:hover {
+	background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #1e62d0), color-stop(1, #3d94f6));
+	background:-moz-linear-gradient(top, #1e62d0 5%, #3d94f6 100%);
+	background:-webkit-linear-gradient(top, #1e62d0 5%, #3d94f6 100%);
+	background:-o-linear-gradient(top, #1e62d0 5%, #3d94f6 100%);
+	background:-ms-linear-gradient(top, #1e62d0 5%, #3d94f6 100%);
+	background:linear-gradient(to bottom, #1e62d0 5%, #3d94f6 100%);
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#1e62d0', endColorstr='#3d94f6',GradientType=0);
+	background-color:#1e62d0;
+}
+.myButtonBlue:active {
+	position:relative;
+	top:1px;
+}
+.myButton {
+	-moz-box-shadow:inset 0px 1px 0px 0px #fce2c1;
+	-webkit-box-shadow:inset 0px 1px 0px 0px #fce2c1;
+	box-shadow:inset 0px 1px 0px 0px #fce2c1;
+	background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #ffc477), color-stop(1, #fb9e25));
+	background:-moz-linear-gradient(top, #ffc477 5%, #fb9e25 100%);
+	background:-webkit-linear-gradient(top, #ffc477 5%, #fb9e25 100%);
+	background:-o-linear-gradient(top, #ffc477 5%, #fb9e25 100%);
+	background:-ms-linear-gradient(top, #ffc477 5%, #fb9e25 100%);
+	background:linear-gradient(to bottom, #ffc477 5%, #fb9e25 100%);
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#ffc477', endColorstr='#fb9e25',GradientType=0);
+	background-color:#ffc477;
+	-moz-border-radius:6px;
+	-webkit-border-radius:6px;
+	border-radius:6px;
+	border:1px solid #eeb44f;
+	display:inline-block;
+	cursor:pointer;
+	color:#ffffff;
+	font-family:Arial;
+	font-size:15px;
+	font-weight:bold;
+	padding:6px 24px;
+	text-decoration:none;
+	text-shadow:0px 1px 0px #cc9f52;
+	width: 200px;
+	margin: 10px 10px 10px 10px;
+}
+.myButton:hover {
+	background:-webkit-gradient(linear, left top, left bottom, color-stop(0.05, #fb9e25), color-stop(1, #ffc477));
+	background:-moz-linear-gradient(top, #fb9e25 5%, #ffc477 100%);
+	background:-webkit-linear-gradient(top, #fb9e25 5%, #ffc477 100%);
+	background:-o-linear-gradient(top, #fb9e25 5%, #ffc477 100%);
+	background:-ms-linear-gradient(top, #fb9e25 5%, #ffc477 100%);
+	background:linear-gradient(to bottom, #fb9e25 5%, #ffc477 100%);
+	filter:progid:DXImageTransform.Microsoft.gradient(startColorstr='#fb9e25', endColorstr='#ffc477',GradientType=0);
+	background-color:#fb9e25;
+}
+.myButton:active {
+	position:relative;
+	top:1px;
+}
+
+
+</style>
+<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+<script>
+       var socket  = io.connect();
+       socket.on('connect', function(){ console.log("socket connected");});
+       socket.on('message', function(v){
+         console.log(v);
+		
+			if( v.indexOf("robot") >= 0 ){document.getElementById('robotDisplay').innerHTML=v; }
+			if( v.indexOf("fridge") >= 0 ){document.getElementById('food').innerHTML=v; } //FOOD 1 
+			if( v.indexOf("robot") >= 0 ){document.getElementById('robotDisplay4').innerHTML=v; } //DISHWASHER 
+			if( v.indexOf("robot") >= 0 ){document.getElementById('robotDisplay5').innerHTML=v; } //PANTRY
+
+			if( v.indexOf("sonarRobot") >= 0 ){document.getElementById('sonarRobotDisplay').innerHTML=v.split('(')[2].split(')')[0]; }
+            if( v.indexOf("sonarLeft") >= 0 ){document.getElementById('sonarRobotLDisplay').innerHTML=v.split('(')[2].split(')')[0]; }
+            if( v.indexOf("sonarRight") >= 0 ){document.getElementById('sonarRobotRDisplay').innerHTML=v.split('(')[2].split(')')[0]; }
+			if( v.indexOf("posRobot") >= 0 && v.split('(')[2].split(')')[0]!=="" ){document.getElementById('robotPosDisplay').innerHTML=v.split('(')[2].split(')')[0]; }
+       		
+          	}
+       	);
+</script>
+<!-- <script type="text/javascript" src="QActorWebUI.js"></script> -->
+</head>
+
+<body style="background-color: #37464f">
+
+<div style="background-color: #37464f">
+	<center>
+<h2 style="color:white;background-color: black;padding: 10px;">Maître de salle Console</h2>
+</center>
+
+</div>
+<div style="background-color: rgb(131, 255, 148)">
+	<div>
+ 		<b>ROBOT STATE</b>: <span id="robotDisplay"></span>
+  	</div>
+	<div>
+ 		<b>ROBOT POS</b>: <span id="robotPosDisplay"></span>
+  	</div>	
+	<div>
+  		<b>SONAR STATE</b>: <span id="sonarRobotDisplay"></span>
+	</div>
+  <div>
+    <b>SONAR LEFT STATE</b>: <span id="sonarRobotLDisplay"></span>
+  </div>
+  <div>
+    <b>SONAR RIGHT STATE</b>: <span id="sonarRobotRDisplay"></span>
+  </div>
+  </div>
+
+</div>
+
+</div>
+
+<br></br>
+<center>
+<table class="tg">
+  <tr>
+    <th class="tg-0lax">
+		<form action="/prepare" method="post">
+			<input type="submit" class="myButtonBlue" value="PREPARE" >
+		</form>
+		<form action="/addFood1" method="post">
+				<input type="submit" class="myButtonBlue"  value="ADD PIZZA"  >	
+		</form>
+		<form action="/addFood2" method="post">
+				<input type="submit"  class="myButtonBlue"  value="ADD CRESCENTINA"  >
+		</form>
+		<form action="/clear" method="post">
+			<input type="submit" class="myButtonBlue"   value="CLEAR"  >
+		</form>
+	</th>
+    <th class="tg-0lax">
+		<form action="/stop" method="post">
+				<input type="submit" class="myButtonRed"  value="STOP"  >
+		</form>
+		<form action="/resume" method="post">
+				<input type="submit" class="myButtonGreen"  value="RESUME"  >
+		</form>
+	</th>
+    <th class="tg-0lax">
+		<form action="/home" method="post">
+				<input type="submit" class="myButton"  value="Home"  >
+		</form>
+		<form action="/exploreroom" method="post">
+				<input type="submit" class="myButton"  value="Explore-bound"  >
+		</form>
+		<form action="/exploretable" method="post">
+				<input type="submit" class="myButton"  value="Explore-table"  >
+		</form>
+	</th>
+  </tr>
+</table>
+	
+	
+</center>
+</div>
+
+<br><br>
+
+<div style="background-color: #FAF19C">
+	<div style = "background-color: rgb(240, 225, 95)"">
+		<b style="font-weight: bold;">CAPABILITIES</b>:
+	</div>
+	<div>
+		 <b>Fridge</b>:
+		 <ul>
+			<li>Capacity: <span id="food"></span> </li>
+		 </ul>
+  	</div>
+	<div>
+  		<b>Dishwasher</b>: <span id="robotDisplay4"></span> dishes
+	</div>
+	<div>
+		<b>Pantry</b>: <span id="robotDisplay5"></span> dishes
+	</div>
+</div>
+
+</body>
+</html>

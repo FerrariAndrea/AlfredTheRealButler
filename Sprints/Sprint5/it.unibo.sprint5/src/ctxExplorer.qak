@@ -1,0 +1,272 @@
+System system3
+mqttBroker "localhost" : 1883
+
+Dispatch modelChange  : modelChange( TARGET, VALUE )  //force a resource-model change
+Dispatch onestep       : onestep(DURATION)
+Dispatch stepOk        : stepOk(V)		//TODO eliminate  V
+Dispatch stepFail      : stepFail(R,T) //R=ok | obstacle, T = time
+Dispatch onerotationstep   : onerotationstep(MOVE)
+Dispatch rotationOk        : rotationOk(STALL)
+
+Dispatch goTo  : goTo( X,Y )
+Dispatch goToOk  : goToOk( V )
+Dispatch goToFail  : goToFail( V )
+
+Dispatch modelRequest : modelRequest( TARGET,PROP)  
+Dispatch modelMapResponse : modelMapResponse( X,Y ) 
+
+//Macro dispatch
+Dispatch addFood : addFood(X) //1 or 2: payload for now is ignored.
+Dispatch prepare : prepare(X) //Non so perché senza Payload non mi funziona, quindi ne metto uno che viene ignorato. Idem per clear (Luca)
+Dispatch clear : clear(X)
+Dispatch home : home(X)
+Dispatch missionFinish : missionFinish(X)//risposta
+
+Event  sonarRobot     : sonar( DISTANCE )	     //from  sonar on robot 
+
+Context ctxExplorer ip[host="localhost" port=8039] -mqtt
+Context ctxDummy ip[host="dummyhost" port=9999] -mqtt 
+
+ExternalQActor kb context ctxDummy
+ExternalQActor resourcemodel context ctxDummy
+ExternalQActor onecellforward context ctxDummy
+ExternalQActor onerotateforward context ctxDummy
+
+/*
+ *  The goal is to move the robot to the fridge and let it come back 
+ *  Fridge Position is given *a priori*
+ */
+
+QActor missionsolver context ctxExplorer{ 
+	["	
+	var addingFood = false
+	var preparing = false
+	var clearing = false
+	var goingHome =false
+	"]
+	State s0 initial {	
+		println("Actor: Mission Solver; State: initial")	
+	}Goto waiting
+	
+	State waiting{
+			println("Waiting for mission... Please send an action!") 	
+	}	Transition t0 whenEvent	  addFood -> addingFood
+				  whenEvent   prepare -> preparingRoom
+				  whenEvent   clear -> clearingRoom
+				  whenEvent   home -> home 
+				  // ------------------ MACRO COMMANDS ------------------
+	
+	State addingFood {
+		//SI DEVE AGGIUNGERE IL PAYLOAD, OVVERO SE SI AGGIUNGE IL TIPO 1 DI CIBO (PIZZA) OPPURE IL TIPO 2 (CRESCENTINA)
+		//COSA FA QUESTO TASK?
+		//SE IL CIBO E' PRESENTE NEL FRIGO, LO AGGIUNGE AL TAVOLO; IN CASO CONTRARIO, NOTIFICA IL MAITRE (ANCORA DA FARE)
+		//RITORNA NELLA POSIZIONE HOME
+		["storeCurrentMessageForReply()"]
+		println("ADDING FOOD: Go to Fridge")
+		["addingFood = true"]
+	} Goto goToFridge
+	
+	State preparingRoom {
+		["storeCurrentMessageForReply()"]
+		println("PREPARING: Go to Pantry")
+		["preparing = true"]
+		//METTERE PIATTI DAL PANTRY AL TABLE
+	} Goto goToPantry
+	
+	State clearingRoom {
+		["storeCurrentMessageForReply()"]
+		println("ADDING FOOD: Go to Table")
+		["clearing = true"]
+		//PRENDERE CIBO DAL TAVOLO, PORTARLO AL FRIGO E I PIATTI NEL DISHWASHER
+	} Goto goToTable
+	
+	State home {
+		["storeCurrentMessageForReply()"]
+		println("ADDING FOOD: Go to Home")
+		["	 addingFood = false
+			 preparing = false
+			 clearing = false
+			 goingHome =true
+		"]
+	} Goto goToHome
+	// ------------------ REACH OBJECTS ------------------
+	
+	State goToFridge {
+		forward kb -m modelRequest : modelRequest(map,fridge)
+	} Transition t0   whenMsg modelMapResponse  -> handlePos
+	
+	State goToPantry {
+		["goingHome=false"]	
+		forward kb -m modelRequest : modelRequest(map,pantry)
+	} Transition t0   whenMsg modelMapResponse  -> handlePos
+	
+	State goToDishwasher {
+		["goingHome=false; clearing=false"]	
+		forward kb -m modelRequest : modelRequest(map,dishwasher)
+	} Transition t0   whenMsg modelMapResponse  -> handlePos
+	
+	State goToTable {
+		["addingFood=false;preparing=false"]	
+		forward kb -m modelRequest : modelRequest(map,table)
+	} Transition t0   whenMsg modelMapResponse  -> handlePos
+	
+	State goToHome {
+		forward kb -m modelRequest : modelRequest(map,home)
+	} Transition t0   whenMsg modelMapResponse  -> handlePos
+	
+ 	State  handlePos{
+ 		["var X=0;var Y=0;"]
+ 		onMsg(   modelMapResponse:  modelMapResponse(X,Y) ) {			
+			["X=payloadArg(0).toInt();Y=payloadArg(1).toInt()"]				
+		}
+		forward explorer -m goTo : goTo($X,$Y)
+ 	} Transition t0   whenMsg goToOk  -> goalOk
+ 					  whenMsg goToFail  -> fail
+	
+ 	State fail{
+ 		println("Explorer: fail, return at home in 2s!")
+ 		delay 2000
+ 		//here send msg if you want see error msg on frontend 		
+ 	}Goto goToHome
+ 	
+	State goalOk{		  
+ 		println("Explorer: on the target cell (simulate action 2s)!")
+ 		delay 2000 // to simulate the action
+ 	} Goto checkAddingFood
+ 	
+ 	State checkAddingFood {} Goto goToTable if "addingFood" else checkPreparingRoom
+ 	State checkPreparingRoom {} Goto goToTable if "preparing" else checkClearingRoom
+ 	State checkClearingRoom {} Goto goToDishwasher if "clearing" else checkGoingHome
+ 	State checkGoingHome {} Goto goToHome if "goingHome" else reply
+ 	
+ 	State reply{	["replyToCaller(\"missionFinish\", \"missionFinish(ok)\")"]	}Goto waiting
+ 	
+}
+
+QActor explorer context ctxExplorer{     
+	["
+	var stepCounter = 0 
+	var Move = \"\"
+	var StepTime   = 350L	//for virtual
+	var RotateTime = 300L	//for virtual
+	var PauseTime  = 250L 
+	var Direction = \"\"
+	"]	
+	State s0 initial {	
+		println("Actor: Explorer; State: initial")
+	    solve( consult("moves.pl")	 )
+		//run itunibo.planner.plannerUtil.initAI()
+		//println("Actor: Explorer; State: handleStepFail; Payload: INITIAL MAP")
+ 		run itunibo.planner.plannerUtil.showMap()
+ 	}Goto ready
+ 	
+ 	State ready {
+ 		println("Actor: Explorer; State: ready") 		
+ 	} Transition t0 whenEvent   goTo  -> goToPosition
+ 	
+	State goToPosition{
+	 	["storeCurrentMessageForReply()"]
+	 	onMsg(   goTo:  goTo(X,Y) ) { 
+			
+			["
+				var X = payloadArg(0).toInt()
+				var Y = payloadArg(1).toInt()
+				//var O = payloadArg(2)
+			"]
+				
+		solve( direction(D) )   
+   		println("Actor: Explorer; State: goToPosition; Payload: direction at start: ${getCurSol(\"D\").toString()}")
+		run itunibo.planner.plannerUtil.showMap()		
+		run itunibo.planner.plannerUtil.setGoal(X,Y)
+		run itunibo.planner.moveUtils.doPlan( myself )
+		}
+ 	}Goto executePlannedActions  if "itunibo.planner.moveUtils.existPlan()" else endOfJobFail 
+
+
+	State executePlannedActions{ 
+		
+		//solve( showMoves ) 
+		solve( retract( move(M) ) ) //consume a move
+		ifSolved {  
+			["Move = getCurSol(\"M\").toString()"]
+		} else { ["Move = \"\""]  } 
+ 	}
+	Goto doTheMove  if "(Move.length>0) " else endOfJobOk
+ 	
+ 	State doTheMove{
+		if "Move==\"a\" || Move==\"d\" " {//ROTATION			
+			forward onerotateforward -m onerotationstep : onerotationstep($Move)	
+		} else{ // W			
+			forward onecellforward -m onestep : onestep($StepTime)	
+		}	
+		
+	}
+	Transition t0   whenMsg stepOk   	-> handleStepOk   
+					whenMsg stepFail 	-> endOfJobFail  
+					whenMsg rotationOk 	-> handleStepOk
+					//qui handleStop
+	 	
+	State handleStepOk{
+		run itunibo.planner.moveUtils.doPlannedMove(myself, Move)	
+		delayVar PauseTime	
+	}
+	Goto executePlannedActions
+	
+
+ 	/*
+	State goHome{
+		println("Actor: Explorer; State: backToHome")
+ 		solve( direction(D) )
+   		println("Actor: Explorer; State: backToHome; Payload: ${getCurSol(\"D\").toString()}")
+ 		println("Actor: Explorer; State: backToHome; Payload: MAP BEFORE backToHome")
+		run itunibo.planner.plannerUtil.showMap()	
+		solve( retractall( move(_) ))		//clean the actor kb
+ 		run itunibo.planner.plannerUtil.setGoal(0,0)
+ 		["goingHome=true"]
+ 		run itunibo.planner.moveUtils.doPlan( myself )
+ 		run itunibo.planner.moveUtils.existPlan() //is it necessary?
+ 	} 
+	Goto executePlannedActions //doGoHomeActions 
+	
+	State atHome {  //reposition	
+ 		solve( direction(D) )
+ 		["Direction = getCurSol(\"D\").toString() "]
+		println( @D ) 
+		["
+		val map = itunibo.planner.plannerUtil.getMap() 
+		println(map)
+		"] 		
+   		println("Actor: Explorer; State: atHome; Payload: direction at home: ${getCurSol(\"D\").toString()}")
+   	
+	}
+	Goto rotateSouth
+	
+	 */
+	
+	State rotateSouth{
+		["Move=\"a\""]
+		delayVar StepTime
+		forward onerotateforward -m onerotationstep : onerotationstep($Move)//
+   		
+	}Transition t0	whenMsg rotationOk 	-> checkSouth
+
+	State checkSouth{
+		run itunibo.planner.moveUtils.doPlannedMove(myself, Move)	
+		solve( direction(D) )
+		["Direction = getCurSol(\"D\").toString() "]
+		println("Actor: Explorer; State: rotateSouth; Payload: $Direction")
+	}
+	Goto rotateSouth  if "(Direction!=\"downDir\")" else endOfJobOk
+	
+	State endOfJobOk{
+		println("Explorer: on the target cell!")
+		["replyToCaller(\"goToOk\", \"goToOk(ok)\")"]	
+	} Goto ready 
+	
+	State endOfJobFail{
+		println("Actor: Explorer; State: handleStepFail; Payload: Fail step :(")
+		run itunibo.planner.plannerUtil.showMap()	
+		println("Actor: Explorer; State: handleStepFail; Payload: Replan and return at home.")
+		["replyToCaller(\"goToFail\", \"goToFail(fail)\")"]	
+	} Goto ready 
+}	

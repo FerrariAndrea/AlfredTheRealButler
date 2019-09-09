@@ -1,0 +1,46 @@
+System system6
+mqttBroker "localhost" : 1883
+
+Dispatch takeFood  : takeFood(X)
+Dispatch takeDish  : takeDish(X)
+
+Context ctxCoapClient ip[host="localhost" port=8035] -mqtt
+Context ctxDummy ip[host="dummyhost" port=9999] -mqtt 
+
+ExternalQActor fridge context ctxDummy
+ExternalQActor pantry context ctxDummy
+
+//USATO PER TESTARE IL FRIDGE E LA COMUNICAZIONE COAP
+QActor coapclient context ctxCoapClient {
+	State s0 initial { 
+		println("CoapClient Started")
+	} Goto waitCmd
+	
+	State waitCmd {
+	
+	} Goto interactWithFridge
+	//Goto interactWithPantry
+	
+	State interactWithFridge {
+		run itunibo.coap.observer.resourceObserverCoapClient.create("coap://localhost:5684/fridge")
+	} Goto takeFood1
+	
+	State takeFood1 {
+		forward fridge -m takeFood: takeFood(1)		
+		delay 2000
+	} Goto takeFood2
+	
+	State takeFood2 {
+		forward fridge -m takeFood: takeFood(2)
+		delay 2000
+	} Goto takeFood1
+	
+	State interactWithPantry {
+		run itunibo.coap.observer.resourceObserverCoapClient.create("coap://localhost:5685/pantry")		
+	} Goto takeDishes
+	
+	State takeDishes {
+		forward pantry -m takeDish: takeDish(5)
+		delay 2000
+	} Goto takeDishes
+}
