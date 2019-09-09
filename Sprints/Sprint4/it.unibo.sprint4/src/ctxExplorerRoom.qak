@@ -11,6 +11,9 @@ Dispatch onestepIW       : onestepIW(DURATION)//IgnoreWall
 Dispatch onerotationstep   : onerotationstep(MOVE)
 Dispatch rotationOk        : rotationOk(STALL)
 
+ Dispatch modelRequest : modelRequest( TARGET,PROP) 
+ Dispatch modelRobotResponse : modelRobotResponse( X,Y,O ) 
+
 Dispatch doExplor : doExplor( TARGET )  
 Dispatch endExplor : endExplor(V)
 
@@ -85,7 +88,6 @@ QActor roomexplorer context ctxExplorerRoom {
 	
 	State rotateEast {
 		["NumStep=0"]
-		//rotate-left
 		["Move=\"a\""]
 		forward onerotateforward -m onerotationstep : onerotationstep(a)				
 		run itunibo.planner.moveUtils.doPlannedMove(myself, Move)
@@ -96,26 +98,20 @@ QActor roomexplorer context ctxExplorerRoom {
 	}
 	State detectPerimeter {		
 		["NumStep++"]
-      	//NO GOAL : JUST ONE STEP ahead
   		run itunibo.planner.plannerUtil.showMap()  	
 	} Goto goOneStepAhead if "(NumStep<5)" else perimeterWalked
 	
 	State goOneStepAhead {
-		//printCurrentMessage
    		run itunibo.planner.moveUtils.attemptTomoveAhead(myself, StepTime, "onecellforward")
 	} 
 	Transition t0 whenMsg stepOk -> handleStepOk
-				//whenMsg stepFail -> handleStepFail
 				whenEvent collision -> checkingObject
 
 	State handleStepOk {
 		run itunibo.planner.moveUtils.updateMapAfterAheadOk(myself)
 		delay 500
 	} Goto goOneStepAhead
-
-	//Per intercettare l'evento di collisione
-	//State preCheckingObject {} Transition t0 whenEvent collision -> checkingObject
-					  
+		  
 	State checkingObject {
 		onMsg(collision : collision(OBJECT)) {
 			["val ObjName = payloadArg(0)"]
@@ -131,16 +127,11 @@ QActor roomexplorer context ctxExplorerRoom {
 			}
 			
 		}
-		println(".-----needexplorebound-->$needExploreBound")
 	} Goto handleStepFail if "needExploreBound" else handleStepFailTable
 	
 	State handleStepFail {
 		delay 500
-		//println("&&& Found Wall")
-		["
-		val MapStr =  itunibo.planner.plannerUtil.getMapOneLine()
-		//println(\"MapStr:\"+MapStr)
-		"]
+		["val MapStr =  itunibo.planner.plannerUtil.getMapOneLine()"]
 		forward resourcemodel -m modelUpdate : modelUpdate(roomMap, $MapStr)
 		/*
 		onMsg(stepFail : stepFail(Obs,Time)) {//probabilmente questo non va
@@ -160,7 +151,6 @@ QActor roomexplorer context ctxExplorerRoom {
 			forward onerotateforward -m onerotationstep : onerotationstep(a)				
 			run itunibo.planner.moveUtils.doPlannedMove(myself, Move)				
 		}
-		println("---------------------------->ROTATE<--")
 	}Transition t0 whenMsg rotationOk -> detectPerimeter
 
 	State perimeterWalked {
@@ -175,12 +165,14 @@ QActor roomexplorer context ctxExplorerRoom {
 	} Goto endOfJobBounds   if "mustStop" else  exploreBounds
 	
 	State endOfJobBounds {
+		delay 500
 		forward onerotateforward -m onerotationstep : onerotationstep(d)
 			["Move=\"d\""]
 		run itunibo.planner.moveUtils.doPlannedMove(myself,Move)	
 		println("Perimeter completely walked. Exit.")
 		
 	}Transition t0 whenMsg rotationOk ->  reply	
+	
 	State reply{
 		["replyToCaller(\"endExplor\", \"endExplor(ok)\")"]	
 	}Goto waitCmd
@@ -199,10 +191,45 @@ QActor roomexplorer context ctxExplorerRoom {
 		forward resourcemodel -m modelUpdate : modelUpdate(roomMap, $MapStr)
 		run itunibo.planner.plannerUtil.wallFound()
 		
-	} Goto rotate if "(!tableFound)" else endOfJobTable
-	State rotate{
+	} Goto endOfJobTable if "tableFound" else askOrientation
+	
+	State askOrientation{
+		forward kb -m modelRequest : modelRequest(robot, location)
 		
-	}Goto goOneStepAhead
+	}Transition t0 whenMsg modelRobotResponse ->  rotateBefore	
+	
+	State rotateBefore{
+		onMsg(modelRobotResponse : modelRobotResponse(X,Y,O)) {
+			["val actualOrientation = payloadArg(2)"]
+			if "actualOrientation==\"sud\""{
+				["Move=\"a\""]
+				forward onerotateforward -m onerotationstep : onerotationstep(a)				
+				run itunibo.planner.moveUtils.doPlannedMove(myself, Move)	
+			}
+			if "actualOrientation==\"nord\""{
+				["Move=\"d\""]
+				forward onerotateforward -m onerotationstep : onerotationstep(d)				
+				run itunibo.planner.moveUtils.doPlannedMove(myself, Move)	
+			}			
+		}
+	}Transition t0 whenMsg rotationOk -> moveOne
+	
+	State moveOne{
+		delay 500
+		run itunibo.planner.moveUtils.attemptTomoveAhead(myself, StepTime, "onecellforward")
+	} 
+	Transition t0 whenMsg stepOk -> rotateAfter
+				whenEvent collision -> checkingObject
+				
+	State rotateAfter{
+			if "Move==\"a\""{
+				forward onerotateforward -m onerotationstep : onerotationstep(a)
+			}else{
+				forward onerotateforward -m onerotationstep : onerotationstep(d)
+			}
+			run itunibo.planner.moveUtils.doPlannedMove(myself, Move)			
+	}Transition t0 whenMsg rotationOk -> goOneStepAhead
+	
 	State endOfJobTable {
 		//QUI FORSE SERVE UN GO-TO-HOME
 		println("Table exploration end.")
