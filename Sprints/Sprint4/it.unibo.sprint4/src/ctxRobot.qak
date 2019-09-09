@@ -1,7 +1,6 @@
 System system1
 mqttBroker "localhost" : 1883
 
-
 Event  envCond        : envCond( CONDTYPE )        //from the environment 
 Event  sonarRobot     : sonar( DISTANCE )	     //from  sonar on robot 
 Event  sonar          : sonar(SONAR, DISTANCE)	 //from sonar in the robot environment          

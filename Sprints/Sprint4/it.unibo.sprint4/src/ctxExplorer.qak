@@ -20,6 +20,7 @@ Dispatch addFood : addFood(X) //1 or 2: payload for now is ignored.
 Dispatch prepare : prepare(X) //Non so perché senza Payload non mi funziona, quindi ne metto uno che viene ignorato. Idem per clear (Luca)
 Dispatch clear : clear(X)
 Dispatch home : home(X)
+Dispatch missionFinish : missionFinish(X)//risposta
 
 Event  sonarRobot     : sonar( DISTANCE )	     //from  sonar on robot 
 
@@ -52,7 +53,7 @@ QActor missionsolver context ctxExplorer{
 	}	Transition t0 whenEvent	  addFood -> addingFood
 				  whenEvent   prepare -> preparingRoom
 				  whenEvent   clear -> clearingRoom
-				  // whenEvent   home -> ... //questo è da fare, insieme alla risposta verso il frontedn di fine comando
+				  whenEvent   home -> home 
 				  // ------------------ MACRO COMMANDS ------------------
 	
 	State addingFood {
@@ -60,22 +61,34 @@ QActor missionsolver context ctxExplorer{
 		//COSA FA QUESTO TASK?
 		//SE IL CIBO E' PRESENTE NEL FRIGO, LO AGGIUNGE AL TAVOLO; IN CASO CONTRARIO, NOTIFICA IL MAITRE (ANCORA DA FARE)
 		//RITORNA NELLA POSIZIONE HOME
+		["storeCurrentMessageForReply()"]
 		println("ADDING FOOD: Go to Fridge")
 		["addingFood = true"]
 	} Goto goToFridge
 	
 	State preparingRoom {
+		["storeCurrentMessageForReply()"]
 		println("PREPARING: Go to Pantry")
 		["preparing = true"]
 		//METTERE PIATTI DAL PANTRY AL TABLE
 	} Goto goToPantry
 	
 	State clearingRoom {
+		["storeCurrentMessageForReply()"]
 		println("ADDING FOOD: Go to Table")
 		["clearing = true"]
 		//PRENDERE CIBO DAL TAVOLO, PORTARLO AL FRIGO E I PIATTI NEL DISHWASHER
 	} Goto goToTable
 	
+	State home {
+		["storeCurrentMessageForReply()"]
+		println("ADDING FOOD: Go to Home")
+		["	 addingFood = false
+			 preparing = false
+			 clearing = false
+			 goingHome =true
+		"]
+	} Goto goToHome
 	// ------------------ REACH OBJECTS ------------------
 	
 	State goToFridge {
@@ -124,7 +137,10 @@ QActor missionsolver context ctxExplorer{
  	State checkAddingFood {} Goto goToTable if "addingFood" else checkPreparingRoom
  	State checkPreparingRoom {} Goto goToTable if "preparing" else checkClearingRoom
  	State checkClearingRoom {} Goto goToDishwasher if "clearing" else checkGoingHome
- 	State checkGoingHome {} Goto goToHome if "goingHome" else waiting
+ 	State checkGoingHome {} Goto goToHome if "goingHome" else reply
+ 	
+ 	State reply{	["replyToCaller(\"missionFinish\", \"missionFinish(ok)\")"]	}Goto waiting
+ 	
 }
 
 QActor explorer context ctxExplorer{     
@@ -139,7 +155,7 @@ QActor explorer context ctxExplorer{
 	State s0 initial {	
 		println("Actor: Explorer; State: initial")
 	    solve( consult("moves.pl")	 )
-		run itunibo.planner.plannerUtil.initAI()
+		//run itunibo.planner.plannerUtil.initAI()
 		//println("Actor: Explorer; State: handleStepFail; Payload: INITIAL MAP")
  		run itunibo.planner.plannerUtil.showMap()
  	}Goto ready

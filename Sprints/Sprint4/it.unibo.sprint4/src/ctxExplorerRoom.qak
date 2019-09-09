@@ -11,8 +11,8 @@ Dispatch onestepIW       : onestepIW(DURATION)//IgnoreWall
 Dispatch onerotationstep   : onerotationstep(MOVE)
 Dispatch rotationOk        : rotationOk(STALL)
 
- Dispatch modelRequest : modelRequest( TARGET,PROP) 
- Dispatch modelRobotResponse : modelRobotResponse( X,Y,O ) 
+Dispatch modelRequest : modelRequest( TARGET,PROP) 
+Dispatch modelRobotResponse : modelRobotResponse( X,Y,O ) 
 
 Dispatch doExplor : doExplor( TARGET )  
 Dispatch endExplor : endExplor(V)
