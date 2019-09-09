@@ -25,7 +25,7 @@ class Coapclient ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 				state("waitCmd") { //this:State
 					action { //it:State
 					}
-					 transition( edgeName="goto",targetState="interactWithFridge", cond=doswitch() )
+					 transition( edgeName="goto",targetState="interactWithDishwasher", cond=doswitch() )
 				}	 
 				state("interactWithFridge") { //this:State
 					action { //it:State
@@ -59,6 +59,19 @@ class Coapclient ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 						delay(2000) 
 					}
 					 transition( edgeName="goto",targetState="takeDishes", cond=doswitch() )
+				}	 
+				state("interactWithDishwasher") { //this:State
+					action { //it:State
+						itunibo.coap.observer.resourceObserverCoapClient.create( "coap://localhost:5686/dishwasher"  )
+					}
+					 transition( edgeName="goto",targetState="putDishes", cond=doswitch() )
+				}	 
+				state("putDishes") { //this:State
+					action { //it:State
+						forward("putDish", "putDish(5)" ,"dishwasher" ) 
+						delay(2000) 
+					}
+					 transition( edgeName="goto",targetState="putDishes", cond=doswitch() )
 				}	 
 			}
 		}

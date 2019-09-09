@@ -61,6 +61,18 @@ lateinit var resourceCoap : modelResourceCoap
 				//actor.emit( "modelContent" , "content( pantry( $RobotState ) )" )
 				resourceCoap.updateState( content )
   			}
+	}
+	
+	fun updateDishwasherModel( actor: ActorBasic, content: String ){
+ 			//actor.solve(  "action(robot, move($content) )" ) //change the robot state model
+			//actor.solve(  "model( A, robot, STATE )" )
+			//val RobotState = actor.getCurSol("STATE")
+			//println("			resourceModelSupport updateModel RobotState=$RobotState")
+			actor.scope.launch{
+ 				actor.emit( "modelChanged" , "modelChanged(  dishwasher,  $content)" )  //for the robotmind
+				//actor.emit( "modelContent" , "content( dishwasher( $RobotState ) )" )
+				resourceCoap.updateState( content )
+  			}
 	}		
 }
 
