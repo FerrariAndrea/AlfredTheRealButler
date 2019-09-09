@@ -204,14 +204,14 @@ var publishMsg = function( cmd ){
 		
     break;
 	  	case "exploreroom":
-		var msgstr = "msg(doExplor,dispatch,js,roomexplorer,doExplor(bound),1)"  ;  
+		var msgstr = "msg(doExplor,dispatch,js,explorer,doExplor(bound),1)"  ;  
 		console.log("publishMsg forward> "+ msgstr);
-		mqttUtils.publish( msgstr, "unibo/qak/roomexplorer" );		
+		mqttUtils.publish( msgstr, "unibo/qak/explorer" );		
     break;
 	case "exploretable":
-		var msgstr = "msg(doExplor,dispatch,js,roomexplorer,doExplor(table),1)"  ;  
+		var msgstr = "msg(doExplor,dispatch,js,explorer,doExplor(table),1)"  ;  
 		console.log("publishMsg forward> "+ msgstr);
-		mqttUtils.publish( msgstr, "unibo/qak/roomexplorer" );		
+		mqttUtils.publish( msgstr, "unibo/qak/explorer" );		
     break;
   	default:
   	console.log("error, cmd not found in switch case publishMsg, check code.")
