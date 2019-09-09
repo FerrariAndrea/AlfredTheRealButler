@@ -8,9 +8,9 @@ robotPosY(0).
 robotOrientation(0).
 
 convertIntToOrientation(O):-robotOrientation(X), X = 0, O = "sud",!.
-convertIntToOrientation(O):-robotOrientation(X), X = 1, O = "est",!.
+convertIntToOrientation(O):-robotOrientation(X), X = 1, O = "ovest",!.
 convertIntToOrientation(O):-robotOrientation(X), X = 2, O = "nord",!.
-convertIntToOrientation(O):-robotOrientation(X), X = 3, O = "ovest",!.
+convertIntToOrientation(O):-robotOrientation(X), X = 3, O = "est",!.
 actualRobotPos(X,Y,O):-robotPosX(X),robotPosY(Y),convertIntToOrientation(O).
 
 updateRobotPosX(X):-retract(robotPosX(_)), assert(robotPosX(X)).

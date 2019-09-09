@@ -68,6 +68,7 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 						 }
 						if(RealMove=="d"){ forward("modelUpdate", "modelUpdate(robot,d)" ,"kb" ) 
 						 }
+						delay(500) 
 						replyToCaller("rotationOk", "rotationOk(0)")
 					}
 					 transition( edgeName="goto",targetState="ready", cond=doswitch() )

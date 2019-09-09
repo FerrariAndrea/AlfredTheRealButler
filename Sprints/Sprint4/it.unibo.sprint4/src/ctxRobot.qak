@@ -170,7 +170,8 @@ QActor onerotateforward context ctxRobot {
 	  	}
 		if "RealMove==\"d\""{
 			forward kb -m modelUpdate : modelUpdate(  robot, d)
-		}  		
+		}  				
+		delay 500//per fixare eventuali errori sulle tempistiche
 		["replyToCaller(\"rotationOk\", \"rotationOk(0)\")"]
 	}
 	Goto ready
@@ -226,6 +227,7 @@ QActor onecellforward context ctxRobot {
 	State endDoMoveForward{
 		forward resourcemodel -m modelChange : modelChange(robot,h)
 		forward kb -m modelUpdate : modelUpdate(  robot,  w)  
+		//delay 50//per fixare eventuali errori sulle tempistiche		
 		["replyToCaller(\"stepOk\", \"stepOk(ok)\")"]	
 	}
 	Goto ready

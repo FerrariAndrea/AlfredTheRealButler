@@ -9,7 +9,7 @@ Dispatch modelUpdate  : modelUpdate( TARGET, VALUE )
 Dispatch onestep       : onestep(DURATION)
 Dispatch onestepIW       : onestepIW(DURATION)//IgnoreWall
 Dispatch onerotationstep   : onerotationstep(MOVE)
-
+Dispatch rotationOk        : rotationOk(STALL)
 
 Dispatch doExplor : doExplor( TARGET )  
 Dispatch endExplor : endExplor(V)
@@ -49,7 +49,7 @@ QActor roomexplorer context ctxExplorerRoom {
 	var needExploreBound : Boolean =false
 	var tableFound : Boolean =false
 	var directionSud : Boolean =false
-"]
+	"]
 	State s0 initial {
 		run itunibo.coap.observer.resourceObserverCoapClient.create( "coap://localhost:5683/resourcemodel" )
  		run itunibo.planner.plannerUtil.initAI()
@@ -57,7 +57,7 @@ QActor roomexplorer context ctxExplorerRoom {
 	}Goto waitCmd
 	
 	State waitCmd{
-		
+		println("Waiting for exploration cmd...")
 	}Transition t0 whenMsg doExplor -> handeCmd
 		
 	State handeCmd{
@@ -67,6 +67,7 @@ QActor roomexplorer context ctxExplorerRoom {
 			
 			["
 				needExploreBound = (payloadArg(0)==\"bound\")
+				secondLap=false
 			"]
 		}//else explore for table 		
 	}Goto exploreBounds if "needExploreBound" else exploreTale
@@ -74,18 +75,26 @@ QActor roomexplorer context ctxExplorerRoom {
 	
 	
 	//----------------------------------------------------------------------------------------------------------exploreBounds
-	State exploreBounds {		
-		//If you want to start directly from secondLap (perimeter walked in the opposite way) flag this.
-		//["secondLap=true"]
+	State exploreBounds {				
+		if "!secondLap"{
+			println("Start explore bounds.")
+			["NumStep=0"]
+		}		
 	} 
-	Goto detectPerimeter if "secondLap == false" else rotateEast
+	Goto rotateEast  if "secondLap" else detectPerimeter
 	
 	State rotateEast {
 		["NumStep=0"]
-		run itunibo.planner.moveUtils.rotateLeft90( myself )//si potrebbe sostituire con il nostro onerotate	
-	} Goto detectPerimeter
-	
-	State detectPerimeter {
+		//rotate-left
+		["Move=\"a\""]
+		forward onerotateforward -m onerotationstep : onerotationstep(a)				
+		run itunibo.planner.moveUtils.doPlannedMove(myself, Move)
+			 		
+	} Transition t0 whenMsg rotationOk -> detectPerimeter
+	State block{
+		println("BLOCk")
+	}
+	State detectPerimeter {		
 		["NumStep++"]
       	//NO GOAL : JUST ONE STEP ahead
   		run itunibo.planner.plannerUtil.showMap()  	
@@ -122,9 +131,11 @@ QActor roomexplorer context ctxExplorerRoom {
 			}
 			
 		}
+		println(".-----needexplorebound-->$needExploreBound")
 	} Goto handleStepFail if "needExploreBound" else handleStepFailTable
 	
 	State handleStepFail {
+		delay 500
 		//println("&&& Found Wall")
 		["
 		val MapStr =  itunibo.planner.plannerUtil.getMapOneLine()
@@ -140,18 +151,20 @@ QActor roomexplorer context ctxExplorerRoom {
 		
 		*/  
 		run itunibo.planner.plannerUtil.wallFound()
-		if "secondLap == false" {
-			run itunibo.planner.moveUtils.rotateLeft90( myself ) //si potrebbe sostituire con il nostro onerotate
+		if "secondLap" {
+			["Move=\"d\""]
+			forward onerotateforward -m onerotationstep : onerotationstep(d)				
+			run itunibo.planner.moveUtils.doPlannedMove(myself, Move)
 		} else {
-			run itunibo.planner.moveUtils.rotateRight90( myself )		//si potrebbe sostituire con il nostro onerotate	
+			["Move=\"a\""]
+			forward onerotateforward -m onerotationstep : onerotationstep(a)				
+			run itunibo.planner.moveUtils.doPlannedMove(myself, Move)				
 		}
-		delay 1000 //necessario per una corretta rotazione
-		//run itunibo.planner.moveUtils.doPlannedMove(myself, "l")
-		
-	} Goto detectPerimeter
+		println("---------------------------->ROTATE<--")
+	}Transition t0 whenMsg rotationOk -> detectPerimeter
 
 	State perimeterWalked {
-		if "secondLap == false" {
+		if "!secondLap" {
 			println("FINAL MAP")
 			run itunibo.planner.moveUtils.showCurrentRobotState()
 			run itunibo.planner.plannerUtil.saveMap(mapname)
@@ -159,16 +172,21 @@ QActor roomexplorer context ctxExplorerRoom {
 		} else {
 			["mustStop = true"]
 		}
-	} Goto exploreBounds if "mustStop == false" else endOfJobBounds
+	} Goto endOfJobBounds   if "mustStop" else  exploreBounds
 	
 	State endOfJobBounds {
-		run itunibo.planner.moveUtils.rotateRight90( myself )
+		forward onerotateforward -m onerotationstep : onerotationstep(d)
+			["Move=\"d\""]
+		run itunibo.planner.moveUtils.doPlannedMove(myself,Move)	
 		println("Perimeter completely walked. Exit.")
+		
+	}Transition t0 whenMsg rotationOk ->  reply	
+	State reply{
 		["replyToCaller(\"endExplor\", \"endExplor(ok)\")"]	
 	}Goto waitCmd
-	
 	//----------------------------------------------------------------------------------------------------------exploreTale
 	State exploreTale{
+		println("Start explore table.")
 		["tableFound=false"]
 	}Goto goOneStepAhead 
 	
