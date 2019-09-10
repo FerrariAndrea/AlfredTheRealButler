@@ -19,7 +19,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				var foundObstacle = false;
 				var StepTime = 0L;
 				var Duration : Long =0;
-				//var IgnoreWall =0
+				var PauseTime :Long =250;
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -29,7 +29,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				}	 
 				state("ready") { //this:State
 					action { //it:State
-						foundObstacle = false; // IgnoreWall =0
+						foundObstacle = false
 					}
 					 transition(edgeName="t08",targetState="doMoveForward",cond=whenDispatch("onestep"))
 					transition(edgeName="t09",targetState="paused",cond=whenDispatch("stop"))
@@ -68,7 +68,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						itunibo.planner.moveUtils.setDuration(myself)
 						if( checkMsgContent( Term.createTerm("sonar(DISTANCE)"), Term.createTerm("sonar(DISTANCE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								foundObstacle = (Integer.parseInt( payloadArg(0) ) <10)
+								foundObstacle = (Integer.parseInt( payloadArg(0) ) <20)
 						}
 					}
 					 transition( edgeName="goto",targetState="stepFail", cond=doswitchGuarded({foundObstacle}) )
@@ -85,8 +85,10 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				state("goBackFromFail") { //this:State
 					action { //it:State
 						forward("modelChange", "modelChange(robot,s)" ,"resourcemodel" ) 
-						delay(Duration)
+						val Jal = Duration/4
+						delay(Jal)
 						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
+						delay(PauseTime)
 						replyToCaller("stepFail", "stepFail(obstacle,$Duration) ")
 					}
 					 transition( edgeName="goto",targetState="ready", cond=doswitch() )
