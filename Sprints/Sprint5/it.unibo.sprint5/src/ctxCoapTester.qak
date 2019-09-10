@@ -21,9 +21,9 @@ QActor coaptester context ctxCoapTester {
 	State waitCmd {
 	//Remove comment to the cmd you want to test 
 	} 
-	//Goto interactWithFridge
+	Goto interactWithFridge
 	//Goto interactWithPantry
-	Goto interactWithDishwasher
+	//Goto interactWithDishwasher
 	
 	State interactWithFridge {
 		run itunibo.coap.observer.resourceObserverCoapClient.create("coap://localhost:5684/fridge")

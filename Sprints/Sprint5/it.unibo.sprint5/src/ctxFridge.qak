@@ -7,9 +7,11 @@ Context ctxDummy ip[host="dummyhost" port=9999] -mqtt
 
 QActor fridge context ctxFridge {
 			["
-			var food1 = 10
-			var food2 = 20
-		"]
+			var food1 = 5
+			var food2 = 60
+			var noFood : Boolean = false
+			var selectedFood = -1
+			"]
 	State s0 initial {
 
 		println("Fridge Started")
@@ -17,20 +19,37 @@ QActor fridge context ctxFridge {
 	}
 	Goto waitCmd
 		
-	State waitCmd {} 
-	Transition t0 whenEvent takeFood -> takingFood
+	State waitCmd { ["noFood = false"]} 
+	Transition t0 whenEvent takeFood -> checkingFood
 	
-	State takingFood {
-		
+	State checkingFood {
 		onMsg(   takeFood:  takeFood(X) ) { 
-			["var X = payloadArg(0).toInt()"]
+			["selectedFood = payloadArg(0).toInt()"]
 			
-			if "X == 1" {
+			if "selectedFood == 1" {
+				if "food1 == 0" {
+					//segnalo RBR all'explorer?
+					println("NO FOOD 1 ")
+					["noFood = true"]
+				}
+			} else {
+				if "food2 == 0" {
+					["noFood = true"]	
+					//segnalo RBR all'explorer?
+					println("NO FOOD 2 ")				
+				}
+			}
+		}		
+	} Goto waitCmd if "noFood == true" else takingFood
+	
+	State takingFood {		
+			println("selectedFood : $selectedFood")
+			if "selectedFood == 1" {
 			["food1 = food1 - 1"]
 			} else {
-			["food2 = food2 - 1"]
-			}		
-		}
+				if "selectedFood == 2" {["food2 = food2 - 1"]}
+				else {println("Error")}	
+			}	
 	} Goto updateModelFridge
 	
 	State updateModelFridge {

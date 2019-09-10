@@ -16,8 +16,10 @@ class Fridge ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
-					var food1 = 10
-					var food2 = 20
+					var food1 = 5
+					var food2 = 60
+					var noFood : Boolean = false
+					var selectedFood = -1
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -28,20 +30,41 @@ class Fridge ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				}	 
 				state("waitCmd") { //this:State
 					action { //it:State
+						noFood = false
 					}
-					 transition(edgeName="t00",targetState="takingFood",cond=whenEvent("takeFood"))
+					 transition(edgeName="t00",targetState="checkingFood",cond=whenEvent("takeFood"))
 				}	 
-				state("takingFood") { //this:State
+				state("checkingFood") { //this:State
 					action { //it:State
 						if( checkMsgContent( Term.createTerm("takeFood(X)"), Term.createTerm("takeFood(X)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								var X = payloadArg(0).toInt()
-								if(X == 1){ food1 = food1 - 1
+								selectedFood = payloadArg(0).toInt()
+								if(selectedFood == 1){ if(food1 == 0){ println("NO FOOD 1 ")
+								noFood = true
+								 }
 								 }
 								else
-								 { food2 = food2 - 1
+								 { if(food2 == 0){ noFood = true
+								 println("NO FOOD 2 ")
+								  }
 								  }
 						}
+					}
+					 transition( edgeName="goto",targetState="waitCmd", cond=doswitchGuarded({noFood == true}) )
+					transition( edgeName="goto",targetState="takingFood", cond=doswitchGuarded({! noFood == true}) )
+				}	 
+				state("takingFood") { //this:State
+					action { //it:State
+						println("selectedFood : $selectedFood")
+						if(selectedFood == 1){ food1 = food1 - 1
+						 }
+						else
+						 { if(selectedFood == 2){ food2 = food2 - 1
+						  }
+						 else
+						  { println("Error")
+						   }
+						  }
 					}
 					 transition( edgeName="goto",targetState="updateModelFridge", cond=doswitch() )
 				}	 

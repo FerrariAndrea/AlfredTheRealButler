@@ -25,7 +25,7 @@ class Coaptester ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 				state("waitCmd") { //this:State
 					action { //it:State
 					}
-					 transition( edgeName="goto",targetState="interactWithDishwasher", cond=doswitch() )
+					 transition( edgeName="goto",targetState="interactWithFridge", cond=doswitch() )
 				}	 
 				state("interactWithFridge") { //this:State
 					action { //it:State
