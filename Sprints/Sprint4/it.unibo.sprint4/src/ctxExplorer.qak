@@ -416,6 +416,7 @@ QActor explorer context ctxExplorer{
 					//qui handleStop
 	 	
 	State handleStepOk{
+		println("GOTO->StepOK")		
 		run itunibo.planner.moveUtils.doPlannedMove(myself, Move)	
 		delayVar PauseTime	
 	}

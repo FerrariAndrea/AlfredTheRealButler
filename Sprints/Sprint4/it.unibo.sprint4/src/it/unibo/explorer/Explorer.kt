@@ -304,6 +304,7 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				}	 
 				state("handleStepOk") { //this:State
 					action { //it:State
+						println("GOTO->StepOK")
 						itunibo.planner.moveUtils.doPlannedMove(myself ,Move )
 						delay(PauseTime)
 					}
