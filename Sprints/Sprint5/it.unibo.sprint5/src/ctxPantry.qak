@@ -29,6 +29,6 @@ QActor pantry context ctxPantry {
 	} Goto updateModelPantry
 	
 	State updateModelPantry {
-		run itunibo.robot.resourceModelSupport.updatePantryModel(myself,"DISH: $dishes; ")
+		run itunibo.robot.resourceModelSupport.updatePantryModel(myself,"DISHES: $dishes; ")
 	} Goto waitCmd
 }

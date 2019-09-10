@@ -43,17 +43,20 @@ client.on('message', function (topic, message){
   var spFridge        = msgStr.indexOf("fridge");
   var spDishwasher    = msgStr.indexOf("dishwasher");
   var spPantry        = msgStr.indexOf("pantry");
+
   var sp1    = msgStr.indexOf("state");
   var msgStr = msgStr.substr(sp1);
   var sp2    = msgStr.indexOf("))");
+
   if( spRobot > 0 ) var msg    = "";
   if( spFridge > 0 ) var msg   = "";
   var content =  message.toString().substr(sp1,sp2+1);
-  if( spRobot > 0 )      { msg = "robot - "; robotModel=msg+content        }
-  if( spFridge > 0 )     { msg = "fridge - "; content=message.toString().substr(60,24); fridgeModel=msg+content      }
-  if( spDishwasher > 0 )     { msg = "dishwasher - "; content=message.toString().substr(100,24); dishwasherModel=msg+content      }
-  if( spPantry > 0 )     { msg = "pantry - "; content=message.toString().substr(60,24); pantryModel=msg+content      }
-  if( spSonarRobot > 0 ) { msg = "sonarRobot - "; sonarModel = msg+content }
+  if( spRobot > 0 )      { msg = "robot - "; robotModel=msg+content}
+  if( spFridge > 0 )     { msg = "fridge - "; content=message.toString().substr(60,24); fridgeModel=msg+content}
+  if( spDishwasher > 0 ) { msg = "dishwasher - "; content=message.toString().substr(60,24); dishwasherModel=msg+content}
+  if( spPantry > 0 )     { msg = "pantry - "; content=message.toString().substr(60,24); pantryModel=msg+content}
+  if( spSonarRobot > 0 ) { msg = "sonarRobot - "; sonarModel = msg+content}
+
   msg = msg + content// message.toString().substr(sp1,sp2+1);
   console.log("mqttUtils msg: "+msg);
   //---------------------------------------Fix for real

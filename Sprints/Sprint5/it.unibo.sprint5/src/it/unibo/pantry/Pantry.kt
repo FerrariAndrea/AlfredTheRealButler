@@ -42,7 +42,7 @@ class Pantry ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				}	 
 				state("updateModelPantry") { //this:State
 					action { //it:State
-						itunibo.robot.resourceModelSupport.updatePantryModel(myself ,"DISH: $dishes; " )
+						itunibo.robot.resourceModelSupport.updatePantryModel(myself ,"DISHES: $dishes; " )
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 

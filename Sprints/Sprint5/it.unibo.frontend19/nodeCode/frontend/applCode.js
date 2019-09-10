@@ -250,12 +250,12 @@ var changeFridgeCoap = function ( cmd ) {
 
 var changeDishwasherCoap = function ( cmd ) {
 		console.log("coap PUT> "+ cmd);
-		coapCToD,coapPut(cmd); //Client to Dishwasher
+		coapCToD.coapPut(cmd); //Client to Dishwasher
 }
 
 var changePantryCoap = function ( cmd ) {
 		console.log("coap PUT> "+ cmd);
-		coapCToP,coapPut(cmd); //Client to Pantry
+		coapCToP.coapPut(cmd); //Client to Pantry
 }
 
 var publishEmitUserCmd = function( cmd ){  
