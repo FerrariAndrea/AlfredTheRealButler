@@ -264,7 +264,12 @@ object plannerUtil {
 	    //println("getMapDims dimMapx = $dimMapx, dimMapy=$dimMapy")
 		return Pair(dimMapx,dimMapy)	
 	}
-			
+	fun getMapDimX() : Int {
+		return RoomMap.getRoomMap().getDimX()
+	}
+	fun getMapDimY() : Int {
+		return RoomMap.getRoomMap().getDimY()
+	}	
 	fun getMap() : String{
 		return RoomMap.getRoomMap().toString() 
 	}
@@ -348,7 +353,14 @@ object plannerUtil {
 			Direction.RIGHT -> RoomMap.getRoomMap().put(x + 1, y, Box(true, false, false)) 
  		}
 	}
-	
+	fun autoSetTablePos(){
+		when( initialState!!.direction ){
+			Direction.DOWN  -> RoomMap.getRoomMap().put(initialState!!.x, initialState!!.y + 1, Box(true, false, false))
+			Direction.UP   -> RoomMap.getRoomMap().put(initialState!!.x, initialState!!.y - 1, Box(true, false, false)) 
+			Direction.LEFT  -> RoomMap.getRoomMap().put(initialState!!.x - 1, initialState!!.y, Box(true, false, false)) 
+			Direction.RIGHT -> RoomMap.getRoomMap().put(initialState!!.x + 1, initialState!!.y, Box(true, false, false)) 
+ 		}
+	}
 	fun wallFound(){
  		 val dimMapx = RoomMap.getRoomMap().getDimX()
 		 val dimMapy = RoomMap.getRoomMap().getDimY()

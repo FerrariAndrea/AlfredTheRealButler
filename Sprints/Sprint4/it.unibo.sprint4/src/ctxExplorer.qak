@@ -89,7 +89,7 @@ QActor missionsolver context ctxExplorer{
 	
 	State home {
 		["storeCurrentMessageForReply()"]
-		println("ADDING FOOD: Go to Home")
+		println("GO HOME: Go to Home")
 		["	 addingFood = false
 			 preparing = false
 			 clearing = false
@@ -119,6 +119,7 @@ QActor missionsolver context ctxExplorer{
 	
 	State goToHome {
 		forward kb -m modelRequest : modelRequest(map,home)
+		["goingHome=false"]
 	} Transition t0   whenMsg modelMapResponse  -> handlePos
 	
  	State  handlePos{
@@ -131,10 +132,9 @@ QActor missionsolver context ctxExplorer{
  					  whenMsg goToFail  -> fail
 	
  	State fail{
- 		println("Explorer: fail, return at home in 2s!")
- 		delay 2000
- 		//here send msg if you want see error msg on frontend 		
- 	}Goto goToHome
+ 		println("WARNING: Explorer: fail.")
+ 		["replyToCaller(\"missionFinish\", \"missionFinish(fail)\")"]		
+ 	}Goto waiting
  	
 	State goalOk{		  
  		println("Explorer: on the target cell (simulate action 2s)!")
@@ -146,7 +146,7 @@ QActor missionsolver context ctxExplorer{
  	State checkClearingRoom {} Goto goToDishwasher if "clearing" else checkGoingHome
  	State checkGoingHome {} Goto goToHome if "goingHome" else reply
  	
- 	State reply{	["replyToCaller(\"missionFinish\", \"missionFinish(ok)\")"]	}Goto waiting
+ 	State reply{["replyToCaller(\"missionFinish\", \"missionFinish(ok)\")"]	}Goto waiting
  	
 }
 
@@ -170,6 +170,14 @@ QActor explorer context ctxExplorer{
 	var needExploreBound : Boolean =false
 	var tableFound : Boolean =false
 	var directionSud : Boolean =false
+	//-------table
+	var MapDimX =0;
+	var MapDimY=0;
+	var ActualTX =0;
+	var ActualTY =0;
+	var NeedAnotherStep =true;
+	//go to
+	var GoToFailed =false;
 	"]
 	State s0 initial {
 		
@@ -192,7 +200,7 @@ QActor explorer context ctxExplorer{
 		onMsg(   doExplor:  doExplor(TARGET) ) { 
 			
 			["
-				needExploreBound = (payloadArg(0)==\"bound\")
+				needExploreBound = (payloadArg(0)==\"bound\")				
 			"]
 		}//else explore for table 		
 	}Goto exploreBounds if "needExploreBound" else exploreTale
@@ -226,9 +234,16 @@ QActor explorer context ctxExplorer{
 				whenEvent collision -> checkingObject
 
 	State handleStepOk {
-		run itunibo.planner.moveUtils.updateMapAfterAheadOk(myself)
+		["NeedAnotherStep =true;"]
+		if "needExploreBound"{			
+			run itunibo.planner.moveUtils.updateMapAfterAheadOk(myself)
+		}else{			
+			run itunibo.planner.moveUtils.updateMapAfterAheadOk(myself)//facoltativo
+			["ActualTY++;NeedAnotherStep= ActualTY<MapDimY-1"]			
+		}
+		
 		delay 250
-	} Goto goOneStepAhead
+	} Goto goOneStepAhead if "NeedAnotherStep" else handleStepFailTable
 		  
 	State checkingObject {
 		onMsg(collision : collision(OBJECT)) {
@@ -245,9 +260,9 @@ QActor explorer context ctxExplorer{
 			}
 			
 		}
-	} Goto consumeStepFialBound if "needExploreBound" else consumeStepFailTable
+	} Goto consumeStepFailBound if "needExploreBound" else consumeStepFailTable
 	
-	State consumeStepFialBound{}Transition t0 whenMsg stepFail ->  handleStepFail	
+	State consumeStepFailBound{}Transition t0 whenMsg stepFail ->  handleStepFail	
 	
 	State consumeStepFailTable{}Transition t0 whenMsg stepFail ->  handleStepFailTable
 		
@@ -303,7 +318,12 @@ QActor explorer context ctxExplorer{
 	State perimeterWalked {println("FINAL MAP")
 			run itunibo.planner.moveUtils.showCurrentRobotState()
 			run itunibo.planner.plannerUtil.saveMap(mapname)
-			println("Perimeter completely walked. Exit.")
+			["
+					MapDimX = itunibo.planner.plannerUtil.getMapDimX()-1
+					MapDimY = itunibo.planner.plannerUtil.getMapDimY()-1
+			"]
+			
+			println("Perimeter completely walked. DimX: $MapDimX DimY: $MapDimY")
 			//["val D = \"down\""]
 			//run itunibo.planner.plannerUtil.autoResetRobotPos(0,0,D)
 			["replyToCaller(\"endExplor\", \"endExplor(ok)\")"]	
@@ -312,16 +332,22 @@ QActor explorer context ctxExplorer{
 
 	State exploreTale{
 		println("Start explore table.")
-		["tableFound=false"]
+		["tableFound=false;ActualTX =0;ActualTY =0;"]
 	}Goto goOneStepAhead 
 	
 
 	State handleStepFailTable {
+		//facoltativo----inizio
 		["
 		val MapStr =  itunibo.planner.plannerUtil.getMapOneLine()
 		"]
 		forward resourcemodel -m modelUpdate : modelUpdate(roomMap, $MapStr)
-		run itunibo.planner.plannerUtil.wallFound()
+		//facoltativo----fine
+		if "tableFound"{
+			run itunibo.planner.plannerUtil.autoSetTablePos()
+		}else{
+			["ActualTY=0;ActualTX++"]
+		}
 		
 	} Goto endOfJobTable if "tableFound" else askOrientation
 	
@@ -365,7 +391,8 @@ QActor explorer context ctxExplorer{
 	}Transition t0 whenMsg rotationOk -> goOneStepAhead
 	
 	State endOfJobTable {
-		//QUI FORSE SERVE UN GO-TO-HOME
+		//QUI FORSE SERVE UN GO-TO-HOME		
+		run itunibo.planner.moveUtils.showCurrentRobotState()
 		println("Map after explore table")
 		run itunibo.planner.plannerUtil.showMap()
 		run itunibo.planner.plannerUtil.saveMap(mapname)//test
@@ -375,6 +402,7 @@ QActor explorer context ctxExplorer{
 	//--------------------------------------------------------------EXPLORE GO TO 
  	
 	State goToPosition{
+		["GoToFailed=false"]
 	 	["storeCurrentMessageForReply()"]
 	 	onMsg(   goTo:  goTo(X,Y) ) { 
 			
@@ -390,18 +418,16 @@ QActor explorer context ctxExplorer{
 		run itunibo.planner.plannerUtil.setGoal(X,Y)
 		run itunibo.planner.moveUtils.doPlan( myself )
 		}
- 	}Goto executePlannedActions  if "itunibo.planner.moveUtils.existPlan()" else endOfJobOk 
+ 	}Goto executePlannedActions  if "itunibo.planner.moveUtils.existPlan()" else checkSouth 
 
 
 	State executePlannedActions{ 
-		
-		//solve( showMoves ) 
 		solve( retract( move(M) ) ) //consume a move
 		ifSolved {  
 			["Move = getCurSol(\"M\").toString()"]
 		} else { ["Move = \"\""]  } 
  	}
-	Goto doTheMove  if "(Move.length>0) " else endOfJobOk
+	Goto doTheMove  if "(Move.length>0) " else checkSouth
  	
  	State doTheMove{
  		println("doTheMove------------------------<<<<")
@@ -413,9 +439,8 @@ QActor explorer context ctxExplorer{
 		
 	}
 	Transition t0   whenMsg stepOk   	-> handleStepOkGoTo   
-					whenMsg stepFail 	-> endOfJobFail  
+					whenMsg stepFail 	-> handleStepFailGoTo//endOfJobFail  
 					whenMsg rotationOk 	-> handleStepOkGoTo
-					//qui handleStop
 	 	
 	State handleStepOkGoTo{
 		println("GOTO->StepOK")		
@@ -424,37 +449,14 @@ QActor explorer context ctxExplorer{
 	}
 	Goto executePlannedActions
 	
-
- 	/*
-	State goHome{
-		println("Actor: Explorer; State: backToHome")
- 		solve( direction(D) )
-   		println("Actor: Explorer; State: backToHome; Payload: ${getCurSol(\"D\").toString()}")
- 		println("Actor: Explorer; State: backToHome; Payload: MAP BEFORE backToHome")
-		run itunibo.planner.plannerUtil.showMap()	
-		solve( retractall( move(_) ))		//clean the actor kb
- 		run itunibo.planner.plannerUtil.setGoal(0,0)
- 		["goingHome=true"]
- 		run itunibo.planner.moveUtils.doPlan( myself )
- 		run itunibo.planner.moveUtils.existPlan() //is it necessary?
- 	} 
-	Goto executePlannedActions //doGoHomeActions 
-	
-	State atHome {  //reposition	
- 		solve( direction(D) )
- 		["Direction = getCurSol(\"D\").toString() "]
-		println( @D ) 
-		["
-		val map = itunibo.planner.plannerUtil.getMap() 
-		println(map)
-		"] 		
-   		println("Actor: Explorer; State: atHome; Payload: direction at home: ${getCurSol(\"D\").toString()}")
-   	
+	State handleStepFailGoTo{
+		println("GOTO->StepFail")		
+		run itunibo.planner.moveUtils.doPlannedMove(myself, Move)	
+		delayVar PauseTime
+		["GoToFailed=true"]	
 	}
 	Goto rotateSouth
-	
-	 */
-	
+
 	State rotateSouth{
 		["Move=\"a\""]
 		delayVar PauseTime //questo prima era uno StepTime
@@ -464,21 +466,25 @@ QActor explorer context ctxExplorer{
 
 	State checkSouth{
 		run itunibo.planner.moveUtils.doPlannedMove(myself, Move)	
-		solve( direction(D) )
-		["Direction = getCurSol(\"D\").toString() "]
+		//solve( direction(D) )
+		//["Direction = getCurSol(\"D\").toString() "]
+		["Direction = itunibo.planner.plannerUtil.getDirection()"]
 		println("Actor: Explorer; State: rotateSouth; Payload: $Direction")
 	}
-	Goto rotateSouth  if "(Direction!=\"downDir\")" else endOfJobOk
+	Goto rotateSouth  if "(Direction!=\"downDir\")" else endOfJob
 	
-	State endOfJobOk{
-		println("Explorer: on the target cell!")
-		["replyToCaller(\"goToOk\", \"goToOk(ok)\")"]	
+	State endOfJob{
+		if "GoToFailed"{
+				println("Actor: Explorer; State: handleStepFail; Payload: Fail step :(")
+				run itunibo.planner.plannerUtil.showMap()	
+				println("Actor: Explorer; State: handleStepFail; Payload: Replan and return at home.")
+				["replyToCaller(\"goToFail\", \"goToFail(fail)\")"]	
+		}else{
+				println("Explorer: on the target cell!")
+				["replyToCaller(\"goToOk\", \"goToOk(ok)\")"]	
+		}
+		
+	
 	} Goto waitCmd 
 	
-	State endOfJobFail{
-		println("Actor: Explorer; State: handleStepFail; Payload: Fail step :(")
-		run itunibo.planner.plannerUtil.showMap()	
-		println("Actor: Explorer; State: handleStepFail; Payload: Replan and return at home.")
-		["replyToCaller(\"goToFail\", \"goToFail(fail)\")"]	
-	} Goto waitCmd 
 }	
