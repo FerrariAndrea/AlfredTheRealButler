@@ -131,6 +131,7 @@ QActor missionsolver context ctxExplorer{
  	} Transition t0   whenMsg goToOk  -> goalOk
  					  whenMsg goToFail  -> fail
 	
+	
  	State fail{
  		println("WARNING: Explorer: fail.")
  		["replyToCaller(\"missionFinish\", \"missionFinish(fail)\")"]		
