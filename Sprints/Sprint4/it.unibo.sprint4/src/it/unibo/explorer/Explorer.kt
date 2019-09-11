@@ -28,9 +28,9 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 			var Tback       = 0
 			var NumStep     = 0
 		
-			var secondLap : Boolean = false
 			var mustStop : Boolean = false
-			
+			var RotateStepCount : Int =0
+		
 			var needExploreBound : Boolean =false
 			var tableFound : Boolean =false
 			var directionSud : Boolean =false
@@ -61,7 +61,6 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								
 												needExploreBound = (payloadArg(0)=="bound")
-												secondLap=false
 						}
 					}
 					 transition( edgeName="goto",targetState="exploreBounds", cond=doswitchGuarded({needExploreBound}) )
@@ -69,15 +68,10 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				}	 
 				state("exploreBounds") { //this:State
 					action { //it:State
-						if(!secondLap){ println("Start explore bounds.")
-						NumStep=0
-						 }
-						else
-						 { println("Second laps for explore bounds.")
-						  }
+						println("Start explore bounds.")
+						NumStep=0;RotateStepCount=0
 					}
-					 transition( edgeName="goto",targetState="rotateEast", cond=doswitchGuarded({secondLap}) )
-					transition( edgeName="goto",targetState="detectPerimeter", cond=doswitchGuarded({! secondLap}) )
+					 transition( edgeName="goto",targetState="detectPerimeter", cond=doswitch() )
 				}	 
 				state("rotateEast") { //this:State
 					action { //it:State
@@ -90,7 +84,7 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				}	 
 				state("detectPerimeter") { //this:State
 					action { //it:State
-						NumStep++
+						NumStep++;RotateStepCount=0
 						itunibo.planner.plannerUtil.showMap(  )
 					}
 					 transition( edgeName="goto",targetState="goOneStepAhead", cond=doswitchGuarded({(NumStep<5)}) )
@@ -124,15 +118,15 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 								 }
 						}
 					}
-					 transition( edgeName="goto",targetState="consumeStepFial", cond=doswitchGuarded({needExploreBound}) )
-					transition( edgeName="goto",targetState="consumeHandleStepFail", cond=doswitchGuarded({! needExploreBound}) )
+					 transition( edgeName="goto",targetState="consumeStepFialBound", cond=doswitchGuarded({needExploreBound}) )
+					transition( edgeName="goto",targetState="consumeStepFailTable", cond=doswitchGuarded({! needExploreBound}) )
 				}	 
-				state("consumeStepFial") { //this:State
+				state("consumeStepFialBound") { //this:State
 					action { //it:State
 					}
 					 transition(edgeName="t016",targetState="handleStepFail",cond=whenDispatch("stepFail"))
 				}	 
-				state("consumeHandleStepFail") { //this:State
+				state("consumeStepFailTable") { //this:State
 					action { //it:State
 					}
 					 transition(edgeName="t017",targetState="handleStepFailTable",cond=whenDispatch("stepFail"))
@@ -140,50 +134,43 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				state("handleStepFail") { //this:State
 					action { //it:State
 						delay(500) 
-						val MapStr =  itunibo.planner.plannerUtil.getMapOneLine()
-						forward("modelUpdate", "modelUpdate(roomMap,$MapStr)" ,"resourcemodel" ) 
-						itunibo.planner.moveUtils.setObstacleOnCurrentDirection(myself)
-						if(secondLap){ Move="d"
+						if(RotateStepCount==0){ itunibo.planner.plannerUtil.wallFound(  )
+						Move="d"
 						forward("onerotationstep", "onerotationstep(d)" ,"onerotateforward" ) 
 						itunibo.planner.moveUtils.doPlannedMove(myself ,Move )
 						 }
-						else
-						 { itunibo.planner.plannerUtil.wallFound(  )
-						 Move="a"
-						 forward("onerotationstep", "onerotationstep(a)" ,"onerotateforward" ) 
-						 itunibo.planner.moveUtils.doPlannedMove(myself ,Move )
-						  }
+						if(RotateStepCount==1){ val MapStr =  itunibo.planner.plannerUtil.getMapOneLine()
+						forward("modelUpdate", "modelUpdate(roomMap,$MapStr)" ,"resourcemodel" ) 
+						Move="a"
+						forward("onerotationstep", "onerotationstep(a)" ,"onerotateforward" ) 
+						itunibo.planner.moveUtils.doPlannedMove(myself ,Move )
+						 }
+						if(RotateStepCount==2){ Move="a"
+						forward("onerotationstep", "onerotationstep(a)" ,"onerotateforward" ) 
+						itunibo.planner.moveUtils.doPlannedMove(myself ,Move )
+						 }
+						RotateStepCount++
 					}
-					 transition(edgeName="t018",targetState="detectPerimeter",cond=whenDispatch("rotationOk"))
+					 transition(edgeName="t018",targetState="checkRotateStep1",cond=whenDispatch("rotationOk"))
+				}	 
+				state("checkRotateStep1") { //this:State
+					action { //it:State
+					}
+					 transition( edgeName="goto",targetState="goOneStepAhead", cond=doswitchGuarded({(RotateStepCount==1)}) )
+					transition( edgeName="goto",targetState="checkRotateStep2", cond=doswitchGuarded({! (RotateStepCount==1)}) )
+				}	 
+				state("checkRotateStep2") { //this:State
+					action { //it:State
+					}
+					 transition( edgeName="goto",targetState="handleStepFail", cond=doswitchGuarded({(RotateStepCount==2)}) )
+					transition( edgeName="goto",targetState="detectPerimeter", cond=doswitchGuarded({! (RotateStepCount==2)}) )
 				}	 
 				state("perimeterWalked") { //this:State
 					action { //it:State
-						if(!secondLap){ println("FINAL MAP")
+						println("FINAL MAP")
 						itunibo.planner.moveUtils.showCurrentRobotState(  )
 						itunibo.planner.plannerUtil.saveMap( mapname  )
-						secondLap = true
-						 }
-						else
-						 { mustStop = true
-						  }
-					}
-					 transition( edgeName="goto",targetState="endOfJobBounds", cond=doswitchGuarded({mustStop}) )
-					transition( edgeName="goto",targetState="exploreBounds", cond=doswitchGuarded({! mustStop}) )
-				}	 
-				state("endOfJobBounds") { //this:State
-					action { //it:State
-						delay(500) 
-						forward("onerotationstep", "onerotationstep(d)" ,"onerotateforward" ) 
-						Move="d"
-						itunibo.planner.moveUtils.doPlannedMove(myself ,Move )
-						val D = "down"
-						itunibo.planner.plannerUtil.autoResetRobotPos( 0, 0, D  )
 						println("Perimeter completely walked. Exit.")
-					}
-					 transition(edgeName="t019",targetState="reply",cond=whenDispatch("rotationOk"))
-				}	 
-				state("reply") { //this:State
-					action { //it:State
 						replyToCaller("endExplor", "endExplor(ok)")
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
@@ -209,7 +196,7 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 					action { //it:State
 						forward("modelRequest", "modelRequest(robot,location)" ,"kb" ) 
 					}
-					 transition(edgeName="t020",targetState="rotateBefore",cond=whenDispatch("modelRobotResponse"))
+					 transition(edgeName="t019",targetState="rotateBefore",cond=whenDispatch("modelRobotResponse"))
 				}	 
 				state("rotateBefore") { //this:State
 					action { //it:State
@@ -226,15 +213,15 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 								 }
 						}
 					}
-					 transition(edgeName="t021",targetState="moveOne",cond=whenDispatch("rotationOk"))
+					 transition(edgeName="t020",targetState="moveOne",cond=whenDispatch("rotationOk"))
 				}	 
 				state("moveOne") { //this:State
 					action { //it:State
 						delay(250) 
 						itunibo.planner.moveUtils.attemptTomoveAhead(myself ,StepTime, "onecellforward" )
 					}
-					 transition(edgeName="t022",targetState="rotateAfter",cond=whenDispatch("stepOk"))
-					transition(edgeName="t023",targetState="checkingObject",cond=whenEvent("collision"))
+					 transition(edgeName="t021",targetState="rotateAfter",cond=whenDispatch("stepOk"))
+					transition(edgeName="t022",targetState="checkingObject",cond=whenEvent("collision"))
 				}	 
 				state("rotateAfter") { //this:State
 					action { //it:State
@@ -247,7 +234,7 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						  }
 						itunibo.planner.moveUtils.doPlannedMove(myself ,Move )
 					}
-					 transition(edgeName="t024",targetState="goOneStepAhead",cond=whenDispatch("rotationOk"))
+					 transition(edgeName="t023",targetState="goOneStepAhead",cond=whenDispatch("rotationOk"))
 				}	 
 				state("endOfJobTable") { //this:State
 					action { //it:State
@@ -292,17 +279,18 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				}	 
 				state("doTheMove") { //this:State
 					action { //it:State
+						println("doTheMove------------------------<<<<")
 						if(Move=="a" || Move=="d" ){ forward("onerotationstep", "onerotationstep($Move)" ,"onerotateforward" ) 
 						 }
 						else
 						 { forward("onestep", "onestep($StepTime)" ,"onecellforward" ) 
 						  }
 					}
-					 transition(edgeName="t025",targetState="handleStepOk",cond=whenDispatch("stepOk"))
-					transition(edgeName="t026",targetState="endOfJobFail",cond=whenDispatch("stepFail"))
-					transition(edgeName="t027",targetState="handleStepOk",cond=whenDispatch("rotationOk"))
+					 transition(edgeName="t024",targetState="handleStepOkGoTo",cond=whenDispatch("stepOk"))
+					transition(edgeName="t025",targetState="endOfJobFail",cond=whenDispatch("stepFail"))
+					transition(edgeName="t026",targetState="handleStepOkGoTo",cond=whenDispatch("rotationOk"))
 				}	 
-				state("handleStepOk") { //this:State
+				state("handleStepOkGoTo") { //this:State
 					action { //it:State
 						println("GOTO->StepOK")
 						itunibo.planner.moveUtils.doPlannedMove(myself ,Move )
@@ -316,7 +304,7 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						delay(PauseTime)
 						forward("onerotationstep", "onerotationstep($Move)" ,"onerotateforward" ) 
 					}
-					 transition(edgeName="t028",targetState="checkSouth",cond=whenDispatch("rotationOk"))
+					 transition(edgeName="t027",targetState="checkSouth",cond=whenDispatch("rotationOk"))
 				}	 
 				state("checkSouth") { //this:State
 					action { //it:State

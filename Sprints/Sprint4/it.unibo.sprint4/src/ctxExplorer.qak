@@ -164,9 +164,9 @@ QActor explorer context ctxExplorer{
 	var Tback       = 0
 	var NumStep     = 0
 
-	var secondLap : Boolean = false
 	var mustStop : Boolean = false
-	
+	var RotateStepCount : Int =0
+
 	var needExploreBound : Boolean =false
 	var tableFound : Boolean =false
 	var directionSud : Boolean =false
@@ -193,7 +193,6 @@ QActor explorer context ctxExplorer{
 			
 			["
 				needExploreBound = (payloadArg(0)==\"bound\")
-				secondLap=false
 			"]
 		}//else explore for table 		
 	}Goto exploreBounds if "needExploreBound" else exploreTale
@@ -201,15 +200,11 @@ QActor explorer context ctxExplorer{
 	
 	
 	//----------------------------------------------------------------------------------------------------------exploreBounds
-	State exploreBounds {				
-		if "!secondLap"{
+	State exploreBounds {		
 			println("Start explore bounds.")
-			["NumStep=0"]
-		}else{
-			println("Second laps for explore bounds.")
-		}		
+			["NumStep=0;RotateStepCount=0"]
 	} 
-	Goto rotateEast  if "secondLap" else detectPerimeter
+	Goto  detectPerimeter
 	
 	State rotateEast {
 		["NumStep=0"]
@@ -220,7 +215,7 @@ QActor explorer context ctxExplorer{
 	} Transition t0 whenMsg rotationOk -> detectPerimeter
 
 	State detectPerimeter {		
-		["NumStep++"]
+		["NumStep++;RotateStepCount=0"]
   		run itunibo.planner.plannerUtil.showMap()  	
 	} Goto goOneStepAhead if "(NumStep<5)" else perimeterWalked
 	
@@ -250,19 +245,15 @@ QActor explorer context ctxExplorer{
 			}
 			
 		}
-	} Goto consumeStepFial if "needExploreBound" else consumeHandleStepFail
+	} Goto consumeStepFialBound if "needExploreBound" else consumeStepFailTable
 	
-	State consumeStepFial{
-		
-	}Transition t0 whenMsg stepFail ->  handleStepFail	
-	State consumeHandleStepFail{
-		
-	}Transition t0 whenMsg stepFail ->  handleStepFailTable
+	State consumeStepFialBound{}Transition t0 whenMsg stepFail ->  handleStepFail	
+	
+	State consumeStepFailTable{}Transition t0 whenMsg stepFail ->  handleStepFailTable
 		
 	State handleStepFail {
 		delay 500
-		["val MapStr =  itunibo.planner.plannerUtil.getMapOneLine()"]
-		forward resourcemodel -m modelUpdate : modelUpdate(roomMap, $MapStr)
+	
 		/*
 		onMsg(stepFail : stepFail(Obs,Time)) {//probabilmente questo non va
 			["Tback=payloadArg(1).toString().toInt() / 4"] //back just a little ..
@@ -271,43 +262,52 @@ QActor explorer context ctxExplorer{
 		run itunibo.planner.moveUtils.backToCompensate(myself, Tback, Tback) 
 		
 		*/  		 
-		run itunibo.planner.moveUtils.setObstacleOnCurrentDirection(myself)//test
-		if "secondLap" {
+		//run itunibo.planner.moveUtils.setObstacleOnCurrentDirection(myself)//test
+		if "RotateStepCount==0" {			
+			run itunibo.planner.plannerUtil.wallFound()
 			["Move=\"d\""]
 			forward onerotateforward -m onerotationstep : onerotationstep(d)				
 			run itunibo.planner.moveUtils.doPlannedMove(myself, Move)
-		} else {
-			run itunibo.planner.plannerUtil.wallFound()
+		}
+		if "RotateStepCount==1"{			
+			["val MapStr =  itunibo.planner.plannerUtil.getMapOneLine()"]
+			forward resourcemodel -m modelUpdate : modelUpdate(roomMap, $MapStr)
+			//run itunibo.planner.plannerUtil.wallFound() //facoltativo
 			["Move=\"a\""]
 			forward onerotateforward -m onerotationstep : onerotationstep(a)				
 			run itunibo.planner.moveUtils.doPlannedMove(myself, Move)				
 		}
-	}Transition t0 whenMsg rotationOk -> detectPerimeter
+		if "RotateStepCount==2"{	
+			//facoltativo
+			/*
+			["val MapStr =  itunibo.planner.plannerUtil.getMapOneLine()"]
+			forward resourcemodel -m modelUpdate : modelUpdate(roomMap, $MapStr)		
+			run itunibo.planner.plannerUtil.wallFound() 
+			 */
+			["Move=\"a\""]
+			forward onerotateforward -m onerotationstep : onerotationstep(a)				
+			run itunibo.planner.moveUtils.doPlannedMove(myself, Move)				
+		}
+		["RotateStepCount++"]
+	}Transition t0 whenMsg rotationOk -> checkRotateStep1
 
-	State perimeterWalked {
-		if "!secondLap" {
-			println("FINAL MAP")
+	State checkRotateStep1{
+		
+	}Goto goOneStepAhead if "(RotateStepCount==1)" else checkRotateStep2
+	
+	State checkRotateStep2{
+		
+	}Goto handleStepFail if "(RotateStepCount==2)" else detectPerimeter
+	
+	
+	State perimeterWalked {println("FINAL MAP")
 			run itunibo.planner.moveUtils.showCurrentRobotState()
 			run itunibo.planner.plannerUtil.saveMap(mapname)
-			["secondLap = true"]
-		} else {
-			["mustStop = true"]
-		}
-	} Goto endOfJobBounds   if "mustStop" else  exploreBounds
-	
-	State endOfJobBounds {
-		delay 500
-		forward onerotateforward -m onerotationstep : onerotationstep(d)
-			["Move=\"d\""]
-		run itunibo.planner.moveUtils.doPlannedMove(myself,Move)
-		["val D = \"down\""]
-		run itunibo.planner.plannerUtil.autoResetRobotPos(0,0,D)
-		println("Perimeter completely walked. Exit.")
-	}Transition t0 whenMsg rotationOk ->  reply	
-	
-	State reply{
-		["replyToCaller(\"endExplor\", \"endExplor(ok)\")"]	
-	}Goto waitCmd
+			println("Perimeter completely walked. Exit.")
+			//["val D = \"down\""]
+			//run itunibo.planner.plannerUtil.autoResetRobotPos(0,0,D)
+			["replyToCaller(\"endExplor\", \"endExplor(ok)\")"]	
+	} Goto waitCmd 
 	//----------------------------------------------------------------------------------------------------------exploreTale
 	State exploreTale{
 		println("Start explore table.")
@@ -403,6 +403,7 @@ QActor explorer context ctxExplorer{
 	Goto doTheMove  if "(Move.length>0) " else endOfJobOk
  	
  	State doTheMove{
+ 		println("doTheMove------------------------<<<<")
 		if "Move==\"a\" || Move==\"d\" " {//ROTATION			
 			forward onerotateforward -m onerotationstep : onerotationstep($Move)	
 		} else{ // W			
@@ -410,12 +411,12 @@ QActor explorer context ctxExplorer{
 		}	
 		
 	}
-	Transition t0   whenMsg stepOk   	-> handleStepOk   
+	Transition t0   whenMsg stepOk   	-> handleStepOkGoTo   
 					whenMsg stepFail 	-> endOfJobFail  
-					whenMsg rotationOk 	-> handleStepOk
+					whenMsg rotationOk 	-> handleStepOkGoTo
 					//qui handleStop
 	 	
-	State handleStepOk{
+	State handleStepOkGoTo{
 		println("GOTO->StepOK")		
 		run itunibo.planner.moveUtils.doPlannedMove(myself, Move)	
 		delayVar PauseTime	
