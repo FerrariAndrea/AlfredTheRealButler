@@ -205,6 +205,8 @@ QActor explorer context ctxExplorer{
 		if "!secondLap"{
 			println("Start explore bounds.")
 			["NumStep=0"]
+		}else{
+			println("Second laps for explore bounds.")
 		}		
 	} 
 	Goto rotateEast  if "secondLap" else detectPerimeter
@@ -230,7 +232,7 @@ QActor explorer context ctxExplorer{
 
 	State handleStepOk {
 		run itunibo.planner.moveUtils.updateMapAfterAheadOk(myself)
-		delay 500
+		delay 250
 	} Goto goOneStepAhead
 		  
 	State checkingObject {
@@ -248,8 +250,15 @@ QActor explorer context ctxExplorer{
 			}
 			
 		}
-	} Goto handleStepFail if "needExploreBound" else handleStepFailTable
+	} Goto consumeStepFial if "needExploreBound" else consumeHandleStepFail
 	
+	State consumeStepFial{
+		
+	}Transition t0 whenMsg stepFail ->  handleStepFail	
+	State consumeHandleStepFail{
+		
+	}Transition t0 whenMsg stepFail ->  handleStepFailTable
+		
 	State handleStepFail {
 		delay 500
 		["val MapStr =  itunibo.planner.plannerUtil.getMapOneLine()"]
@@ -261,13 +270,14 @@ QActor explorer context ctxExplorer{
 		}
 		run itunibo.planner.moveUtils.backToCompensate(myself, Tback, Tback) 
 		
-		*/  
-		run itunibo.planner.plannerUtil.wallFound()
+		*/  		 
+		run itunibo.planner.moveUtils.setObstacleOnCurrentDirection(myself)//test
 		if "secondLap" {
 			["Move=\"d\""]
 			forward onerotateforward -m onerotationstep : onerotationstep(d)				
 			run itunibo.planner.moveUtils.doPlannedMove(myself, Move)
 		} else {
+			run itunibo.planner.plannerUtil.wallFound()
 			["Move=\"a\""]
 			forward onerotateforward -m onerotationstep : onerotationstep(a)				
 			run itunibo.planner.moveUtils.doPlannedMove(myself, Move)				
@@ -289,9 +299,10 @@ QActor explorer context ctxExplorer{
 		delay 500
 		forward onerotateforward -m onerotationstep : onerotationstep(d)
 			["Move=\"d\""]
-		run itunibo.planner.moveUtils.doPlannedMove(myself,Move)	
+		run itunibo.planner.moveUtils.doPlannedMove(myself,Move)
+		["val D = \"down\""]
+		run itunibo.planner.plannerUtil.autoResetRobotPos(0,0,D)
 		println("Perimeter completely walked. Exit.")
-		
 	}Transition t0 whenMsg rotationOk ->  reply	
 	
 	State reply{
@@ -335,13 +346,15 @@ QActor explorer context ctxExplorer{
 	}Transition t0 whenMsg rotationOk -> moveOne
 	
 	State moveOne{
-		delay 500
+		delay 250
 		run itunibo.planner.moveUtils.attemptTomoveAhead(myself, StepTime, "onecellforward")
 	} 
 	Transition t0 whenMsg stepOk -> rotateAfter
 				whenEvent collision -> checkingObject
 				
 	State rotateAfter{
+			run itunibo.planner.moveUtils.updateMapAfterAheadOk(myself)
+			delay 250
 			if "Move==\"a\""{
 				forward onerotateforward -m onerotationstep : onerotationstep(a)
 			}else{
@@ -376,7 +389,7 @@ QActor explorer context ctxExplorer{
 		run itunibo.planner.plannerUtil.setGoal(X,Y)
 		run itunibo.planner.moveUtils.doPlan( myself )
 		}
- 	}Goto executePlannedActions  if "itunibo.planner.moveUtils.existPlan()" else endOfJobFail 
+ 	}Goto executePlannedActions  if "itunibo.planner.moveUtils.existPlan()" else endOfJobOk 
 
 
 	State executePlannedActions{ 
@@ -403,6 +416,7 @@ QActor explorer context ctxExplorer{
 					//qui handleStop
 	 	
 	State handleStepOk{
+		println("GOTO->StepOK")		
 		run itunibo.planner.moveUtils.doPlannedMove(myself, Move)	
 		delayVar PauseTime	
 	}
