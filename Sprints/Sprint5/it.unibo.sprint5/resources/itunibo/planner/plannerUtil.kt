@@ -39,6 +39,9 @@ object plannerUtil {
         search       = BreadthFirstSearch(GraphSearch())
     }
 
+	fun autoResetRobotPos(x: Int, y:Int,direction: String ){
+		resetRobotPos(x,y,initialState!!.x,initialState!!.y,direction)
+	}
 	fun resetRobotPos(x: Int, y:Int, oldx: Int, oldy: Int, direction: String ){
         //println("plannerUtil resetRobotPos direction=$direction")
 		RoomMap.getRoomMap().put(oldx,oldy, Box(false, false, false))	
