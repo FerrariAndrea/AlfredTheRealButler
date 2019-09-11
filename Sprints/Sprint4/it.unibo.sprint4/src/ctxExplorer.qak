@@ -309,6 +309,7 @@ QActor explorer context ctxExplorer{
 			["replyToCaller(\"endExplor\", \"endExplor(ok)\")"]	
 	} Goto waitCmd 
 	//----------------------------------------------------------------------------------------------------------exploreTale
+
 	State exploreTale{
 		println("Start explore table.")
 		["tableFound=false"]
