@@ -355,8 +355,7 @@ QActor explorer context ctxExplorer{
 				run itunibo.planner.plannerUtil.autoSetTablePos()
 				["CheckTableSizeStep=1"]
 			}
-		}//else->fine tavolo DimX (non è un vero stap fail, non c'è nessun'ostacolo davanti)
-		
+		}
 		
 	} Goto askOrientation if "(CheckTableSizeStep<2)" else swithcerCheckTableDim1
 	
@@ -468,7 +467,6 @@ QActor explorer context ctxExplorer{
 	}Transition t0 whenMsg rotationOk -> goOneStepAhead
 	
 	State endOfJobTable {
-		run itunibo.planner.moveUtils.updateMapAfterAheadOk(myself)	
 		run itunibo.planner.moveUtils.showCurrentRobotState()
 		println("Map after explore table")
 		run itunibo.planner.plannerUtil.showMap()

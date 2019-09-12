@@ -346,7 +346,6 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				}	 
 				state("endOfJobTable") { //this:State
 					action { //it:State
-						itunibo.planner.moveUtils.updateMapAfterAheadOk(myself)
 						itunibo.planner.moveUtils.showCurrentRobotState(  )
 						println("Map after explore table")
 						itunibo.planner.plannerUtil.showMap(  )
