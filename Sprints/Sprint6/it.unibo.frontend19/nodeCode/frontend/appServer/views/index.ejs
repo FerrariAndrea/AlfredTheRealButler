@@ -191,20 +191,36 @@
 			top: 1px;
 		}
 
-		.myButtonBlue:disabled {
-			background-color: #000000;
+		.myButtonDisabled {
+			background-color: rgb(58, 5, 5);
+			-moz-border-radius: 6px;
+			-webkit-border-radius: 6px;
+			border-radius: 6px;
+			border: 1px solid white;
+			display: inline-block;
+			cursor: pointer;
+			color: #ffffff;
+			font-family: Arial;
+			font-size: 15px;
+			font-weight: bold;
+			padding: 6px 24px;
+			text-decoration: none;
+			width: 200px;
+			margin: 10px 10px 10px 10px;
+			cursor: not-allowed;
+			pointer-events: none;
 		}
-
 	</style>
 	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
 	<script>
 		var socket = io.connect();
 		socket.on('connect', function () { console.log("socket connected"); });
+		//ricevo messaggio da socket con contenuto v rappresentante la stringa che verrà inserita nel form.
 		socket.on('message', function (v) {
 			console.log(v);
 
 			if (v.indexOf("robot") >= 0) { document.getElementById('robotDisplay').innerHTML = v; }
-			if (v.indexOf("fridge") >= 0) { document.getElementById('food').innerHTML = v; } //FOOD 1 
+			if (v.indexOf("fridge") >= 0) { document.getElementById('food').innerHTML = v; } //FOOD
 			if (v.indexOf("dishwasher") >= 0) { document.getElementById('dishwasher').innerHTML = v; } //DISHWASHER 
 			if (v.indexOf("pantry") >= 0) { document.getElementById('pantry').innerHTML = v; } //PANTRY
 
@@ -213,8 +229,26 @@
 			if (v.indexOf("sonarRight") >= 0) { document.getElementById('sonarRobotRDisplay').innerHTML = v.split('(')[2].split(')')[0]; }
 			if (v.indexOf("posRobot") >= 0 && v.split('(')[2].split(')')[0] !== "") { document.getElementById('robotPosDisplay').innerHTML = v.split('(')[2].split(')')[0]; }
 
-		}
-		);
+		});
+
+		socket.on('buttonTest', function (v) {
+			console.log(v);
+			if (v.equals("msgTest")) {
+				document.getElementById('test').innerHTML = "Okay"
+			}
+		});
+
+	</script>
+
+	<script>
+		var state = window.sessionStorage.getItem("state")
+
+		function setState(stateName) {
+		console.log("Eccomi, stateName:"+stateName)
+		window.sessionStorage.setItem("state", stateName);
+
+		loadLayout("stopped")
+	}
 	</script>
 	<!-- <script type="text/javascript" src="QActorWebUI.js"></script> -->
 </head>
@@ -260,10 +294,10 @@
 						<center>SETUP ROOM:</center>
 					</form>
 					<form action="/prepare" method="post">
-						<input id="test" type="submit" class="myButtonBlue" value="PREPARE">
+						<input id="prepare" type="submit" class="myButton" value="PREPARE" onclick="setState('working')">
 					</form>
 					<form action="/clear" method="post">
-						<input type="submit" class="myButtonBlue" value="CLEAR" onclick="disableButton">
+						<input id="clear" type="submit" class="myButton" value="CLEAR" onclick="setState('working')">
 					</form>
 				</th>
 
@@ -272,15 +306,15 @@
 						<center>ADD PIZZA (QNT):</center>
 					</form>
 					<form action="/addFood1-1" method="post">
-						<input type="submit" class="myButtonBlue" value="1">
+						<input id="addFood1-1" type="submit" class="myButtonBlue" value="1" onclick="setState('working')">
 					</form>
 					</form>
 					<form action="/addFood1-2" method="post">
-						<input type="submit" class="myButtonBlue" value="2">
+						<input id="addFood1-2" type="submit" class="myButtonBlue" value="2" onclick="setState('working')">
 					</form>
 					</form>
 					<form action="/addFood1-3" method="post">
-						<input type="submit" class="myButtonBlue" value="3">
+						<input id="addFood1-3" type="submit" class="myButtonBlue" value="3" onclick="setState('working')">
 					</form>
 
 				<th class="tg-0lax">
@@ -288,15 +322,15 @@
 						<center color="white">ADD CRESCENTINA (QNT):</center>
 					</form>
 					<form action="/addFood2-1" method="post">
-						<input type="submit" class="myButtonBlue" value="1">
+						<input id="addFood2-1" type="submit" class="myButtonBlue" value="1" onclick="setState('working')">
 					</form>
 					</form>
 					<form action="/addFood2-2" method="post">
-						<input type="submit" class="myButtonBlue" value="2">
+						<input id="addFood2-2" type="submit" class="myButtonBlue" value="2" onclick="setState('working')">
 					</form>
 					</form>
 					<form action="/addFood2-3" method="post">
-						<input type="submit" class="myButtonBlue" value="3">
+						<input id="addFood2-3" type="submit" class="myButtonBlue" value="3" onclick="setState('working')">
 					</form>
 
 				</th>
@@ -305,13 +339,13 @@
 						<center>EMERGENCY:</center>
 					</form>
 					<form action="/home" method="post">
-						<input type="submit" class="myButton" value="GO HOME">
+						<input id="goHome" type="submit" class="myButton" value="GO HOME" onclick="setState('working')">
 					</form>
 					<form action="/stop" method="post">
-						<input type="submit" class="myButtonRed" value="STOP">
+						<input id="stop" type="submit" class="myButtonRed" value="STOP" onclick="setState('stopped')">
 					</form>
 					<form action="/resume" method="post">
-						<input type="submit" class="myButtonGreen" value="RESUME">
+						<input id="resume" type="submit" class="myButtonGreen" value="RESUME">
 					</form>
 				</th>
 				<th class="tg-0lax">
@@ -319,10 +353,10 @@
 						<center>LEARNING ENVIRONMENT:</center>
 					</form>
 					<form action="/exploreroom" method="post">
-						<input type="submit" class="myButton" value="EXPLORE PERIMETER">
+						<input id="explorePerimeter" type="submit" class="myButton" value="EXPLORE PERIMETER" onclick="setState('working')">
 					</form>
 					<form action="/exploretable" method="post">
-						<input type="submit" class="myButton" value="EXPLORE TABLE">
+						<input id="exploreTable" type="submit" class="myButton" value="EXPLORE TABLE" onclick="setState('working')">
 					</form>
 				</th>
 			</tr>
@@ -350,5 +384,106 @@
 	</div>
 
 </body>
+
+<script type="text/javascript">
+
+	var state, prepareDisabled,clearDisabled,addFood11Disabled,addFood12Disabled,addFood13Disabled,
+		addFood21Disabled,addFood22Disabled,addFood23Disabled,goHomeDisabled,stopDisabled,resumeDisabled,
+		explorePerimeterDisabled,exploreTableDisabled;
+	state = window.sessionStorage.getItem("state"); //carico key: "state" su var state
+	console.log("state: "+state)
+	loadLayout(state)
+
+
+	function setButton(buttonString, valueString) {
+		//console.log("buttonString: "+buttonString+" --- valueString: "+valueString)
+		document.getElementById(buttonString).className=valueString
+	}
+
+	function loadLayout(stateLayout) {
+	//Lettura Stato
+	switch (stateLayout) {
+		case "toExploreTable":
+			prepareDisabled = "myButtonDisabled"; clearDisabled = "myButtonDisabled"; addFood11Disabled = "myButtonDisabled";
+			addFood12Disabled = "myButtonDisabled"; addFood13Disabled = "myButtonDisabled"; addFood21Disabled = "myButtonDisabled";
+			addFood22Disabled = "myButtonDisabled"; addFood23Disabled = "myButtonDisabled"; goHomeDisabled = "myButtonDisabled";
+			stopDisabled = "myButtonRed"; resumeDisabled = "myButtonGreen"; explorePerimeterDisabled = "myButtonDisabled";
+			exploreTableDisabled = "myButton";
+			
+			setButtons();
+			break;
+		case "toPrepare":
+			prepareDisabled = "myButton"; clearDisabled = "myButtonDisabled"; addFood11Disabled = "myButtonDisabled";
+			addFood12Disabled = "myButtonDisabled"; addFood13Disabled = "myButtonDisabled"; addFood21Disabled = "myButtonDisabled";
+			addFood22Disabled = "myButtonDisabled"; addFood23Disabled = "myButtonDisabled"; goHomeDisabled = "myButtonDisabled";
+			stopDisabled = "myButtonRed"; resumeDisabled = "myButtonGreen"; explorePerimeterDisabled = "myButtonDisabled";
+			exploreTableDisabled = "myButtonDisabled";
+			
+			setButtons();
+			break;
+
+		case "ready":
+			prepareDisabled = "myButtonDisabled"; clearDisabled = "myButton"; addFood11Disabled = "myButtonBlue";
+			addFood12Disabled = "myButtonBlue"; addFood13Disabled = "myButtonBlue"; addFood21Disabled = "myButtonBlue";
+			addFood22Disabled = "myButtonBlue"; addFood23Disabled = "myButtonBlue"; goHomeDisabled = "myButton";
+			stopDisabled = "myButtonRed"; resumeDisabled = "myButtonGreen"; explorePerimeterDisabled = "myButtonDisabled";
+			exploreTableDisabled = "myButtonDisabled";
+
+			setButtons();
+			break;
+
+			case "working":
+			prepareDisabled = "myButtonDisabled"; clearDisabled = "myButtonDisabled"; addFood11Disabled = "myButtonDisabled";
+			addFood12Disabled = "myButtonDisabled"; addFood13Disabled = "myButtonDisabled"; addFood21Disabled = "myButtonDisabled";
+			addFood22Disabled = "myButtonDisabled"; addFood23Disabled = "myButtonDisabled"; goHomeDisabled = "myButtonDisabled";
+			stopDisabled = "myButtonRed"; resumeDisabled = "myButtonGreen"; explorePerimeterDisabled = "myButtonDisabled";
+			exploreTableDisabled = "myButtonDisabled";
+
+			setButtons();
+			break;
+
+		case "stopped":
+			prepareDisabled = "myButtonDisabled"; clearDisabled = "myButtonDisabled"; addFood11Disabled = "myButtonDisabled";
+			addFood12Disabled = "myButtonDisabled"; addFood13Disabled = "myButtonDisabled"; addFood21Disabled = "myButtonDisabled";
+			addFood22Disabled = "myButtonDisabled"; addFood23Disabled = "myButtonDisabled"; goHomeDisabled = "myButtonDisabled";
+			stopDisabled = "myButtonDisabled"; resumeDisabled = "myButtonGreen"; explorePerimeterDisabled = "myButtonDisabled";
+			exploreTableDisabled = "myButtonDisabled";
+
+			setButtons();
+			break;
+
+		default: //stato "init"
+			console.log("SWITCH CASE: DEFAULT")
+			prepareDisabled = "myButtonDisabled"; clearDisabled = "myButtonDisabled"; addFood11Disabled = "myButtonDisabled";
+			addFood12Disabled = "myButtonDisabled"; addFood13Disabled = "myButtonDisabled"; addFood21Disabled = "myButtonDisabled";
+			addFood22Disabled = "myButtonDisabled"; addFood23Disabled = "myButtonDisabled"; goHomeDisabled = "myButtonDisabled";
+			stopDisabled = "myButtonRed"; resumeDisabled = "myButtonGreen"; explorePerimeterDisabled = "myButton";
+			exploreTableDisabled = "myButtonDisabled";
+
+			setButtons();
+			break;
+	}
+
+	function setButtons() {
+			setButton("prepare",prepareDisabled)
+			setButton("clear",clearDisabled)
+
+			setButton("addFood1-1",addFood11Disabled)
+			setButton("addFood1-2",addFood12Disabled)
+			setButton("addFood1-3",addFood13Disabled)
+
+			setButton("addFood2-1",addFood21Disabled)
+			setButton("addFood2-2",addFood22Disabled)
+			setButton("addFood2-3",addFood23Disabled)
+
+			setButton("goHome",goHomeDisabled)
+			setButton("stop",stopDisabled)
+			setButton("resume",resumeDisabled)
+
+			setButton("explorePerimeter",explorePerimeterDisabled)
+			setButton("exploreTable",exploreTableDisabled)
+	}
+	}
+</script>
 
 </html>

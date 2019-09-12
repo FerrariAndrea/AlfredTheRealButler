@@ -22,7 +22,6 @@ const coapCToP = require('./uniboSupports/coapClientToPantry');
 
 var app = express();
 
-
 // view engine setup;
 app.set('views', path.join(__dirname, 'appServer', 'views'));
 app.set('view engine', 'ejs');
@@ -72,10 +71,6 @@ app.get('/pantrymodel', function (req, res) {
 	res.send(mqttUtils.getpantrymodel())
 });
 
-app.get('/appl', function (req, res) {
-	res.render("indexAppl");
-});
-
 /*
  * ====================== COMMANDS ================
  */
@@ -88,6 +83,7 @@ app.post("/addFood2-3", function (req, res, next) { superHandlePostMove("addFood
 app.post("/prepare", function (req, res, next) { superHandlePostMove("prepare", "preparing room", req, res, next); });
 app.post("/clear", function (req, res, next) { superHandlePostMove("clear", "clearing room", req, res, next); });
 
+
 //PER ANDREA FERRARI: LEGGI LE DUE SEGUENTI LINEE
 app.post("/stop", function (req, res, next) { superHandlePostMove("stop", "freezing time", req, res, next); });
 app.post("/resume", function (req, res, next) { superHandlePostMove("resume", "resuming time", req, res, next); });
@@ -95,6 +91,23 @@ app.post("/resume", function (req, res, next) { superHandlePostMove("resume", "r
 app.post("/home", function (req, res, next) { superHandlePostMove("home", "going to home", req, res, next); });
 app.post("/exploreroom", function (req, res, next) { superHandlePostMove("exploreroom", "explore bunds", req, res, next); });
 app.post("/exploretable", function (req, res, next) { superHandlePostMove("exploretable", "explore for table", req, res, next); });
+
+/*
+* SPAZIETTINO PRIVATO DI LUCA PER TESTING
+*/
+
+app.post("/test", function (req, res, next) {
+	testHandlePostMove("test", "testing button", req, res, next);
+});
+
+function testHandlePostMove(cmd, msg, req, res, next) {
+	result = "Web server done: " + cmd
+	consssssole.log("CARNEFICE OKKKKKKKKK");
+	mqttUtils.publish("",msg); //e' sbagliato ma si tenta.
+	next();
+}
+
+//------------------------------------------------------------------------------------------------------------------
 
 
 /*
@@ -342,15 +355,6 @@ app.use(function (err, req, res, next) {
 	res.status(err.status || 500);
 	res.render('error');
 });
-
-/*
-*	Testing Luca Andrea
-*/
-
-function disableButton() {
-	document.getElementById("test").disabled = true;
-}
-
 
 
 /*

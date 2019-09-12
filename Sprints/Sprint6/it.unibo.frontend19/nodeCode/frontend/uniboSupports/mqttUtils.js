@@ -66,6 +66,11 @@ client.on('message', function (topic, message){
   io.sockets.send( msg );
 });
 
+client.on('buttonTest', function(message) {
+  console.log("CLIENT.ON, MESSAGE: "+message.toString());
+  io.sockets.send( message.toString())
+});
+
 exports.publish = function( msg, topic ){
 	//console.log('mqtt publish ' + client);
 	client.publish(topic, msg);
