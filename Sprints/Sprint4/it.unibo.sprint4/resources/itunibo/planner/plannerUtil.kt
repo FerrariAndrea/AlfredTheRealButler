@@ -20,7 +20,11 @@ import itunibo.planner.model.RobotAction
 import itunibo.planner.model.RoomMap
 import itunibo.planner.model.Box
 
-object plannerUtil { 
+object plannerUtil {
+	//var for auto set table pos
+	private var tableInitialX: Int = -1
+	private var tableInitialY: Int = -1
+	
     private var initialState: RobotState? = null
 	private var actions: List<Action>?    = null
 /*
@@ -360,6 +364,17 @@ object plannerUtil {
 			Direction.LEFT  -> RoomMap.getRoomMap().put(initialState!!.x - 1, initialState!!.y, Box(true, false, false)) 
 			Direction.RIGHT -> RoomMap.getRoomMap().put(initialState!!.x + 1, initialState!!.y, Box(true, false, false)) 
  		}
+		
+		if(tableInitialX<0){
+			tableInitialX=initialState!!.x;
+			tableInitialY=initialState!!.y;
+		}else if(tableInitialY!=initialState!!.y){
+			for(x in tableInitialX until initialState!!.x-2){
+				 RoomMap.getRoomMap().put(x, initialState!!.y, Box(true, false, false)) 
+			}
+		}
+		
+		
 	}
 	fun wallFound(){
  		 val dimMapx = RoomMap.getRoomMap().getDimX()

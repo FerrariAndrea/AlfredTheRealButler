@@ -40,6 +40,8 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 			var ActualTX =0;
 			var ActualTY =0;
 			var NeedAnotherStep =true;
+			var CheckTableSizeStep =0;
+			var StartOrientationCheckTable ="sud"
 			//go to
 			var GoToFailed =false;
 		return { //this:ActionBasciFsm
@@ -112,7 +114,15 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						 }
 						else
 						 { itunibo.planner.moveUtils.updateMapAfterAheadOk(myself)
-						 ActualTY++;NeedAnotherStep= ActualTY<MapDimY-1
+						 	
+						 				ActualTY++
+						 				NeedAnotherStep= (ActualTY<MapDimY-1 && CheckTableSizeStep==0)
+						 if(CheckTableSizeStep>0){ if((CheckTableSizeStep==3)){ CheckTableSizeStep=4
+						  }
+						 else
+						  { CheckTableSizeStep=2
+						   }
+						  }
 						  }
 						delay(250) 
 					}
@@ -143,6 +153,8 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				}	 
 				state("consumeStepFailTable") { //this:State
 					action { //it:State
+						println("Part of table found, map:")
+						itunibo.planner.plannerUtil.showMap(  )
 					}
 					 transition(edgeName="t017",targetState="handleStepFailTable",cond=whenDispatch("stepFail"))
 				}	 
@@ -196,23 +208,33 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				state("exploreTale") { //this:State
 					action { //it:State
 						println("Start explore table.")
-						tableFound=false;ActualTX =0;ActualTY =0;
+						tableFound=false;ActualTX =0;ActualTY =0;CheckTableSizeStep=0;
 					}
 					 transition( edgeName="goto",targetState="goOneStepAhead", cond=doswitch() )
 				}	 
 				state("handleStepFailTable") { //this:State
 					action { //it:State
-						
-								val MapStr =  itunibo.planner.plannerUtil.getMapOneLine()
+						if(CheckTableSizeStep<2){ val MapStr =  itunibo.planner.plannerUtil.getMapOneLine()
 						forward("modelUpdate", "modelUpdate(roomMap,$MapStr)" ,"resourcemodel" ) 
 						if(tableFound){ itunibo.planner.plannerUtil.autoSetTablePos(  )
+						CheckTableSizeStep=1
 						 }
-						else
-						 { ActualTY=0;ActualTX++
-						  }
+						 }
 					}
-					 transition( edgeName="goto",targetState="endOfJobTable", cond=doswitchGuarded({tableFound}) )
-					transition( edgeName="goto",targetState="askOrientation", cond=doswitchGuarded({! tableFound}) )
+					 transition( edgeName="goto",targetState="askOrientation", cond=doswitchGuarded({(CheckTableSizeStep<2)}) )
+					transition( edgeName="goto",targetState="swithcerCheckTableDim1", cond=doswitchGuarded({! (CheckTableSizeStep<2)}) )
+				}	 
+				state("swithcerCheckTableDim1") { //this:State
+					action { //it:State
+					}
+					 transition( edgeName="goto",targetState="rotateForTableDimY", cond=doswitchGuarded({(CheckTableSizeStep<3)}) )
+					transition( edgeName="goto",targetState="swithcerCheckTableDim2", cond=doswitchGuarded({! (CheckTableSizeStep<3)}) )
+				}	 
+				state("swithcerCheckTableDim2") { //this:State
+					action { //it:State
+					}
+					 transition( edgeName="goto",targetState="checkTableDimYRotateBefore", cond=doswitchGuarded({(CheckTableSizeStep<4)}) )
+					transition( edgeName="goto",targetState="endOfJobTable", cond=doswitchGuarded({! (CheckTableSizeStep<4)}) )
 				}	 
 				state("askOrientation") { //this:State
 					action { //it:State
@@ -220,46 +242,111 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 					}
 					 transition(edgeName="t019",targetState="rotateBefore",cond=whenDispatch("modelRobotResponse"))
 				}	 
+				state("rotateForTableDimY") { //this:State
+					action { //it:State
+						if(StartOrientationCheckTable=="sud"){ Move="d"
+						forward("onerotationstep", "onerotationstep(d)" ,"onerotateforward" ) 
+						itunibo.planner.moveUtils.doPlannedMove(myself ,Move )
+						 }
+						if(StartOrientationCheckTable=="nord"){ Move="a"
+						forward("onerotationstep", "onerotationstep(a)" ,"onerotateforward" ) 
+						itunibo.planner.moveUtils.doPlannedMove(myself ,Move )
+						 }
+						CheckTableSizeStep=3
+					}
+					 transition(edgeName="t020",targetState="goOneStepAhead",cond=whenDispatch("rotationOk"))
+				}	 
+				state("checkTableDimYRotateBefore") { //this:State
+					action { //it:State
+						if(StartOrientationCheckTable=="sud"){ Move="a"
+						forward("onerotationstep", "onerotationstep(a)" ,"onerotateforward" ) 
+						itunibo.planner.moveUtils.doPlannedMove(myself ,Move )
+						 }
+						if(StartOrientationCheckTable=="nord"){ Move="d"
+						forward("onerotationstep", "onerotationstep(d)" ,"onerotateforward" ) 
+						itunibo.planner.moveUtils.doPlannedMove(myself ,Move )
+						 }
+					}
+					 transition(edgeName="t021",targetState="checkTableDimYmoveOne",cond=whenDispatch("rotationOk"))
+				}	 
+				state("checkTableDimYmoveOne") { //this:State
+					action { //it:State
+						delay(250) 
+						itunibo.planner.moveUtils.attemptTomoveAhead(myself ,StepTime, "onecellforward" )
+					}
+					 transition(edgeName="t022",targetState="checkTableDimYRotateAfter",cond=whenDispatch("stepOk"))
+					transition(edgeName="t023",targetState="checkingObject",cond=whenEvent("collision"))
+				}	 
+				state("checkTableDimYRotateAfter") { //this:State
+					action { //it:State
+						itunibo.planner.moveUtils.updateMapAfterAheadOk(myself)
+						println("stand by the table, map:")
+						itunibo.planner.plannerUtil.showMap(  )
+						if(StartOrientationCheckTable=="sud"){ Move="d"
+						forward("onerotationstep", "onerotationstep(d)" ,"onerotateforward" ) 
+						itunibo.planner.moveUtils.doPlannedMove(myself ,Move )
+						 }
+						if(StartOrientationCheckTable=="nord"){ Move="a"
+						forward("onerotationstep", "onerotationstep(a)" ,"onerotateforward" ) 
+						itunibo.planner.moveUtils.doPlannedMove(myself ,Move )
+						 }
+					}
+					 transition(edgeName="t024",targetState="goOneStepAhead",cond=whenDispatch("rotationOk"))
+				}	 
 				state("rotateBefore") { //this:State
 					action { //it:State
 						if( checkMsgContent( Term.createTerm("modelRobotResponse(X,Y,O)"), Term.createTerm("modelRobotResponse(X,Y,O)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								val actualOrientation = payloadArg(2)
-								if(actualOrientation=="sud"){ Move="a"
+								StartOrientationCheckTable = payloadArg(2)
+								if(StartOrientationCheckTable=="sud"){ Move="a"
 								forward("onerotationstep", "onerotationstep(a)" ,"onerotateforward" ) 
 								itunibo.planner.moveUtils.doPlannedMove(myself ,Move )
 								 }
-								if(actualOrientation=="nord"){ Move="d"
+								if(StartOrientationCheckTable=="nord"){ Move="d"
 								forward("onerotationstep", "onerotationstep(d)" ,"onerotateforward" ) 
 								itunibo.planner.moveUtils.doPlannedMove(myself ,Move )
 								 }
 						}
 					}
-					 transition(edgeName="t020",targetState="moveOne",cond=whenDispatch("rotationOk"))
+					 transition(edgeName="t025",targetState="moveOne",cond=whenDispatch("rotationOk"))
 				}	 
 				state("moveOne") { //this:State
 					action { //it:State
 						delay(250) 
 						itunibo.planner.moveUtils.attemptTomoveAhead(myself ,StepTime, "onecellforward" )
 					}
-					 transition(edgeName="t021",targetState="rotateAfter",cond=whenDispatch("stepOk"))
-					transition(edgeName="t022",targetState="checkingObject",cond=whenEvent("collision"))
+					 transition(edgeName="t026",targetState="rotateAfter",cond=whenDispatch("stepOk"))
+					transition(edgeName="t027",targetState="checkingObject",cond=whenEvent("collision"))
 				}	 
 				state("rotateAfter") { //this:State
 					action { //it:State
-						itunibo.planner.moveUtils.updateMapAfterAheadOk(myself)
+						if(tableFound){ itunibo.planner.moveUtils.updateMapAfterAheadOk(myself)
 						delay(250) 
-						if(Move=="a"){ forward("onerotationstep", "onerotationstep(a)" ,"onerotateforward" ) 
+						if(Move=="a"){ Move="d"
+						forward("onerotationstep", "onerotationstep(d)" ,"onerotateforward" ) 
 						 }
 						else
-						 { forward("onerotationstep", "onerotationstep(d)" ,"onerotateforward" ) 
+						 { Move="a"
+						 forward("onerotationstep", "onerotationstep(a)" ,"onerotateforward" ) 
+						  }
+						 }
+						else
+						 { itunibo.planner.moveUtils.updateMapAfterAheadOk(myself)
+						 delay(250) 
+						 if(Move=="a"){ forward("onerotationstep", "onerotationstep(a)" ,"onerotateforward" ) 
+						  }
+						 else
+						  { forward("onerotationstep", "onerotationstep(d)" ,"onerotateforward" ) 
+						   }
 						  }
 						itunibo.planner.moveUtils.doPlannedMove(myself ,Move )
+						ActualTY=0;ActualTX++
 					}
-					 transition(edgeName="t023",targetState="goOneStepAhead",cond=whenDispatch("rotationOk"))
+					 transition(edgeName="t028",targetState="goOneStepAhead",cond=whenDispatch("rotationOk"))
 				}	 
 				state("endOfJobTable") { //this:State
 					action { //it:State
+						itunibo.planner.moveUtils.updateMapAfterAheadOk(myself)
 						itunibo.planner.moveUtils.showCurrentRobotState(  )
 						println("Map after explore table")
 						itunibo.planner.plannerUtil.showMap(  )
@@ -310,9 +397,9 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						 { forward("onestep", "onestep($StepTime)" ,"onecellforward" ) 
 						  }
 					}
-					 transition(edgeName="t024",targetState="handleStepOkGoTo",cond=whenDispatch("stepOk"))
-					transition(edgeName="t025",targetState="handleStepFailGoTo",cond=whenDispatch("stepFail"))
-					transition(edgeName="t026",targetState="handleStepOkGoTo",cond=whenDispatch("rotationOk"))
+					 transition(edgeName="t029",targetState="handleStepOkGoTo",cond=whenDispatch("stepOk"))
+					transition(edgeName="t030",targetState="handleStepFailGoTo",cond=whenDispatch("stepFail"))
+					transition(edgeName="t031",targetState="handleStepOkGoTo",cond=whenDispatch("rotationOk"))
 				}	 
 				state("handleStepOkGoTo") { //this:State
 					action { //it:State
@@ -337,7 +424,7 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						delay(PauseTime)
 						forward("onerotationstep", "onerotationstep($Move)" ,"onerotateforward" ) 
 					}
-					 transition(edgeName="t027",targetState="checkSouth",cond=whenDispatch("rotationOk"))
+					 transition(edgeName="t032",targetState="checkSouth",cond=whenDispatch("rotationOk"))
 				}	 
 				state("checkSouth") { //this:State
 					action { //it:State
