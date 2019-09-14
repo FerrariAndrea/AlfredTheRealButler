@@ -10,7 +10,7 @@ import kotlinx.coroutines.runBlocking
 	
 class Roomexplorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope){
  	
-	override fun getInitialState() : String{
+	override fun getInitialState() : String {
 		return "s0"
 	}
 		

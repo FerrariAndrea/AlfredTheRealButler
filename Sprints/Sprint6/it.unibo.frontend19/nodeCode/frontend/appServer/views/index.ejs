@@ -213,42 +213,77 @@
 	</style>
 	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
 	<script>
+		let homePos = "X0Y0Osud"
+		var contentFood1 = ""; var contentFood2 = "";
 		var socket = io.connect();
 		socket.on('connect', function () { console.log("socket connected"); });
 		//ricevo messaggio da socket con contenuto v rappresentante la stringa che verrà inserita nel form.
 		socket.on('message', function (v) {
-			console.log(v);
+			//console.log(v);
 
 			if (v.indexOf("robot") >= 0) { document.getElementById('robotDisplay').innerHTML = v; }
-			if (v.indexOf("fridge") >= 0) { document.getElementById('food').innerHTML = v; } //FOOD
+			if (v.indexOf("fridge") >= 0) {
+				contentFood1 = v; contentFood2 = v;
+				contentFood1 = contentFood1.substr(contentFood1.indexOf('{') + 1)
+				contentFood1 = contentFood1.substr(0, contentFood1.indexOf('}'))
+				contentFood2 = contentFood2.substr(contentFood2.indexOf('[') + 1)
+				contentFood2 = contentFood2.substr(0, contentFood2.indexOf(']'))
+				console.log("Food 1: " + contentFood1 + "; Food 2: " + contentFood2)
+				document.getElementById('food').innerHTML = "Pizza: " + contentFood1 + "; Crescentina: " + contentFood2;
+			} //FOOD
 			if (v.indexOf("dishwasher") >= 0) { document.getElementById('dishwasher').innerHTML = v; } //DISHWASHER 
 			if (v.indexOf("pantry") >= 0) { document.getElementById('pantry').innerHTML = v; } //PANTRY
 
 			if (v.indexOf("sonarRobot") >= 0) { document.getElementById('sonarRobotDisplay').innerHTML = v.split('(')[2].split(')')[0]; }
 			if (v.indexOf("sonarLeft") >= 0) { document.getElementById('sonarRobotLDisplay').innerHTML = v.split('(')[2].split(')')[0]; }
 			if (v.indexOf("sonarRight") >= 0) { document.getElementById('sonarRobotRDisplay').innerHTML = v.split('(')[2].split(')')[0]; }
-			if (v.indexOf("posRobot") >= 0 && v.split('(')[2].split(')')[0] !== "") { document.getElementById('robotPosDisplay').innerHTML = v.split('(')[2].split(')')[0]; }
-
-		});
-
-		socket.on('buttonTest', function (v) {
-			console.log(v);
-			if (v.equals("msgTest")) {
-				document.getElementById('test').innerHTML = "Okay"
+			if (v.indexOf("posRobot") >= 0 && v.split('(')[2].split(')')[0] !== "") {
+				var lastPos = v.split('(')[2].split(')')[0];
+				//console.log(lastPos)
+				document.getElementById('robotPosDisplay').innerHTML = lastPos;
+				console.log(getSecondLastState() === "null")
+				if (lastPos === homePos && getSecondLastState() === "null") {
+					setState("toExploreTable");
+				} else if (lastPos === homePos && getSecondLastState() === "toExploreTable") {
+					setState("toPrepare");
+				} else if (lastPos === homePos && getSecondLastState() === "toPrepare") {
+					setState("ready")
+				} else if (lastPos === homePos && getSecondLastState() === "ready") {
+					setState("ready")
+				} else {
+					setState("done")
+				}
 			}
 		});
 
 	</script>
 
 	<script>
-		var state = window.sessionStorage.getItem("state")
+		var state = getState()
+		var secondLastState = getSecondLastState()
+
+		function getState() {
+			console.log("Current State: " + window.sessionStorage.getItem("state"))
+			return window.sessionStorage.getItem("state")
+		}
+
+		function getSecondLastState() {
+			console.log("Second Last State: " + window.sessionStorage.getItem("secondLastState"))
+			return window.sessionStorage.getItem("secondLastState")
+		}
 
 		function setState(stateName) {
-		console.log("Eccomi, stateName:"+stateName)
-		window.sessionStorage.setItem("state", stateName);
+			console.log("stateName:" + stateName)
+			setSecondLastState(window.sessionStorage.getItem("state"))
+			window.sessionStorage.setItem("state", stateName);
+			loadLayout(stateName)
+		}
 
-		loadLayout("stopped")
-	}
+		function setSecondLastState(stateName) {
+			console.log("Second Last State:" + stateName)
+			window.sessionStorage.setItem("secondLastState", stateName);
+			loadLayout(stateName)
+		}
 	</script>
 	<!-- <script type="text/javascript" src="QActorWebUI.js"></script> -->
 </head>
@@ -294,7 +329,8 @@
 						<center>SETUP ROOM:</center>
 					</form>
 					<form action="/prepare" method="post">
-						<input id="prepare" type="submit" class="myButton" value="PREPARE" onclick="setState('working')">
+						<input id="prepare" type="submit" class="myButton" value="PREPARE"
+							onclick="setState('working')">
 					</form>
 					<form action="/clear" method="post">
 						<input id="clear" type="submit" class="myButton" value="CLEAR" onclick="setState('working')">
@@ -306,15 +342,18 @@
 						<center>ADD PIZZA (QNT):</center>
 					</form>
 					<form action="/addFood1-1" method="post">
-						<input id="addFood1-1" type="submit" class="myButtonBlue" value="1" onclick="setState('working')">
+						<input id="addFood1-1" type="submit" class="myButtonBlue" value="1"
+							onclick="setState('working')">
 					</form>
 					</form>
 					<form action="/addFood1-2" method="post">
-						<input id="addFood1-2" type="submit" class="myButtonBlue" value="2" onclick="setState('working')">
+						<input id="addFood1-2" type="submit" class="myButtonBlue" value="2"
+							onclick="setState('working')">
 					</form>
 					</form>
 					<form action="/addFood1-3" method="post">
-						<input id="addFood1-3" type="submit" class="myButtonBlue" value="3" onclick="setState('working')">
+						<input id="addFood1-3" type="submit" class="myButtonBlue" value="3"
+							onclick="setState('working')">
 					</form>
 
 				<th class="tg-0lax">
@@ -322,15 +361,18 @@
 						<center color="white">ADD CRESCENTINA (QNT):</center>
 					</form>
 					<form action="/addFood2-1" method="post">
-						<input id="addFood2-1" type="submit" class="myButtonBlue" value="1" onclick="setState('working')">
+						<input id="addFood2-1" type="submit" class="myButtonBlue" value="1"
+							onclick="setState('working')">
 					</form>
 					</form>
 					<form action="/addFood2-2" method="post">
-						<input id="addFood2-2" type="submit" class="myButtonBlue" value="2" onclick="setState('working')">
+						<input id="addFood2-2" type="submit" class="myButtonBlue" value="2"
+							onclick="setState('working')">
 					</form>
 					</form>
 					<form action="/addFood2-3" method="post">
-						<input id="addFood2-3" type="submit" class="myButtonBlue" value="3" onclick="setState('working')">
+						<input id="addFood2-3" type="submit" class="myButtonBlue" value="3"
+							onclick="setState('working')">
 					</form>
 
 				</th>
@@ -345,7 +387,9 @@
 						<input id="stop" type="submit" class="myButtonRed" value="STOP" onclick="setState('stopped')">
 					</form>
 					<form action="/resume" method="post">
-						<input id="resume" type="submit" class="myButtonGreen" value="RESUME">
+						<!--Cambiare RESUME ASSOLUTAMENTE, ORA E' SOLO PER DEBUG-->
+						<input id="resume" type="submit" class="myButtonGreen" value="RESUME"
+							onclick="setState('working')">
 					</form>
 				</th>
 				<th class="tg-0lax">
@@ -353,10 +397,12 @@
 						<center>LEARNING ENVIRONMENT:</center>
 					</form>
 					<form action="/exploreroom" method="post">
-						<input id="explorePerimeter" type="submit" class="myButton" value="EXPLORE PERIMETER" onclick="setState('working')">
+						<input id="explorePerimeter" type="submit" class="myButton" value="EXPLORE PERIMETER"
+							onclick="setState('working')">
 					</form>
 					<form action="/exploretable" method="post">
-						<input id="exploreTable" type="submit" class="myButton" value="EXPLORE TABLE" onclick="setState('working')">
+						<input id="exploreTable" type="submit" class="myButton" value="EXPLORE TABLE"
+							onclick="setState('working')">
 					</form>
 				</th>
 			</tr>
@@ -387,102 +433,132 @@
 
 <script type="text/javascript">
 
-	var state, prepareDisabled,clearDisabled,addFood11Disabled,addFood12Disabled,addFood13Disabled,
-		addFood21Disabled,addFood22Disabled,addFood23Disabled,goHomeDisabled,stopDisabled,resumeDisabled,
-		explorePerimeterDisabled,exploreTableDisabled;
-	state = window.sessionStorage.getItem("state"); //carico key: "state" su var state
-	console.log("state: "+state)
-	loadLayout(state)
+	var prepareDisabled, clearDisabled, addFood11Disabled, addFood12Disabled, addFood13Disabled,
+		addFood21Disabled, addFood22Disabled, addFood23Disabled, goHomeDisabled, stopDisabled, resumeDisabled,
+		explorePerimeterDisabled, exploreTableDisabled;
+	state = getState(); //carico key: "state" su var state
+	secondLastState = getSecondLastState();
 
-
-	function setButton(buttonString, valueString) {
-		//console.log("buttonString: "+buttonString+" --- valueString: "+valueString)
-		document.getElementById(buttonString).className=valueString
-	}
+	loadLayout("ready")
 
 	function loadLayout(stateLayout) {
-	//Lettura Stato
-	switch (stateLayout) {
-		case "toExploreTable":
-			prepareDisabled = "myButtonDisabled"; clearDisabled = "myButtonDisabled"; addFood11Disabled = "myButtonDisabled";
-			addFood12Disabled = "myButtonDisabled"; addFood13Disabled = "myButtonDisabled"; addFood21Disabled = "myButtonDisabled";
-			addFood22Disabled = "myButtonDisabled"; addFood23Disabled = "myButtonDisabled"; goHomeDisabled = "myButtonDisabled";
-			stopDisabled = "myButtonRed"; resumeDisabled = "myButtonGreen"; explorePerimeterDisabled = "myButtonDisabled";
-			exploreTableDisabled = "myButton";
-			
-			setButtons();
-			break;
-		case "toPrepare":
-			prepareDisabled = "myButton"; clearDisabled = "myButtonDisabled"; addFood11Disabled = "myButtonDisabled";
-			addFood12Disabled = "myButtonDisabled"; addFood13Disabled = "myButtonDisabled"; addFood21Disabled = "myButtonDisabled";
-			addFood22Disabled = "myButtonDisabled"; addFood23Disabled = "myButtonDisabled"; goHomeDisabled = "myButtonDisabled";
-			stopDisabled = "myButtonRed"; resumeDisabled = "myButtonGreen"; explorePerimeterDisabled = "myButtonDisabled";
-			exploreTableDisabled = "myButtonDisabled";
-			
-			setButtons();
-			break;
+		//Lettura Stato
+		switch (stateLayout) {
+			case "toExploreTable":
+				prepareDisabled = "myButtonDisabled"; clearDisabled = "myButtonDisabled"; addFood11Disabled = "myButtonDisabled";
+				addFood12Disabled = "myButtonDisabled"; addFood13Disabled = "myButtonDisabled"; addFood21Disabled = "myButtonDisabled";
+				addFood22Disabled = "myButtonDisabled"; addFood23Disabled = "myButtonDisabled"; goHomeDisabled = "myButtonDisabled";
+				stopDisabled = "myButtonDisabled"; resumeDisabled = "myButtonDisabled"; explorePerimeterDisabled = "myButtonDisabled";
+				exploreTableDisabled = "myButton";
 
-		case "ready":
-			prepareDisabled = "myButtonDisabled"; clearDisabled = "myButton"; addFood11Disabled = "myButtonBlue";
-			addFood12Disabled = "myButtonBlue"; addFood13Disabled = "myButtonBlue"; addFood21Disabled = "myButtonBlue";
-			addFood22Disabled = "myButtonBlue"; addFood23Disabled = "myButtonBlue"; goHomeDisabled = "myButton";
-			stopDisabled = "myButtonRed"; resumeDisabled = "myButtonGreen"; explorePerimeterDisabled = "myButtonDisabled";
-			exploreTableDisabled = "myButtonDisabled";
+				setButtons();
+				break;
+			case "toPrepare":
+				prepareDisabled = "myButton"; clearDisabled = "myButtonDisabled"; addFood11Disabled = "myButtonDisabled";
+				addFood12Disabled = "myButtonDisabled"; addFood13Disabled = "myButtonDisabled"; addFood21Disabled = "myButtonDisabled";
+				addFood22Disabled = "myButtonDisabled"; addFood23Disabled = "myButtonDisabled"; goHomeDisabled = "myButtonDisabled";
+				stopDisabled = "myButtonDisabled"; resumeDisabled = "myButtonDisabled"; explorePerimeterDisabled = "myButtonDisabled";
+				exploreTableDisabled = "myButtonDisabled";
 
-			setButtons();
-			break;
+				setButtons();
+				break;
+
+			case "ready":
+				prepareDisabled = "myButtonDisabled"; clearDisabled = "myButton"; addFood11Disabled = "myButtonBlue";
+				addFood12Disabled = "myButtonBlue"; addFood13Disabled = "myButtonBlue"; addFood21Disabled = "myButtonBlue";
+				addFood22Disabled = "myButtonBlue"; addFood23Disabled = "myButtonBlue"; goHomeDisabled = "myButton";
+				stopDisabled = "myButtonDisabled"; resumeDisabled = "myButtonDisabled"; explorePerimeterDisabled = "myButtonDisabled";
+				exploreTableDisabled = "myButtonDisabled";
+
+				console.log("READY CF1:   "+contentFood1)
+				console.log("READY CF2:   "+contentFood2)
+				if (contentFood1 === "0") {
+					addFood11Disabled = "myButtonDisabled"; addFood12Disabled = "myButtonDisabled"; addFood13Disabled = "myButtonDisabled";
+				} else if (contentFood1 === "1") {
+					addFood11Disabled = "myButtonBlue"; addFood12Disabled = "myButtonDisabled"; addFood13Disabled = "myButtonDisabled";
+				} else if (contentFood1 === "2") {
+					addFood11Disabled = "myButtonBlue"; addFood12Disabled = "myButtonBlue"; addFood13Disabled = "myButtonDisabled";
+				} else {
+					addFood11Disabled = "myButtonBlue"; addFood12Disabled = "myButtonBlue"; addFood13Disabled = "myButtonBlue";
+				}
+
+				if (contentFood2 ===  "0") {
+					addFood21Disabled = "myButtonDisabled"; addFood22Disabled = "myButtonDisabled"; addFood23Disabled = "myButtonDisabled";
+				} else if (contentFood2 === "1") {
+					addFood21Disabled = "myButtonBlue"; addFood22Disabled = "myButtonDisabled"; addFood23Disabled = "myButtonDisabled";
+				} else if (contentFood2 === "2") {
+					addFood21Disabled = "myButtonBlue"; addFood22Disabled = "myButtonBlue"; addFood23Disabled = "myButtonDisabled";
+				} else {
+					addFood21Disabled = "myButtonBlue"; addFood22Disabled = "myButtonBlue"; addFood23Disabled = "myButtonBlue";
+				}
+				setButtons();
+				break;
 
 			case "working":
-			prepareDisabled = "myButtonDisabled"; clearDisabled = "myButtonDisabled"; addFood11Disabled = "myButtonDisabled";
-			addFood12Disabled = "myButtonDisabled"; addFood13Disabled = "myButtonDisabled"; addFood21Disabled = "myButtonDisabled";
-			addFood22Disabled = "myButtonDisabled"; addFood23Disabled = "myButtonDisabled"; goHomeDisabled = "myButtonDisabled";
-			stopDisabled = "myButtonRed"; resumeDisabled = "myButtonGreen"; explorePerimeterDisabled = "myButtonDisabled";
-			exploreTableDisabled = "myButtonDisabled";
+				prepareDisabled = "myButtonDisabled"; clearDisabled = "myButtonDisabled"; addFood11Disabled = "myButtonDisabled";
+				addFood12Disabled = "myButtonDisabled"; addFood13Disabled = "myButtonDisabled"; addFood21Disabled = "myButtonDisabled";
+				addFood22Disabled = "myButtonDisabled"; addFood23Disabled = "myButtonDisabled"; goHomeDisabled = "myButtonDisabled";
+				stopDisabled = "myButtonRed"; resumeDisabled = "myButtonGreen"; explorePerimeterDisabled = "myButtonDisabled";
+				exploreTableDisabled = "myButtonDisabled";
 
-			setButtons();
-			break;
+				setButtons();
+				break;
 
-		case "stopped":
-			prepareDisabled = "myButtonDisabled"; clearDisabled = "myButtonDisabled"; addFood11Disabled = "myButtonDisabled";
-			addFood12Disabled = "myButtonDisabled"; addFood13Disabled = "myButtonDisabled"; addFood21Disabled = "myButtonDisabled";
-			addFood22Disabled = "myButtonDisabled"; addFood23Disabled = "myButtonDisabled"; goHomeDisabled = "myButtonDisabled";
-			stopDisabled = "myButtonDisabled"; resumeDisabled = "myButtonGreen"; explorePerimeterDisabled = "myButtonDisabled";
-			exploreTableDisabled = "myButtonDisabled";
+			case "stopped":
+				prepareDisabled = "myButtonDisabled"; clearDisabled = "myButtonDisabled"; addFood11Disabled = "myButtonDisabled";
+				addFood12Disabled = "myButtonDisabled"; addFood13Disabled = "myButtonDisabled"; addFood21Disabled = "myButtonDisabled";
+				addFood22Disabled = "myButtonDisabled"; addFood23Disabled = "myButtonDisabled"; goHomeDisabled = "myButtonDisabled";
+				stopDisabled = "myButtonDisabled"; resumeDisabled = "myButtonGreen"; explorePerimeterDisabled = "myButtonDisabled";
+				exploreTableDisabled = "myButtonDisabled";
 
-			setButtons();
-			break;
+				setButtons();
+				break;
 
-		default: //stato "init"
-			console.log("SWITCH CASE: DEFAULT")
-			prepareDisabled = "myButtonDisabled"; clearDisabled = "myButtonDisabled"; addFood11Disabled = "myButtonDisabled";
-			addFood12Disabled = "myButtonDisabled"; addFood13Disabled = "myButtonDisabled"; addFood21Disabled = "myButtonDisabled";
-			addFood22Disabled = "myButtonDisabled"; addFood23Disabled = "myButtonDisabled"; goHomeDisabled = "myButtonDisabled";
-			stopDisabled = "myButtonRed"; resumeDisabled = "myButtonGreen"; explorePerimeterDisabled = "myButton";
-			exploreTableDisabled = "myButtonDisabled";
+			case "done":
+				prepareDisabled = "myButtonDisabled"; clearDisabled = "myButtonDisabled"; addFood11Disabled = "myButtonDisabled";
+				addFood12Disabled = "myButtonDisabled"; addFood13Disabled = "myButtonDisabled"; addFood21Disabled = "myButtonDisabled";
+				addFood22Disabled = "myButtonDisabled"; addFood23Disabled = "myButtonDisabled"; goHomeDisabled = "myButtonDisabled";
+				stopDisabled = "myButtonDisabled"; resumeDisabled = "myButtonDisabled"; explorePerimeterDisabled = "myButtonDisabled";
+				exploreTableDisabled = "myButtonDisabled";
 
-			setButtons();
-			break;
-	}
+				setButtons();
+				break;
 
-	function setButtons() {
-			setButton("prepare",prepareDisabled)
-			setButton("clear",clearDisabled)
+			default: //stato "init"
+				console.log("SWITCH CASE: DEFAULT")
+				prepareDisabled = "myButtonDisabled"; clearDisabled = "myButtonDisabled"; addFood11Disabled = "myButtonDisabled";
+				addFood12Disabled = "myButtonDisabled"; addFood13Disabled = "myButtonDisabled"; addFood21Disabled = "myButtonDisabled";
+				addFood22Disabled = "myButtonDisabled"; addFood23Disabled = "myButtonDisabled"; goHomeDisabled = "myButtonDisabled";
+				stopDisabled = "myButtonDisabled"; resumeDisabled = "myButtonDisabled"; explorePerimeterDisabled = "myButton";
+				exploreTableDisabled = "myButtonDisabled";
 
-			setButton("addFood1-1",addFood11Disabled)
-			setButton("addFood1-2",addFood12Disabled)
-			setButton("addFood1-3",addFood13Disabled)
+				setButtons();
+				break;
+		}
 
-			setButton("addFood2-1",addFood21Disabled)
-			setButton("addFood2-2",addFood22Disabled)
-			setButton("addFood2-3",addFood23Disabled)
+		function setButton(buttonString, valueString) {
+			//console.log("buttonString: "+buttonString+" --- valueString: "+valueString)
+			document.getElementById(buttonString).className = valueString
+		}
+		function setButtons() {
+			setButton("prepare", prepareDisabled)
+			setButton("clear", clearDisabled)
 
-			setButton("goHome",goHomeDisabled)
-			setButton("stop",stopDisabled)
-			setButton("resume",resumeDisabled)
+			setButton("addFood1-1", addFood11Disabled)
+			setButton("addFood1-2", addFood12Disabled)
+			setButton("addFood1-3", addFood13Disabled)
 
-			setButton("explorePerimeter",explorePerimeterDisabled)
-			setButton("exploreTable",exploreTableDisabled)
-	}
+			setButton("addFood2-1", addFood21Disabled)
+			setButton("addFood2-2", addFood22Disabled)
+			setButton("addFood2-3", addFood23Disabled)
+
+			setButton("goHome", goHomeDisabled)
+			setButton("stop", stopDisabled)
+			setButton("resume", resumeDisabled)
+
+			setButton("explorePerimeter", explorePerimeterDisabled)
+			setButton("exploreTable", exploreTableDisabled)
+		}
 	}
 </script>
 

@@ -16,8 +16,8 @@ class Fridge ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
-					var food1 = 5
-					var food2 = 60
+					var food1 = 10
+					var food2 = 10
 					var noFood : Boolean = false
 					var selectedFood = -1
 		return { //this:ActionBasciFsm
@@ -70,7 +70,7 @@ class Fridge ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				}	 
 				state("updateModelFridge") { //this:State
 					action { //it:State
-						itunibo.robot.resourceModelSupport.updateFridgeModel(myself ,"FOOD 1: $food1; FOOD 2: $food2" )
+						itunibo.robot.resourceModelSupport.updateFridgeModel(myself ,"FOOD1:{$food1};FOOD2:[$food2];" )
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 

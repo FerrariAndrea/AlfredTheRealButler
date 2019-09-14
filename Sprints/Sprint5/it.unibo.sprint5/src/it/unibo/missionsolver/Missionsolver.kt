@@ -63,7 +63,7 @@ class Missionsolver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 				state("home") { //this:State
 					action { //it:State
 						storeCurrentMessageForReply()
-						println("ADDING FOOD: Go to Home")
+						println("GO HOME: Go to Home")
 							 addingFood = false
 									 preparing = false
 									 clearing = false
@@ -101,6 +101,7 @@ class Missionsolver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 				state("goToHome") { //this:State
 					action { //it:State
 						forward("modelRequest", "modelRequest(map,home)" ,"kb" ) 
+						goingHome=false
 					}
 					 transition(edgeName="t08",targetState="handlePos",cond=whenDispatch("modelMapResponse"))
 				}	 
@@ -118,10 +119,10 @@ class Missionsolver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 				}	 
 				state("fail") { //this:State
 					action { //it:State
-						println("Explorer: fail, return at home in 2s!")
-						delay(2000) 
+						println("WARNING: Explorer: fail.")
+						replyToCaller("missionFinish", "missionFinish(fail)")
 					}
-					 transition( edgeName="goto",targetState="goToHome", cond=doswitch() )
+					 transition( edgeName="goto",targetState="waiting", cond=doswitch() )
 				}	 
 				state("goalOk") { //this:State
 					action { //it:State
