@@ -154,6 +154,8 @@ QActor missionsolver context ctxExplorer{
 
 QActor explorer context ctxExplorer{     
 	["
+	var ignoreFail : Boolean=true;
+	//--------------------
 	var stepCounter = 0 
 	var Move = \"\"
 	var StepTime :Int  = 350	//for virtual
@@ -182,6 +184,9 @@ QActor explorer context ctxExplorer{
 	var StartOrientationCheckTable =\"sud\"
 	//go to
 	var GoToFailed =false;
+	//-------FIX GO HOME
+	var IsFixForHome = false;
+	var NeedReplyForFixHome =false;
 	"]
 	State s0 initial {
 		
@@ -200,7 +205,7 @@ QActor explorer context ctxExplorer{
 		
 	State handeCmd{
 		["storeCurrentMessageForReply()"]
-		["needExploreBound=false"]
+		["needExploreBound=false;IsFixForHome=false;NeedReplyForFixHome=false;"]
 		onMsg(   doExplor:  doExplor(TARGET) ) { 
 			
 			["
@@ -471,9 +476,39 @@ QActor explorer context ctxExplorer{
 		println("Map after explore table")
 		run itunibo.planner.plannerUtil.showMap()
 		run itunibo.planner.plannerUtil.saveMap(mapname)//facoltativo
-		println("Table exploration end.")
-		["replyToCaller(\"endExplor\", \"endExplor(ok)\")"]	
-	}Goto waitCmd
+		println("Table exploration end, starting fix-go-home")
+		//["replyToCaller(\"endExplor\", \"endExplor(ok)\")"]	
+	}Goto startFixGoHome
+	//--------------------------------------------------------------EXPLORE FIX GOHOME
+	State startFixGoHome{
+		["IsFixForHome=true;NeedReplyForFixHome=true;"]
+		run itunibo.planner.plannerUtil.setGoal(0,0)
+		run itunibo.planner.moveUtils.doPlan( myself )
+	}Goto executePlannedActions  if "itunibo.planner.moveUtils.existPlan()" else checkRotation 
+
+	State checkNord{
+		run itunibo.planner.moveUtils.doPlannedMove(myself, Move)
+		["Direction = itunibo.planner.plannerUtil.getDirection()"]
+		println("Actor: Explorer; State: rotateSouth; Payload: $Direction")
+	}Goto rotateSouth  if "(Direction!=\"upDir\")" else forceGoUp
+	State rotateNord{
+		["Move=\"a\""]
+		delayVar PauseTime //questo prima era uno StepTime
+		forward onerotateforward -m onerotationstep : onerotationstep($Move)//
+   		
+	}Transition t0	whenMsg rotationOk 	-> checkRotation
+	
+	State forceGoUp{
+		forward onecellforward -m onestep : onestep($StepTime)//non lo registro nel planner
+	}Transition t1 whenMsg stepOk   	-> endFixGoHome   
+					whenMsg stepFail 	-> endFixGoHome
+	
+	State endFixGoHome{
+		["IsFixForHome=false"]
+	}Goto checkRotation
+	
+	
+	
 	//--------------------------------------------------------------EXPLORE GO TO 
  	
 	State goToPosition{
@@ -493,7 +528,7 @@ QActor explorer context ctxExplorer{
 		run itunibo.planner.plannerUtil.setGoal(X,Y)
 		run itunibo.planner.moveUtils.doPlan( myself )
 		}
- 	}Goto executePlannedActions  if "itunibo.planner.moveUtils.existPlan()" else checkSouth 
+ 	}Goto executePlannedActions  if "itunibo.planner.moveUtils.existPlan()" else checkRotation 
 
 
 	State executePlannedActions{ 
@@ -502,10 +537,9 @@ QActor explorer context ctxExplorer{
 			["Move = getCurSol(\"M\").toString()"]
 		} else { ["Move = \"\""]  } 
  	}
-	Goto doTheMove  if "(Move.length>0) " else checkSouth
+	Goto doTheMove  if "(Move.length>0) " else checkRotation
  	
  	State doTheMove{
- 		println("doTheMove------------------------<<<<")
 		if "Move==\"a\" || Move==\"d\" " {//ROTATION			
 			forward onerotateforward -m onerotationstep : onerotationstep($Move)	
 		} else{ // W			
@@ -530,14 +564,14 @@ QActor explorer context ctxExplorer{
 		delayVar PauseTime
 		["GoToFailed=true"]	
 	}
-	Goto rotateSouth
+	Goto executePlannedActions if "ignoreFail" else rotateSouth
 
 	State rotateSouth{
 		["Move=\"a\""]
 		delayVar PauseTime //questo prima era uno StepTime
 		forward onerotateforward -m onerotationstep : onerotationstep($Move)//
    		
-	}Transition t0	whenMsg rotationOk 	-> checkSouth
+	}Transition t0	whenMsg rotationOk 	-> checkRotation
 
 	State checkSouth{
 		run itunibo.planner.moveUtils.doPlannedMove(myself, Move)	
@@ -549,17 +583,25 @@ QActor explorer context ctxExplorer{
 	Goto rotateSouth  if "(Direction!=\"downDir\")" else endOfJob
 	
 	State endOfJob{
-		if "GoToFailed"{
+		if "NeedReplyForFixHome"{
+			["replyToCaller(\"endExplor\", \"endExplor(ok)\")"]	
+			println("FixGoHome end.")	
+		}else{
+			if "GoToFailed"{
 				println("Actor: Explorer; State: handleStepFail; Payload: Fail step :(")
 				run itunibo.planner.plannerUtil.showMap()	
 				println("Actor: Explorer; State: handleStepFail; Payload: Replan and return at home.")
 				["replyToCaller(\"goToFail\", \"goToFail(fail)\")"]	
-		}else{
+			}else{
 				println("Explorer: on the target cell!")
 				["replyToCaller(\"goToOk\", \"goToOk(ok)\")"]	
+			}
 		}
+	
 		
 	
 	} Goto waitCmd 
+	
+	State checkRotation{}Goto checkNord if "IsFixForHome" else checkSouth
 	
 }	
