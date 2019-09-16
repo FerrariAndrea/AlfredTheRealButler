@@ -207,6 +207,7 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 											MapDimY = itunibo.planner.plannerUtil.getMapDimY()-1
 						println("Perimeter completely walked. DimX: $MapDimX DimY: $MapDimY")
 						replyToCaller("endExplor", "endExplor(ok)")
+						forward("modelUpdate", "modelUpdate(metre,endExplorOk)" ,"resourcemodel" ) 
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
@@ -480,6 +481,7 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				state("endOfJob") { //this:State
 					action { //it:State
 						if(NeedReplyForFixHome){ replyToCaller("endExplor", "endExplor(ok)")
+						forward("modelUpdate", "modelUpdate(metre,endExplorOk)" ,"resourcemodel" ) 
 						println("FixGoHome end.")
 						 }
 						else
@@ -487,10 +489,12 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						 itunibo.planner.plannerUtil.showMap(  )
 						 println("Actor: Explorer; State: handleStepFail; Payload: Replan and return at home.")
 						 replyToCaller("goToFail", "goToFail(fail)")
+						 forward("modelUpdate", "modelUpdate(metre,goToFail)" ,"resourcemodel" ) 
 						  }
 						 else
 						  { println("Explorer: on the target cell!")
 						  replyToCaller("goToOk", "goToOk(ok)")
+						  forward("modelUpdate", "modelUpdate(metre,goToOk)" ,"resourcemodel" ) 
 						   }
 						  }
 					}
