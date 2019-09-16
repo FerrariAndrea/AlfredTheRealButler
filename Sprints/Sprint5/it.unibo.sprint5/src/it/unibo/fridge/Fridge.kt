@@ -20,11 +20,14 @@ class Fridge ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 					var food2 = 10
 					var noFood : Boolean = false
 					var selectedFood = -1
+					var quantityFood = 0
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
 						println("Fridge Started")
 						itunibo.coap.modelResourceCoap.create(myself ,"fridge", 5684 )
+						forward("takeFood", "takeFood(1,0)" ,"fridge" ) 
+						forward("takeFood", "takeFood(2,0)" ,"fridge" ) 
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
@@ -36,9 +39,11 @@ class Fridge ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				}	 
 				state("checkingFood") { //this:State
 					action { //it:State
-						if( checkMsgContent( Term.createTerm("takeFood(X)"), Term.createTerm("takeFood(X)"), 
+						if( checkMsgContent( Term.createTerm("takeFood(X,Q)"), Term.createTerm("takeFood(X,Q)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								selectedFood = payloadArg(0).toInt()
+								
+												selectedFood = payloadArg(0).toInt()
+												quantityFood = payloadArg(1).toInt()
 								if(selectedFood == 1){ if(food1 == 0){ println("NO FOOD 1 ")
 								noFood = true
 								 }
@@ -56,10 +61,10 @@ class Fridge ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				state("takingFood") { //this:State
 					action { //it:State
 						println("selectedFood : $selectedFood")
-						if(selectedFood == 1){ food1 = food1 - 1
+						if(selectedFood == 1){ food1 = food1 - quantityFood
 						 }
 						else
-						 { if(selectedFood == 2){ food2 = food2 - 1
+						 { if(selectedFood == 2){ food2 = food2 - quantityFood
 						  }
 						 else
 						  { println("Error")

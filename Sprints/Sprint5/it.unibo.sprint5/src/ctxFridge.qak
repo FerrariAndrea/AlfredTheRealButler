@@ -1,7 +1,7 @@
 System system5
 mqttBroker "localhost" : 1883
 
-Dispatch takeFood  : takeFood(X)
+Dispatch takeFood  : takeFood(X,Q)
 Context ctxFridge ip[host="localhost" port=8035] -mqtt
 Context ctxDummy ip[host="dummyhost" port=9999] -mqtt 
 
@@ -11,11 +11,14 @@ QActor fridge context ctxFridge {
 			var food2 = 10
 			var noFood : Boolean = false
 			var selectedFood = -1
+			var quantityFood = 0
 			"]
 	State s0 initial {
 
 		println("Fridge Started")
 		run itunibo.coap.modelResourceCoap.create( myself, "fridge", 5684 ) //CoAP access
+		forward fridge -m takeFood: takeFood(1,0)
+		forward fridge -m takeFood: takeFood(2,0)
 	}
 	Goto waitCmd
 		
@@ -23,8 +26,11 @@ QActor fridge context ctxFridge {
 	Transition t0 whenEvent takeFood -> checkingFood
 	
 	State checkingFood {
-		onMsg(   takeFood:  takeFood(X) ) { 
-			["selectedFood = payloadArg(0).toInt()"]
+		onMsg(   takeFood:  takeFood(X,Q) ) { 
+			["
+				selectedFood = payloadArg(0).toInt()
+				quantityFood = payloadArg(1).toInt()
+			"]
 			
 			if "selectedFood == 1" {
 				if "food1 == 0" {
@@ -45,9 +51,9 @@ QActor fridge context ctxFridge {
 	State takingFood {		
 			println("selectedFood : $selectedFood")
 			if "selectedFood == 1" {
-			["food1 = food1 - 1"]
+			["food1 = food1 - quantityFood"]
 			} else {
-				if "selectedFood == 2" {["food2 = food2 - 1"]}
+				if "selectedFood == 2" {["food2 = food2 - quantityFood"]}
 				else {println("Error")}	
 			}	
 	} Goto updateModelFridge

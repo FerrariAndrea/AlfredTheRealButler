@@ -22,6 +22,7 @@ class Dishwasher ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 					action { //it:State
 						println("Dishwasher Started")
 						itunibo.coap.modelResourceCoap.create(myself ,"dishwasher", 5686 )
+						forward("putDish", "putDish(0)" ,"dishwasher" ) 
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
@@ -42,7 +43,7 @@ class Dishwasher ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 				}	 
 				state("updateModelDishwasher") { //this:State
 					action { //it:State
-						itunibo.robot.resourceModelSupport.updateDishwasherModel(myself ,"DISHES: $dish; " )
+						itunibo.robot.resourceModelSupport.updateDishwasherModel(myself ,"DISHES:{$dish}; " )
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 

@@ -214,7 +214,7 @@
 	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
 	<script>
 		let homePos = "X0Y0Osud"
-		var contentFood1 = ""; var contentFood2 = "";
+		var contentFood1 = ""; var contentFood2 = ""; var contentDishwasher = ""; var contentPantry = "";
 		var socket = io.connect();
 		socket.on('connect', function () { console.log("socket connected"); });
 		//ricevo messaggio da socket con contenuto v rappresentante la stringa che verrà inserita nel form.
@@ -231,8 +231,18 @@
 				console.log("Food 1: " + contentFood1 + "; Food 2: " + contentFood2)
 				document.getElementById('food').innerHTML = "Pizza: " + contentFood1 + "; Crescentina: " + contentFood2;
 			} //FOOD
-			if (v.indexOf("dishwasher") >= 0) { document.getElementById('dishwasher').innerHTML = v; } //DISHWASHER 
-			if (v.indexOf("pantry") >= 0) { document.getElementById('pantry').innerHTML = v; } //PANTRY
+			if (v.indexOf("dishwasher") >= 0) { 
+				contentDishwasher = v;
+				contentDishwasher = contentDishwasher.substr(contentDishwasher.indexOf('{')+1)
+				contentDishwasher = contentDishwasher.substr(0, contentDishwasher.indexOf('}'))
+				document.getElementById('dishwasher').innerHTML = ""+contentDishwasher
+			} //DISHWASHER 
+			if (v.indexOf("pantry") >= 0) {
+				contentPantry = v;
+				contentPantry = contentPantry.substr(contentPantry.indexOf('{')+1)
+				contentPantry = contentPantry.substr(0, contentPantry.indexOf('}'))
+				document.getElementById('pantry').innerHTML = ""+contentPantry
+			} //PANTRY
 
 			if (v.indexOf("sonarRobot") >= 0) { document.getElementById('sonarRobotDisplay').innerHTML = v.split('(')[2].split(')')[0]; }
 			if (v.indexOf("sonarLeft") >= 0) { document.getElementById('sonarRobotLDisplay').innerHTML = v.split('(')[2].split(')')[0]; }
@@ -387,7 +397,6 @@
 						<input id="stop" type="submit" class="myButtonRed" value="STOP" onclick="setState('stopped')">
 					</form>
 					<form action="/resume" method="post">
-						<!--Cambiare RESUME ASSOLUTAMENTE, ORA E' SOLO PER DEBUG-->
 						<input id="resume" type="submit" class="myButtonGreen" value="RESUME"
 							onclick="setState('working')">
 					</form>

@@ -7,12 +7,13 @@ Context ctxDummy ip[host="dummyhost" port=9999] -mqtt
 
 QActor pantry context ctxPantry {
 			["
-			var dishes = 100
+			var dishes = 200
 			"]
 	State s0 initial {
 
 		println("Pantry Started")
 		run itunibo.coap.modelResourceCoap.create(myself, "pantry", 5685) //CoAP access
+		forward pantry -m takeDish: takeDish(0)
 	}
 	Goto waitCmd
 		
@@ -29,6 +30,6 @@ QActor pantry context ctxPantry {
 	} Goto updateModelPantry
 	
 	State updateModelPantry {
-		run itunibo.robot.resourceModelSupport.updatePantryModel(myself,"DISHES: $dishes; ")
+		run itunibo.robot.resourceModelSupport.updatePantryModel(myself,"DISHES:{$dishes}; ")
 	} Goto waitCmd
 }

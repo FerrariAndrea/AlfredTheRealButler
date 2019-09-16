@@ -16,12 +16,13 @@ class Pantry ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
-					var dishes = 100
+					var dishes = 200
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
 						println("Pantry Started")
 						itunibo.coap.modelResourceCoap.create(myself ,"pantry", 5685 )
+						forward("takeDish", "takeDish(0)" ,"pantry" ) 
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
@@ -42,7 +43,7 @@ class Pantry ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				}	 
 				state("updateModelPantry") { //this:State
 					action { //it:State
-						itunibo.robot.resourceModelSupport.updatePantryModel(myself ,"DISHES: $dishes; " )
+						itunibo.robot.resourceModelSupport.updatePantryModel(myself ,"DISHES:{$dishes}; " )
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 

@@ -35,14 +35,14 @@ class Coaptester ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 				}	 
 				state("takeFood1") { //this:State
 					action { //it:State
-						forward("takeFood", "takeFood(1)" ,"fridge" ) 
+						forward("takeFood", "takeFood(1,1)" ,"fridge" ) 
 						delay(2000) 
 					}
 					 transition( edgeName="goto",targetState="takeFood2", cond=doswitch() )
 				}	 
 				state("takeFood2") { //this:State
 					action { //it:State
-						forward("takeFood", "takeFood(2)" ,"fridge" ) 
+						forward("takeFood", "takeFood(2,1)" ,"fridge" ) 
 						delay(2000) 
 					}
 					 transition( edgeName="goto",targetState="takeFood1", cond=doswitch() )

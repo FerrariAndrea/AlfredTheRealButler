@@ -1,7 +1,8 @@
 System system6
 mqttBroker "localhost" : 1883
 
-Dispatch takeFood  : takeFood(X)
+//X = Type , Q = Quantity
+Dispatch takeFood  : takeFood(X,Q)
 Dispatch takeDish  : takeDish(X)
 Dispatch putDish  : putDish(X)
 
@@ -30,12 +31,12 @@ QActor coaptester context ctxCoapTester {
 	} Goto takeFood1
 	
 	State takeFood1 {
-		forward fridge -m takeFood: takeFood(1)		
+		forward fridge -m takeFood: takeFood(1,1)		
 		delay 2000
 	} Goto takeFood2
 	
 	State takeFood2 {
-		forward fridge -m takeFood: takeFood(2)
+		forward fridge -m takeFood: takeFood(2,1)
 		delay 2000
 	} Goto takeFood1
 	

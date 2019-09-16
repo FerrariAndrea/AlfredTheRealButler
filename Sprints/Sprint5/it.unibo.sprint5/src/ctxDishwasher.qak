@@ -14,6 +14,7 @@ QActor dishwasher context ctxDishwasher {
 
 		println("Dishwasher Started")
 		run itunibo.coap.modelResourceCoap.create(myself, "dishwasher", 5686) //CoAP access
+		forward dishwasher -m putDish: putDish(0)
 	}
 	Goto waitCmd
 		
@@ -29,6 +30,6 @@ QActor dishwasher context ctxDishwasher {
 	} Goto updateModelDishwasher
 	
 	State updateModelDishwasher {
-		run itunibo.robot.resourceModelSupport.updateDishwasherModel(myself,"DISHES: $dish; ")
+		run itunibo.robot.resourceModelSupport.updateDishwasherModel(myself,"DISHES:{$dish}; ")
 	} Goto waitCmd
 }
