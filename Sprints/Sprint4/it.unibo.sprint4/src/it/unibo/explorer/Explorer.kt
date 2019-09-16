@@ -64,6 +64,7 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				state("waitCmd") { //this:State
 					action { //it:State
 						println("Waiting for exploration cmd...")
+						needExploreBound=false;IsFixForHome=false;NeedReplyForFixHome=false;
 					}
 					 transition(edgeName="t011",targetState="handeCmd",cond=whenDispatch("doExplor"))
 					transition(edgeName="t012",targetState="goToPosition",cond=whenEvent("goTo"))
@@ -71,7 +72,6 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				state("handeCmd") { //this:State
 					action { //it:State
 						storeCurrentMessageForReply()
-						needExploreBound=false;IsFixForHome=false;NeedReplyForFixHome=false;
 						if( checkMsgContent( Term.createTerm("doExplor(TARGET)"), Term.createTerm("doExplor(TARGET)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								
@@ -445,7 +445,6 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				}	 
 				state("handleStepOkGoTo") { //this:State
 					action { //it:State
-						println("GOTO->StepOK")
 						itunibo.planner.moveUtils.doPlannedMove(myself ,Move )
 						delay(PauseTime)
 					}

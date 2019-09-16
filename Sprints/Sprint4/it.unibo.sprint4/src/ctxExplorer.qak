@@ -200,12 +200,12 @@ QActor explorer context ctxExplorer{
 	//--------------------------------------------------------------EXPLORE BOUND AND TABLE
 	State waitCmd{
 		println("Waiting for exploration cmd...")
+		["needExploreBound=false;IsFixForHome=false;NeedReplyForFixHome=false;"]
 	}Transition t0 whenMsg doExplor -> handeCmd
 				 whenEvent   goTo  -> goToPosition
 		
 	State handeCmd{
-		["storeCurrentMessageForReply()"]
-		["needExploreBound=false;IsFixForHome=false;NeedReplyForFixHome=false;"]
+		["storeCurrentMessageForReply()"]	
 		onMsg(   doExplor:  doExplor(TARGET) ) { 
 			
 			["
@@ -553,7 +553,7 @@ QActor explorer context ctxExplorer{
 					whenMsg rotationOk 	-> handleStepOkGoTo
 	 	
 	State handleStepOkGoTo{
-		println("GOTO->StepOK")		
+		//println("GOTO->StepOK")		
 		run itunibo.planner.moveUtils.doPlannedMove(myself, Move)	
 		delayVar PauseTime	
 	}
