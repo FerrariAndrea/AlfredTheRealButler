@@ -341,7 +341,7 @@ QActor explorer context ctxExplorer{
 			//["val D = \"down\""]
 			//run itunibo.planner.plannerUtil.autoResetRobotPos(0,0,D)
 			["replyToCaller(\"endExplor\", \"endExplor(ok)\")"]	
-			forward resourcemodel -m modelUpdate : modelUpdate(metre,endExplorOk)
+			forward resourcemodel -m modelUpdate : modelUpdate(metre,endExplorBoundOk)
 	} Goto waitCmd 
 	//----------------------------------------------------------------------------------------------------------exploreTale
 
@@ -586,7 +586,7 @@ QActor explorer context ctxExplorer{
 	State endOfJob{
 		if "NeedReplyForFixHome"{
 			["replyToCaller(\"endExplor\", \"endExplor(ok)\")"]	
-			forward resourcemodel -m modelUpdate : modelUpdate(metre,endExplorOk)
+			forward resourcemodel -m modelUpdate : modelUpdate(metre,endExplorTableOk)
 			println("FixGoHome end.")	
 		}else{
 			if "GoToFailed"{
@@ -594,11 +594,11 @@ QActor explorer context ctxExplorer{
 				run itunibo.planner.plannerUtil.showMap()	
 				println("Actor: Explorer; State: handleStepFail; Payload: Replan and return at home.")
 				["replyToCaller(\"goToFail\", \"goToFail(fail)\")"]	
-				forward resourcemodel -m modelUpdate : modelUpdate(metre,goToFail)
+				//forward resourcemodel -m modelUpdate : modelUpdate(metre,goToFail)
 			}else{
 				println("Explorer: on the target cell!")
 				["replyToCaller(\"goToOk\", \"goToOk(ok)\")"]
-				forward resourcemodel -m modelUpdate : modelUpdate(metre,goToOk)	
+				//forward resourcemodel -m modelUpdate : modelUpdate(metre,goToOk)	
 			}
 		}
 	
