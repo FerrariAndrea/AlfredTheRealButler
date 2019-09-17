@@ -16,7 +16,7 @@ class Fridge ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
-					var food1 = 10
+					var food1 = 12
 					var food2 = 10
 					var noFood : Boolean = false
 					var selectedFood = -1
@@ -40,14 +40,17 @@ class Fridge ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				}	 
 				state("puttingFood") { //this:State
 					action { //it:State
-						
-										selectedFood = payloadArg(0).toInt()
-										quantityFood = payloadArg(1).toInt()
-						if(selectedFood == 1){ food1 += quantityFood
-						 }
-						else
-						 { food2 += quantityFood
-						  }
+						if( checkMsgContent( Term.createTerm("putFood(X,Q)"), Term.createTerm("putFood(X,Q)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								
+												selectedFood = payloadArg(0).toInt()
+												quantityFood = payloadArg(1).toInt()
+								if(selectedFood == 1){ food1 += quantityFood
+								 }
+								else
+								 { food2 += quantityFood
+								  }
+						}
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 

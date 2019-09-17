@@ -27,8 +27,15 @@ class Missionsolver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 			var goPantry = false
 			var goDishwasher = false
 		
-			var selectedFood = 0
-			var quantityFood = 0
+			// For Smart devices
+			var selectedFood = -1
+			var quantityFood = -1
+			var quantityDish = -1
+		
+			var takeFoodFridge = false
+			var putFoodFridge = false
+			var takeDishPantry = false
+			var putDishDishwasher = false
 		
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
@@ -58,6 +65,7 @@ class Missionsolver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 								  goHome = true
 								  goDishwasher = false
 								  goPantry = false
+								  takeFoodFridge = true
 						if( checkMsgContent( Term.createTerm("addFood(X,Q)"), Term.createTerm("addFood(X,Q)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								selectedFood = payloadArg(0).toInt()
@@ -79,6 +87,8 @@ class Missionsolver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 								  goHome = true
 								  goDishwasher = false
 								  goPantry = true
+								  takeFoodFridge = true
+								  takeDishPantry = true 
 					}
 					 transition( edgeName="goto",targetState="goToPantry", cond=doswitch() )
 				}	 
@@ -94,6 +104,8 @@ class Missionsolver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 								  goHome = true
 								  goDishwasher = true
 								  goPantry = false
+								  putDishDishwasher = true
+								  putFoodFridge = true
 					}
 					 transition( edgeName="goto",targetState="goToTable", cond=doswitch() )
 				}	 
@@ -170,6 +182,23 @@ class Missionsolver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 					action { //it:State
 						println("Explorer: on the target cell (simulate action 1.5s)!")
 						delay(1500) 
+						if(takeFoodFridge){ var X = selectedFood; var Q = quantityFood
+									if (X == -1 && Q == -1) {
+										X = 1; Q = 10;
+									}
+						forward("takeFood", "takeFood($X,$Q)" ,"fridge" ) 
+						takeFoodFridge = false
+						 }
+						if(putFoodFridge){ forward("putFood", "putFood(1,5)" ,"fridge" ) 
+						forward("putFood", "putFood(2,5)" ,"fridge" ) 
+						putFoodFridge = false
+						 }
+						if(takeDishPantry){ forward("takeDish", "takeDish(20)" ,"pantry" ) 
+						takeDishPantry = false
+						 }
+						if(putDishDishwasher){ forward("putDish", "putDish(20)" ,"dishwasher" ) 
+						putDishDishwasher = false
+						 }
 					}
 					 transition( edgeName="goto",targetState="checkAddingFood", cond=doswitch() )
 				}	 

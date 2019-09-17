@@ -23,6 +23,13 @@ Dispatch clear : clear(X)
 Dispatch home : home(X)
 Dispatch missionFinish : missionFinish(X)//risposta
 
+//Dispatch to Smart Devices (Fridge, Dishwasher, Pantry)
+Dispatch takeFood : takeFood(X,Q) //Fridge - Add Food & Prepare
+Dispatch putFood : putFood(X,Q)	// Fridge - Clear
+Dispatch takeDish : takeDish(X) //Pantry
+Dispatch putDish : putDish(X) 	//Dishwasher
+//-------------------------------------------------------------
+
 Event  sonarRobot     : sonar( DISTANCE )	     //from  sonar on robot 
 
 
@@ -44,6 +51,10 @@ ExternalQActor resourcemodel context ctxDummy
 ExternalQActor onecellforward context ctxDummy
 ExternalQActor onerotateforward context ctxDummy
 
+// Smart devices
+ExternalQActor fridge context ctxDummy
+ExternalQActor pantry context ctxDummy
+ExternalQActor dishwasher context ctxDummy
 
 QActor missionsolver context ctxExplorer{ 
 	["	
@@ -58,8 +69,15 @@ QActor missionsolver context ctxExplorer{
 	var goPantry = false
 	var goDishwasher = false
 
-	var selectedFood = 0
-	var quantityFood = 0
+	// For Smart devices
+	var selectedFood = -1
+	var quantityFood = -1
+	var quantityDish = -1
+
+	var takeFoodFridge = false
+	var putFoodFridge = false
+	var takeDishPantry = false
+	var putDishDishwasher = false
 
 	"]
 	State s0 initial {	
@@ -85,6 +103,7 @@ QActor missionsolver context ctxExplorer{
 		  goHome = true
 		  goDishwasher = false
 		  goPantry = false
+		  takeFoodFridge = true
 		 "]
 		 onMsg(addFood : addFood(X,Q)) {
 		 	["selectedFood = payloadArg(0).toInt()"]
@@ -104,6 +123,8 @@ QActor missionsolver context ctxExplorer{
 		  goHome = true
 		  goDishwasher = false
 		  goPantry = true
+		  takeFoodFridge = true
+		  takeDishPantry = true 
 		 "]		//METTERE PIATTI DAL PANTRY AL TABLE
 	} Goto goToPantry
 	
@@ -118,6 +139,8 @@ QActor missionsolver context ctxExplorer{
 		  goHome = true
 		  goDishwasher = true
 		  goPantry = false
+		  putDishDishwasher = true
+		  putFoodFridge = true
 		 "]		//PRENDERE CIBO DAL TAVOLO, PORTARLO AL FRIGO E I PIATTI NEL DISHWASHER
 	} Goto goToTable
 	
@@ -179,6 +202,35 @@ QActor missionsolver context ctxExplorer{
 	State goalOk{
  		println("Explorer: on the target cell (simulate action 1.5s)!")
  		delay 1500 // to simulate the action
+ 		
+ 		//Interacting with Smart Devices
+ 		
+ 		//Add Food e Prepare (caso IF)
+ 		if "takeFoodFridge" {
+ 			["var X = selectedFood; var Q = quantityFood
+			if (X == -1 && Q == -1) {
+				X = 1; Q = 10;
+			}
+			"]
+ 			forward fridge -m takeFood:takeFood($X,$Q)
+ 			["takeFoodFridge = false"]
+ 		}  			
+ 		//Clear
+ 			if "putFoodFridge" {
+ 				forward fridge -m putFood:putFood(1,5)
+ 				forward fridge -m putFood:putFood(2,5)
+ 				["putFoodFridge = false"]
+ 			}		
+ 		//Prepare
+ 			if "takeDishPantry" {
+ 				forward pantry -m takeDish:takeDish(20)
+ 				["takeDishPantry = false"]
+ 			}
+ 		//Clear
+ 			if "putDishDishwasher" {
+ 				forward dishwasher -m putDish:putDish(20)
+ 				["putDishDishwasher = false"]
+ 			}
  	} Goto checkAddingFood
  	
  	//Macro Missions Flags

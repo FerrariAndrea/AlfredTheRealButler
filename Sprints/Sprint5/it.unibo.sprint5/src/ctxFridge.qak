@@ -9,7 +9,7 @@ Context ctxDummy ip[host="dummyhost" port=9999] -mqtt
 
 QActor fridge context ctxFridge {
 			["
-			var food1 = 10
+			var food1 = 12
 			var food2 = 10
 			var noFood : Boolean = false
 			var selectedFood = -1
@@ -29,6 +29,7 @@ QActor fridge context ctxFridge {
 				  whenEvent putFood  -> puttingFood
 				  
 	State puttingFood {
+		onMsg(putFood: putFood(X,Q)) {
 			["
 				selectedFood = payloadArg(0).toInt()
 				quantityFood = payloadArg(1).toInt()
@@ -39,7 +40,7 @@ QActor fridge context ctxFridge {
 			} else {
 				["food2 += quantityFood"]
 			}
-			
+		}
 	} Goto waitCmd
 	
 	State checkingFood {

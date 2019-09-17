@@ -315,7 +315,7 @@
 
 		function setState(stateName) {
 			//console.log("stateName:" + stateName)
-			if (stateName !== "stopped") {setSecondLastState(getState())}
+			if (stateName !== "stopped") { setSecondLastState(getState()) }
 			window.sessionStorage.setItem("state", stateName);
 			state = getState();
 			loadLayout(stateName)
@@ -344,7 +344,9 @@
 
 	<div style="background-color: #37464f">
 		<center>
-			<h2 style="color:white;background-color: black;padding: 10px;">Maître de salle Console</h2>
+			<a href="http://localhost:8080/">
+				<h2 style="color:white;background-color: black;padding: 10px;">Maître de salle Console</h2>
+			</a>
 		</center>
 
 	</div>
