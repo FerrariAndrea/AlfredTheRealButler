@@ -26,6 +26,10 @@ class Missionsolver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 			var goFridge = false
 			var goPantry = false
 			var goDishwasher = false
+		
+			var selectedFood = 0
+			var quantityFood = 0
+		
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -54,6 +58,11 @@ class Missionsolver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 								  goHome = true
 								  goDishwasher = false
 								  goPantry = false
+						if( checkMsgContent( Term.createTerm("addFood(X,Q)"), Term.createTerm("addFood(X,Q)"), 
+						                        currentMsg.msgContent()) ) { //set msgArgList
+								selectedFood = payloadArg(0).toInt()
+								quantityFood = payloadArg(1).toInt()
+						}
 					}
 					 transition( edgeName="goto",targetState="checkAddingFood", cond=doswitch() )
 				}	 
@@ -159,7 +168,7 @@ class Missionsolver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 				}	 
 				state("goalOk") { //this:State
 					action { //it:State
-						println("Explorer: on the target cell (simulate action 2s)!")
+						println("Explorer: on the target cell (simulate action 1.5s)!")
 						delay(1500) 
 					}
 					 transition( edgeName="goto",targetState="checkAddingFood", cond=doswitch() )

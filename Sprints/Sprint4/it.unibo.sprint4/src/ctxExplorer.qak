@@ -57,6 +57,10 @@ QActor missionsolver context ctxExplorer{
 	var goFridge = false
 	var goPantry = false
 	var goDishwasher = false
+
+	var selectedFood = 0
+	var quantityFood = 0
+
 	"]
 	State s0 initial {	
 		println("Actor: Mission Solver; State: initial")	
@@ -71,10 +75,6 @@ QActor missionsolver context ctxExplorer{
 				  // ------------------ MACRO COMMANDS ------------------
 	
 	State addingFood {
-		//SI DEVE AGGIUNGERE IL PAYLOAD, OVVERO SE SI AGGIUNGE IL TIPO 1 DI CIBO (PIZZA) OPPURE IL TIPO 2 (CRESCENTINA)
-		//COSA FA QUESTO TASK?
-		//SE IL CIBO E' PRESENTE NEL FRIGO, LO AGGIUNGE AL TAVOLO; IN CASO CONTRARIO, NOTIFICA IL MAITRE (ANCORA DA FARE)
-		//RITORNA NELLA POSIZIONE HOME
 		["storeCurrentMessageForReply()"]
 		println("ADDING FOOD: Go to Fridge")
 		["addingFood = true
@@ -86,6 +86,10 @@ QActor missionsolver context ctxExplorer{
 		  goDishwasher = false
 		  goPantry = false
 		 "]
+		 onMsg(addFood : addFood(X,Q)) {
+		 	["selectedFood = payloadArg(0).toInt()"]
+		 	["quantityFood = payloadArg(1).toInt()"]
+		 }
 	} Goto checkAddingFood
 	
 	State preparingRoom {
@@ -172,10 +176,9 @@ QActor missionsolver context ctxExplorer{
  		["replyToCaller(\"missionFinish\", \"missionFinish(fail)\")"]		
  	}Goto waiting
  	
-	State goalOk{		  
- 		println("Explorer: on the target cell (simulate action 2s)!")
+	State goalOk{
+ 		println("Explorer: on the target cell (simulate action 1.5s)!")
  		delay 1500 // to simulate the action
- 		
  	} Goto checkAddingFood
  	
  	//Macro Missions Flags
