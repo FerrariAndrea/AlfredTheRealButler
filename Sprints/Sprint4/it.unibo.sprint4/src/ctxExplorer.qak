@@ -17,7 +17,7 @@ Dispatch modelRequest : modelRequest( TARGET,PROP)
 Dispatch modelMapResponse : modelMapResponse( X,Y ) 
 
 //Macro dispatch
-Dispatch addFood : addFood(X) //1 or 2: payload for now is ignored.
+Dispatch addFood : addFood(X,Q) //1 or 2: payload for now is ignored.
 Dispatch prepare : prepare(X) //Non so perché senza Payload non mi funziona, quindi ne metto uno che viene ignorato. Idem per clear (Luca)
 Dispatch clear : clear(X)
 Dispatch home : home(X)
@@ -174,7 +174,8 @@ QActor missionsolver context ctxExplorer{
  	
 	State goalOk{		  
  		println("Explorer: on the target cell (simulate action 2s)!")
- 		delay 2000 // to simulate the action
+ 		delay 1500 // to simulate the action
+ 		
  	} Goto checkAddingFood
  	
  	//Macro Missions Flags

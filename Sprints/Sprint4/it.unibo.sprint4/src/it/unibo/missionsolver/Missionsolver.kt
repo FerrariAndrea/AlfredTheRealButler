@@ -160,7 +160,7 @@ class Missionsolver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 				state("goalOk") { //this:State
 					action { //it:State
 						println("Explorer: on the target cell (simulate action 2s)!")
-						delay(2000) 
+						delay(1500) 
 					}
 					 transition( edgeName="goto",targetState="checkAddingFood", cond=doswitch() )
 				}	 
