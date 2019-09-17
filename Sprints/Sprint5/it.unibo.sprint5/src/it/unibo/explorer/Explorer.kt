@@ -453,7 +453,9 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				state("handleStepFailGoTo") { //this:State
 					action { //it:State
 						println("GOTO->StepFail")
-						itunibo.planner.moveUtils.doPlannedMove(myself ,Move )
+						if(ignoreFail){ itunibo.planner.moveUtils.doPlannedMove(myself ,Move )
+						forward("modelUpdate", "modelUpdate(robot,w)" ,"kb" ) 
+						 }
 						delay(PauseTime)
 						GoToFailed=true
 					}

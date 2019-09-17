@@ -78,7 +78,9 @@ QActor missionsolver context ctxExplorer{
 	var putFoodFridge = false
 	var takeDishPantry = false
 	var putDishDishwasher = false
-
+	
+	//
+	var ActualMissionName =\"\"
 	"]
 	State s0 initial {	
 		println("Actor: Mission Solver; State: initial")	
@@ -95,7 +97,9 @@ QActor missionsolver context ctxExplorer{
 	State addingFood {
 		["storeCurrentMessageForReply()"]
 		println("ADDING FOOD: Go to Fridge")
-		["addingFood = true
+		["
+		  ActualMissionName=\"AddFood\"
+		  addingFood = true
 		  preparing = false
 		  clearing = false
 		  goFridge = true
@@ -114,7 +118,9 @@ QActor missionsolver context ctxExplorer{
 	State preparingRoom {
 		["storeCurrentMessageForReply()"]
 		println("PREPARING: Go to Pantry")
-		["addingFood = false
+		["
+ 		  ActualMissionName=\"PreparingRoom\"
+		  addingFood = false
 		  preparing = true
 		  clearing = false
 			//---
@@ -131,7 +137,8 @@ QActor missionsolver context ctxExplorer{
 	State clearingRoom {
 		["storeCurrentMessageForReply()"]
 		println("ADDING FOOD: Go to Table")
-		["addingFood = false
+		["ActualMissionName=\"ClearingRoom\"
+		  addingFood = false
 		  preparing = false
 		  clearing = true
 		  goFridge = true
@@ -147,7 +154,8 @@ QActor missionsolver context ctxExplorer{
 	State home {
 		["storeCurrentMessageForReply()"]
 		println("GO HOME: Go to Home")
-		["addingFood = false
+		["ActualMissionName=\"GoToHome\"
+		  addingFood = false
 		  preparing = false
 		  clearing = false
 		  goFridge = false
@@ -196,7 +204,9 @@ QActor missionsolver context ctxExplorer{
 		
  	State fail{
  		println("WARNING: Explorer: fail.")
- 		["replyToCaller(\"missionFinish\", \"missionFinish(fail)\")"]		
+ 		["val Resp = \"Fail$ActualMissionName\""]
+ 		forward resourcemodel -m modelUpdate : modelUpdate(metre,$Resp)
+		//["replyToCaller(\"missionFinish\", \"missionFinish(fail)\")"]		
  	}Goto waiting
  	
 	State goalOk{
@@ -255,7 +265,11 @@ QActor missionsolver context ctxExplorer{
  	State checkGoDishwasherCR {} Goto goToDishwasher if "goDishwasher" else checkGoHomeCR
  	State checkGoHomeCR {} Goto goToHome if "goHome" else reply
  	
- 	State reply{["replyToCaller(\"missionFinish\", \"missionFinish(ok)\")"]	}Goto waiting
+ 	State reply{
+ 		["val Resp = \"Ok$ActualMissionName\""]
+ 		forward resourcemodel -m modelUpdate : modelUpdate(metre,$Resp)
+ 		//["replyToCaller(\"missionFinish\", \"missionFinish($ActualMissionName)\")"]
+ 	}Goto waiting
  	
 }
 
@@ -668,7 +682,10 @@ QActor explorer context ctxExplorer{
 	
 	State handleStepFailGoTo{
 		println("GOTO->StepFail")		
-		run itunibo.planner.moveUtils.doPlannedMove(myself, Move)	
+		if "ignoreFail"{
+			run itunibo.planner.moveUtils.doPlannedMove(myself, Move)
+			forward kb -m modelUpdate : modelUpdate(  robot,  w)
+		}			
 		delayVar PauseTime
 		["GoToFailed=true"]	
 	}

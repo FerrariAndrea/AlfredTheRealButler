@@ -213,15 +213,33 @@
 	</style>
 	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
 	<script>
+		var ResetSonar =0;
+		function getMsgPayload(msg){
+			var start = msg.split("(").length-1;
+			if(start>0){
+				var temp =  msg.split("(")[start].split(")");
+				if(temp[0]!==undefined){
+					return temp[0];
+				}else{
+					return "";
+				}
+			}else{
+				return "";
+			}
+		}
 		let homePos = "X0Y0Osud"
 		var contentFood1 = ""; var contentFood2 = ""; var contentDishwasher = ""; var contentPantry = "";
 		var socket = io.connect();
 		socket.on('connect', function () { console.log("socket connected"); });
 		//ricevo messaggio da socket con contenuto v rappresentante la stringa che verrà inserita nel form.
 		socket.on('message', function (v) {
-			//console.log(v);
+			console.log(v);
 
-			if (v.indexOf("robot") >= 0) { document.getElementById('robotDisplay').innerHTML = v; }
+			if (v.indexOf("robot") >= 0) {
+			document.getElementById('robotDisplay').innerHTML = getMsgPayload(v);
+			ResetSonar++;
+			if(ResetSonar>2){document.getElementById('sonarRobotDisplay').innerHTML ="+inf";}
+			}
 			if (v.indexOf("fridge") >= 0) {
 				contentFood1 = v; contentFood2 = v;
 				contentFood1 = contentFood1.substr(contentFood1.indexOf('{') + 1)
@@ -248,15 +266,24 @@
 				document.getElementById('pantry').innerHTML = "" + contentPantry
 			} //PANTRY
 
-			if (v.indexOf("sonarRobot") >= 0) { document.getElementById('sonarRobotDisplay').innerHTML = v.split('(')[2].split(')')[0]; }
-			if (v.indexOf("sonarLeft") >= 0) { document.getElementById('sonarRobotLDisplay').innerHTML = v.split('(')[2].split(')')[0]; }
-			if (v.indexOf("sonarRight") >= 0) { document.getElementById('sonarRobotRDisplay').innerHTML = v.split('(')[2].split(')')[0]; }
-			if (v.indexOf("posRobot") >= 0 && v.split('(')[2].split(')')[0] !== "") {
-				var lastPos = v.split('(')[2].split(')')[0];
-				//console.log(lastPos)
-				document.getElementById('robotPosDisplay').innerHTML = lastPos;
-				console.log(getSecondLastState() === "null")
-				if (lastPos === homePos && getSecondLastState() === "null") {
+			if (v.indexOf("sonarRobot") >= 0) {ResetSonar=0; document.getElementById('sonarRobotDisplay').innerHTML = getMsgPayload(v); }
+			if (v.indexOf("sonarLeft") >= 0) { document.getElementById('sonarRobotLDisplay').innerHTML = getMsgPayload(v); }
+			if (v.indexOf("sonarRight") >= 0) { document.getElementById('sonarRobotRDisplay').innerHTML = getMsgPayload(v); }
+			if (v.indexOf("posRobot") >= 0 && v.split('(')[2].split(')')[0] !== "") {document.getElementById('robotPosDisplay').innerHTML = getMsgPayload(v);}
+			if(v.indexOf("metre") >= 0 ){
+				var resp = getMsgPayload(v);
+				document.getElementById('lastCompleteMission').innerHTML =resp;
+				if(resp==="endExplorBoundOk"){
+					setState("toExploreTable");
+				}else if(resp==="endExplorTableOk"){
+					setState("toPrepare");
+				}else if(resp==="OkClearingRoom" || resp==="FailClearingRoom"){
+					setState("done");
+				}else if((resp[0]==="O" && resp[1]==="k" )|| (resp[0]==="F" && resp[1]==="a")){
+					setState("ready")
+				}
+				/*
+				if (getSecondLastState() === "null") {
 					setState("toExploreTable");
 				} else if (lastPos === homePos && getSecondLastState() === "toExploreTable") {
 					setState("toPrepare");
@@ -267,6 +294,7 @@
 				} else if (lastPos === homePos && getSecondLastState() === "done") {
 					setState("done")
 				}
+				*/
 			}
 		});
 
@@ -356,6 +384,9 @@
 		</div>
 		<div>
 			<b>ROBOT POS</b>: <span id="robotPosDisplay"></span>
+		</div>
+		<div>
+			<b>LAST COMPLETE MISSION</b>: <span id="lastCompleteMission"></span>
 		</div>
 		<div>
 			<b>SONAR STATE</b>: <span id="sonarRobotDisplay"></span>

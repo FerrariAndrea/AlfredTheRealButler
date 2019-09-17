@@ -51,7 +51,7 @@ QActor resourcemodel context ctxResourceModel {
 		}
 		//Messaggi di fine missione per il metre (frontend)
 		onMsg( modelUpdate : modelUpdate(metre,V ) ) {
-			run itunibo.robot.resourceModelSupport.updateSonarRobotModel( myself, payloadArg(1) )
+			run itunibo.robot.resourceModelSupport.updateMetreModel( myself, payloadArg(1) )
 		}
 		onMsg( modelUpdate : modelUpdate(pos,V ) ) {
 			run itunibo.robot.resourceModelSupport.updatePosRobotModel( myself, payloadArg(1) )

@@ -36,7 +36,9 @@ class Missionsolver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 			var putFoodFridge = false
 			var takeDishPantry = false
 			var putDishDishwasher = false
-		
+			
+			//
+			var ActualMissionName =""
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -57,7 +59,9 @@ class Missionsolver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 					action { //it:State
 						storeCurrentMessageForReply()
 						println("ADDING FOOD: Go to Fridge")
-						addingFood = true
+						
+								  ActualMissionName="AddFood"
+								  addingFood = true
 								  preparing = false
 								  clearing = false
 								  goFridge = true
@@ -78,7 +82,9 @@ class Missionsolver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 					action { //it:State
 						storeCurrentMessageForReply()
 						println("PREPARING: Go to Pantry")
-						addingFood = false
+						
+						 		  ActualMissionName="PreparingRoom"
+								  addingFood = false
 								  preparing = true
 								  clearing = false
 									//---
@@ -96,7 +102,8 @@ class Missionsolver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 					action { //it:State
 						storeCurrentMessageForReply()
 						println("ADDING FOOD: Go to Table")
-						addingFood = false
+						ActualMissionName="ClearingRoom"
+								  addingFood = false
 								  preparing = false
 								  clearing = true
 								  goFridge = true
@@ -113,7 +120,8 @@ class Missionsolver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 					action { //it:State
 						storeCurrentMessageForReply()
 						println("GO HOME: Go to Home")
-						addingFood = false
+						ActualMissionName="GoToHome"
+								  addingFood = false
 								  preparing = false
 								  clearing = false
 								  goFridge = false
@@ -174,7 +182,8 @@ class Missionsolver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 				state("fail") { //this:State
 					action { //it:State
 						println("WARNING: Explorer: fail.")
-						replyToCaller("missionFinish", "missionFinish(fail)")
+						val Resp = "Fail$ActualMissionName"
+						forward("modelUpdate", "modelUpdate(metre,$Resp)" ,"resourcemodel" ) 
 					}
 					 transition( edgeName="goto",targetState="waiting", cond=doswitch() )
 				}	 
@@ -288,7 +297,8 @@ class Missionsolver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 				}	 
 				state("reply") { //this:State
 					action { //it:State
-						replyToCaller("missionFinish", "missionFinish(ok)")
+						val Resp = "Ok$ActualMissionName"
+						forward("modelUpdate", "modelUpdate(metre,$Resp)" ,"resourcemodel" ) 
 					}
 					 transition( edgeName="goto",targetState="waiting", cond=doswitch() )
 				}	 
