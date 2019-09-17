@@ -19,7 +19,13 @@ class Missionsolver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 			var addingFood = false
 			var preparing = false
 			var clearing = false
-			var goingHome =false
+			var goingHome = false
+		
+			var goTable = false
+			var goHome = false
+			var goFridge = false
+			var goPantry = false
+			var goDishwasher = false
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -41,14 +47,29 @@ class Missionsolver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 						storeCurrentMessageForReply()
 						println("ADDING FOOD: Go to Fridge")
 						addingFood = true
+								  preparing = false
+								  clearing = false
+								  goFridge = true
+								  goTable = true
+								  goHome = true
+								  goDishwasher = false
+								  goPantry = false
 					}
-					 transition( edgeName="goto",targetState="goToFridge", cond=doswitch() )
+					 transition( edgeName="goto",targetState="checkAddingFood", cond=doswitch() )
 				}	 
 				state("preparingRoom") { //this:State
 					action { //it:State
 						storeCurrentMessageForReply()
 						println("PREPARING: Go to Pantry")
-						preparing = true
+						addingFood = false
+								  preparing = true
+								  clearing = false
+									//---
+								  goFridge = true
+								  goTable = true
+								  goHome = true
+								  goDishwasher = false
+								  goPantry = true
 					}
 					 transition( edgeName="goto",targetState="goToPantry", cond=doswitch() )
 				}	 
@@ -56,7 +77,14 @@ class Missionsolver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 					action { //it:State
 						storeCurrentMessageForReply()
 						println("ADDING FOOD: Go to Table")
-						clearing = true
+						addingFood = false
+								  preparing = false
+								  clearing = true
+								  goFridge = true
+								  goTable = true
+								  goHome = true
+								  goDishwasher = true
+								  goPantry = false
 					}
 					 transition( edgeName="goto",targetState="goToTable", cond=doswitch() )
 				}	 
@@ -64,36 +92,41 @@ class Missionsolver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 					action { //it:State
 						storeCurrentMessageForReply()
 						println("GO HOME: Go to Home")
-							 addingFood = false
-									 preparing = false
-									 clearing = false
-									 goingHome =true
+						addingFood = false
+								  preparing = false
+								  clearing = false
+								  goFridge = false
+								  goTable = false
+								  goHome = false
+								  goDishwasher = false
+								  goPantry = false
 					}
 					 transition( edgeName="goto",targetState="goToHome", cond=doswitch() )
 				}	 
 				state("goToFridge") { //this:State
 					action { //it:State
+						goFridge = false
 						forward("modelRequest", "modelRequest(map,fridge)" ,"kb" ) 
 					}
 					 transition(edgeName="t04",targetState="handlePos",cond=whenDispatch("modelMapResponse"))
 				}	 
 				state("goToPantry") { //this:State
 					action { //it:State
-						goingHome=false
+						goPantry = false
 						forward("modelRequest", "modelRequest(map,pantry)" ,"kb" ) 
 					}
 					 transition(edgeName="t05",targetState="handlePos",cond=whenDispatch("modelMapResponse"))
 				}	 
 				state("goToDishwasher") { //this:State
 					action { //it:State
-						goingHome=false; clearing=false
+						goDishwasher = false
 						forward("modelRequest", "modelRequest(map,dishwasher)" ,"kb" ) 
 					}
 					 transition(edgeName="t06",targetState="handlePos",cond=whenDispatch("modelMapResponse"))
 				}	 
 				state("goToTable") { //this:State
 					action { //it:State
-						addingFood=false;preparing=false
+						goTable = false
 						forward("modelRequest", "modelRequest(map,table)" ,"kb" ) 
 					}
 					 transition(edgeName="t07",targetState="handlePos",cond=whenDispatch("modelMapResponse"))
@@ -101,7 +134,7 @@ class Missionsolver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 				state("goToHome") { //this:State
 					action { //it:State
 						forward("modelRequest", "modelRequest(map,home)" ,"kb" ) 
-						goingHome=false
+						goHome = false
 					}
 					 transition(edgeName="t08",targetState="handlePos",cond=whenDispatch("modelMapResponse"))
 				}	 
@@ -134,26 +167,86 @@ class Missionsolver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 				state("checkAddingFood") { //this:State
 					action { //it:State
 					}
-					 transition( edgeName="goto",targetState="goToTable", cond=doswitchGuarded({addingFood}) )
+					 transition( edgeName="goto",targetState="checkGoFridgeAF", cond=doswitchGuarded({addingFood}) )
 					transition( edgeName="goto",targetState="checkPreparingRoom", cond=doswitchGuarded({! addingFood}) )
 				}	 
 				state("checkPreparingRoom") { //this:State
 					action { //it:State
 					}
-					 transition( edgeName="goto",targetState="goToTable", cond=doswitchGuarded({preparing}) )
+					 transition( edgeName="goto",targetState="checkGoPantryPR", cond=doswitchGuarded({preparing}) )
 					transition( edgeName="goto",targetState="checkClearingRoom", cond=doswitchGuarded({! preparing}) )
 				}	 
 				state("checkClearingRoom") { //this:State
 					action { //it:State
 					}
-					 transition( edgeName="goto",targetState="goToDishwasher", cond=doswitchGuarded({clearing}) )
-					transition( edgeName="goto",targetState="checkGoingHome", cond=doswitchGuarded({! clearing}) )
+					 transition( edgeName="goto",targetState="checkGoTableCR", cond=doswitchGuarded({clearing}) )
+					transition( edgeName="goto",targetState="reply", cond=doswitchGuarded({! clearing}) )
 				}	 
-				state("checkGoingHome") { //this:State
+				state("checkGoFridgeAF") { //this:State
 					action { //it:State
 					}
-					 transition( edgeName="goto",targetState="goToHome", cond=doswitchGuarded({goingHome}) )
-					transition( edgeName="goto",targetState="reply", cond=doswitchGuarded({! goingHome}) )
+					 transition( edgeName="goto",targetState="goToFridge", cond=doswitchGuarded({goFridge}) )
+					transition( edgeName="goto",targetState="checkGoTableAF", cond=doswitchGuarded({! goFridge}) )
+				}	 
+				state("checkGoTableAF") { //this:State
+					action { //it:State
+					}
+					 transition( edgeName="goto",targetState="goToTable", cond=doswitchGuarded({goTable}) )
+					transition( edgeName="goto",targetState="checkGoHomeAF", cond=doswitchGuarded({! goTable}) )
+				}	 
+				state("checkGoHomeAF") { //this:State
+					action { //it:State
+					}
+					 transition( edgeName="goto",targetState="goToHome", cond=doswitchGuarded({goHome}) )
+					transition( edgeName="goto",targetState="reply", cond=doswitchGuarded({! goHome}) )
+				}	 
+				state("checkGoPantryPR") { //this:State
+					action { //it:State
+					}
+					 transition( edgeName="goto",targetState="goToPantry", cond=doswitchGuarded({goPantry}) )
+					transition( edgeName="goto",targetState="checkGoFridgePR", cond=doswitchGuarded({! goPantry}) )
+				}	 
+				state("checkGoFridgePR") { //this:State
+					action { //it:State
+					}
+					 transition( edgeName="goto",targetState="goToFridge", cond=doswitchGuarded({goFridge}) )
+					transition( edgeName="goto",targetState="checkGoTablePR", cond=doswitchGuarded({! goFridge}) )
+				}	 
+				state("checkGoTablePR") { //this:State
+					action { //it:State
+					}
+					 transition( edgeName="goto",targetState="goToTable", cond=doswitchGuarded({goTable}) )
+					transition( edgeName="goto",targetState="checkGoHomePR", cond=doswitchGuarded({! goTable}) )
+				}	 
+				state("checkGoHomePR") { //this:State
+					action { //it:State
+					}
+					 transition( edgeName="goto",targetState="goToHome", cond=doswitchGuarded({goHome}) )
+					transition( edgeName="goto",targetState="reply", cond=doswitchGuarded({! goHome}) )
+				}	 
+				state("checkGoTableCR") { //this:State
+					action { //it:State
+					}
+					 transition( edgeName="goto",targetState="goToTable", cond=doswitchGuarded({goTable}) )
+					transition( edgeName="goto",targetState="checkGoFridgeCR", cond=doswitchGuarded({! goTable}) )
+				}	 
+				state("checkGoFridgeCR") { //this:State
+					action { //it:State
+					}
+					 transition( edgeName="goto",targetState="goToFridge", cond=doswitchGuarded({goFridge}) )
+					transition( edgeName="goto",targetState="checkGoDishwasherCR", cond=doswitchGuarded({! goFridge}) )
+				}	 
+				state("checkGoDishwasherCR") { //this:State
+					action { //it:State
+					}
+					 transition( edgeName="goto",targetState="goToDishwasher", cond=doswitchGuarded({goDishwasher}) )
+					transition( edgeName="goto",targetState="checkGoHomeCR", cond=doswitchGuarded({! goDishwasher}) )
+				}	 
+				state("checkGoHomeCR") { //this:State
+					action { //it:State
+					}
+					 transition( edgeName="goto",targetState="goToHome", cond=doswitchGuarded({goHome}) )
+					transition( edgeName="goto",targetState="reply", cond=doswitchGuarded({! goHome}) )
 				}	 
 				state("reply") { //this:State
 					action { //it:State

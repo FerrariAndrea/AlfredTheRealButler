@@ -264,6 +264,8 @@
 					setState("ready")
 				} else if (lastPos === homePos && getSecondLastState() === "ready") {
 					setState("ready")
+				} else if (lastPos === homePos && getSecondLastState() === "done") {
+					setState("done")
 				}
 			}
 		});
@@ -306,17 +308,6 @@
 			return window.sessionStorage.getItem("state")
 		}
 
-		function getState() {
-			//console.log("Current State: " + window.sessionStorage.getItem("state"))
-			return window.sessionStorage.getItem("state")
-		}
-
-
-		function getState() {
-			//console.log("Current State: " + window.sessionStorage.getItem("state"))
-			return window.sessionStorage.getItem("state")
-		}
-
 		function getSecondLastState() {
 			//console.log("Second Last State: " + window.sessionStorage.getItem("secondLastState"))
 			return window.sessionStorage.getItem("secondLastState")
@@ -324,23 +315,26 @@
 
 		function setState(stateName) {
 			//console.log("stateName:" + stateName)
-			if (stateName !== "stopped") setSecondLastState(getState())
-			state = window.sessionStorage.setItem("state", stateName);
+			if (stateName !== "stopped") {setSecondLastState(getState())}
+			window.sessionStorage.setItem("state", stateName);
+			state = getState();
 			loadLayout(stateName)
-			document.getElementById("robotState").innerHTML = state
+			//document.getElementById("robotState").innerHTML = state
 		}
 
 		function restoreState(stateName) {
-			state = window.sessionStorage.setItem("state", stateName);
+			window.sessionStorage.setItem("state", stateName);
+			state = getState();
 			secondLastState = window.sessionStorage.getItem("secondLastState")
 			loadLayout(stateName)
-			document.getElementById("robotState").innerHTML = state
+			//document.getElementById("robotState").innerHTML = state
 		}
 
 		function setSecondLastState(stateName) {
 			//console.log("Second Last State:" + stateName)
-			secondLastState = window.sessionStorage.setItem("secondLastState", stateName);
-			document.getElementById("robotSecondLastState").innerHTML = secondLastState
+			window.sessionStorage.setItem("secondLastState", stateName);
+			secondLastState = getSecondLastState();
+			//document.getElementById("robotSecondLastState").innerHTML = secondLastState
 		}
 	</script>
 	<!-- <script type="text/javascript" src="QActorWebUI.js"></script> -->
@@ -444,9 +438,11 @@
 					<form class="myLabelWhite">
 						<center>EMERGENCY:</center>
 					</form>
+					<!--
 					<form action="/home" method="post">
 						<input id="goHome" type="submit" class="myButton" value="GO HOME" onclick="setState('working')">
 					</form>
+					-->
 					<form action="/stop" method="post">
 						<input id="stop" type="submit" class="myButtonRed" value="STOP" onclick="setState('stopped')">
 					</form>

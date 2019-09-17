@@ -50,7 +50,13 @@ QActor missionsolver context ctxExplorer{
 	var addingFood = false
 	var preparing = false
 	var clearing = false
-	var goingHome =false
+	var goingHome = false
+
+	var goTable = false
+	var goHome = false
+	var goFridge = false
+	var goPantry = false
+	var goDishwasher = false
 	"]
 	State s0 initial {	
 		println("Actor: Mission Solver; State: initial")	
@@ -59,9 +65,9 @@ QActor missionsolver context ctxExplorer{
 	State waiting{
 			println("Waiting for mission... Please send an action!") 	
 	}	Transition t0 whenEvent	  addFood -> addingFood
-				  whenEvent   prepare -> preparingRoom
-				  whenEvent   clear -> clearingRoom
-				  whenEvent   home -> home 
+				  	  whenEvent   prepare -> preparingRoom
+				 	  whenEvent   clear -> clearingRoom
+				  	  whenEvent   home -> home 
 				  // ------------------ MACRO COMMANDS ------------------
 	
 	State addingFood {
@@ -71,56 +77,84 @@ QActor missionsolver context ctxExplorer{
 		//RITORNA NELLA POSIZIONE HOME
 		["storeCurrentMessageForReply()"]
 		println("ADDING FOOD: Go to Fridge")
-		["addingFood = true"]
-	} Goto goToFridge
+		["addingFood = true
+		  preparing = false
+		  clearing = false
+		  goFridge = true
+		  goTable = true
+		  goHome = true
+		  goDishwasher = false
+		  goPantry = false
+		 "]
+	} Goto checkAddingFood
 	
 	State preparingRoom {
 		["storeCurrentMessageForReply()"]
 		println("PREPARING: Go to Pantry")
-		["preparing = true"]
-		//METTERE PIATTI DAL PANTRY AL TABLE
+		["addingFood = false
+		  preparing = true
+		  clearing = false
+			//---
+		  goFridge = true
+		  goTable = true
+		  goHome = true
+		  goDishwasher = false
+		  goPantry = true
+		 "]		//METTERE PIATTI DAL PANTRY AL TABLE
 	} Goto goToPantry
 	
 	State clearingRoom {
 		["storeCurrentMessageForReply()"]
 		println("ADDING FOOD: Go to Table")
-		["clearing = true"]
-		//PRENDERE CIBO DAL TAVOLO, PORTARLO AL FRIGO E I PIATTI NEL DISHWASHER
+		["addingFood = false
+		  preparing = false
+		  clearing = true
+		  goFridge = true
+		  goTable = true
+		  goHome = true
+		  goDishwasher = true
+		  goPantry = false
+		 "]		//PRENDERE CIBO DAL TAVOLO, PORTARLO AL FRIGO E I PIATTI NEL DISHWASHER
 	} Goto goToTable
 	
 	State home {
 		["storeCurrentMessageForReply()"]
 		println("GO HOME: Go to Home")
-		["	 addingFood = false
-			 preparing = false
-			 clearing = false
-			 goingHome =true
-		"]
+		["addingFood = false
+		  preparing = false
+		  clearing = false
+		  goFridge = false
+		  goTable = false
+		  goHome = false
+		  goDishwasher = false
+		  goPantry = false
+		 "]
 	} Goto goToHome
 	// ------------------ REACH OBJECTS ------------------
 	
 	State goToFridge {
+		["goFridge = false"]
 		forward kb -m modelRequest : modelRequest(map,fridge)
 	} Transition t0   whenMsg modelMapResponse  -> handlePos
 	
 	State goToPantry {
-		["goingHome=false"]	
+		["goPantry = false"]	
 		forward kb -m modelRequest : modelRequest(map,pantry)
 	} Transition t0   whenMsg modelMapResponse  -> handlePos
 	
 	State goToDishwasher {
-		["goingHome=false; clearing=false"]	
+		["goDishwasher = false"]	
 		forward kb -m modelRequest : modelRequest(map,dishwasher)
 	} Transition t0   whenMsg modelMapResponse  -> handlePos
 	
 	State goToTable {
-		["addingFood=false;preparing=false"]	
+		["goTable = false"]	
 		forward kb -m modelRequest : modelRequest(map,table)
 	} Transition t0   whenMsg modelMapResponse  -> handlePos
 	
 	State goToHome {
 		forward kb -m modelRequest : modelRequest(map,home)
-		["goingHome=false"]
+		["goHome = false"]
 	} Transition t0   whenMsg modelMapResponse  -> handlePos
 	
  	State  handlePos{
@@ -143,10 +177,27 @@ QActor missionsolver context ctxExplorer{
  		delay 2000 // to simulate the action
  	} Goto checkAddingFood
  	
- 	State checkAddingFood {} Goto goToTable if "addingFood" else checkPreparingRoom
- 	State checkPreparingRoom {} Goto goToTable if "preparing" else checkClearingRoom
- 	State checkClearingRoom {} Goto goToDishwasher if "clearing" else checkGoingHome
- 	State checkGoingHome {} Goto goToHome if "goingHome" else reply
+ 	//Macro Missions Flags
+ 	State checkAddingFood {} Goto checkGoFridgeAF if "addingFood" else checkPreparingRoom
+ 	State checkPreparingRoom {} Goto checkGoPantryPR if "preparing" else checkClearingRoom
+ 	State checkClearingRoom {} Goto checkGoTableCR if "clearing" else reply
+ 	
+ 	//Check Adding Food
+ 	State checkGoFridgeAF {} Goto goToFridge if "goFridge" else checkGoTableAF
+ 	State checkGoTableAF  {} Goto goToTable  if "goTable"  else checkGoHomeAF
+ 	State checkGoHomeAF {} Goto goToHome if "goHome" else reply
+ 	
+ 	//Check Preparing Food
+ 	State checkGoPantryPR {} Goto goToPantry if "goPantry" else checkGoFridgePR
+ 	State checkGoFridgePR  {} Goto goToFridge  if "goFridge"  else checkGoTablePR
+ 	State checkGoTablePR {} Goto goToTable if "goTable" else checkGoHomePR
+ 	State checkGoHomePR {} Goto goToHome if "goHome" else reply
+ 	
+ 	//Check Clearing Food
+ 	State checkGoTableCR {} Goto goToTable if "goTable" else checkGoFridgeCR
+ 	State checkGoFridgeCR  {} Goto goToFridge  if "goFridge"  else checkGoDishwasherCR
+ 	State checkGoDishwasherCR {} Goto goToDishwasher if "goDishwasher" else checkGoHomeCR
+ 	State checkGoHomeCR {} Goto goToHome if "goHome" else reply
  	
  	State reply{["replyToCaller(\"missionFinish\", \"missionFinish(ok)\")"]	}Goto waiting
  	
