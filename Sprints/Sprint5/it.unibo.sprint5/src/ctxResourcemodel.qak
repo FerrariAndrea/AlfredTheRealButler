@@ -149,12 +149,24 @@ QActor kb context ctxResourceModel{
 				}
 									 		
 			}
+			/*		
 			if "Target==\"map\""{
 				["val Temp =Value.split(\"X\");val Name =Temp[2];val Y=Temp[1]; val X=Temp[0]"]
 				
-			println("----------->RICEVUTO MESSAGGIO $Value")
-				solve(updatePos(pos($Name,$X,$Y)))					
+				println("----------->RICEVUTO MESSAGGIO $Value")
+				solve(updatePos(pos($Name,$X,$Y)))
+				solve(pos(table,X,Y))
+				ifSolved { 					
+					["
+						var Xt = getCurSol(\"X\").toString()
+						var Yt = getCurSol(\"Y\").toString()
+					"]
+					println("$Xt $Yt")
+					}else{
+						println("not good :(")
+					}					
 			}
+			*/
 					
 		}	
 		onMsg(  modelUpdateMap:  modelUpdateMap(  NAME,X,Y ) ) { 
@@ -164,11 +176,20 @@ QActor kb context ctxResourceModel{
 				var X=payloadArg(1)
 				var Y=payloadArg(2)
 			"]
-			
-			println("----------->RICEVUTO MESSAGGIO $Name $X $Y")
-				solve(updatePos(pos($Name,$X,$Y)))
-			
-					
+			println("hereee-->$Name $X $Y")
+			solve(updatePos($Name,$X,$Y))
+			/*
+				solve(pos(table,X,Y))
+				ifSolved { 					
+					["
+						var Xt = getCurSol(\"X\").toString()
+						var Yt = getCurSol(\"Y\").toString()
+					"]
+						println("$Xt $Yt")
+					}else{
+						println("not good :(")
+					}	
+			 */		
 		}	
 		
 	}Transition t0  whenMsg   modelUpdate  -> handle

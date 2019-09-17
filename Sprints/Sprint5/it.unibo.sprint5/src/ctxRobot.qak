@@ -183,14 +183,14 @@ QActor onecellforward context ctxRobot {
 		var foundObstacle = false;
 		var StepTime = 0L;
 		var Duration : Long =0;
-		//var IgnoreWall =0
+		var PauseTime :Long =250;
 	"]  
 	State s0 initial {	 
 		println("Start onecellforward")  		
 	} Goto ready
 	
 	State ready{
-		["foundObstacle = false; // IgnoreWall =0"]	
+		["foundObstacle = false"]	
 	}
 	Transition t0 whenMsg onestep -> doMoveForward
 					whenMsg stop -> paused
@@ -208,17 +208,7 @@ QActor onecellforward context ctxRobot {
 			["StepTime = payloadArg(0).toLong()"]
 			forward resourcemodel -m modelChange : modelChange(robot,w)
 			run itunibo.planner.plannerUtil.startTimer()
-			//["IgnoreWall=0"]
 		}
-		//solo per il virtuale, per trovare gli oggetti in mappa	
-		/*
-		onMsg( onestepIW : onestepIW( TIME ) ) {
-			["StepTime = payloadArg(0).toLong()"]
-			forward resourcemodel -m modelChange : modelChange(robot,w)
-			run itunibo.planner.plannerUtil.startTimer()
-			["IgnoreWall=1"]
-		}
-		*/
 	} 
 	Transition t0 whenTimeVar  StepTime -> endDoMoveForward		
  		          whenEvent sonarRobot  -> handleSonarRobot
@@ -235,14 +225,8 @@ QActor onecellforward context ctxRobot {
 	State handleSonarRobot{  //before than the step time
 		run itunibo.planner.moveUtils.setDuration(myself)
 		//printCurrentMessage
- 		onMsg ( sonarRobot : sonar( DISTANCE ) ){     
- 			/*
-			["val distance = Integer.parseInt( payloadArg(0) ) 
-				if (IgnoreWall ==1) {foundObstacle = (distance<=5)
-				}else{foundObstacle = (distance<10)}
-               "]  
-              */
-				["foundObstacle = (Integer.parseInt( payloadArg(0) ) <10)"]
+ 		onMsg ( sonarRobot : sonar( DISTANCE ) ){   
+				["foundObstacle = (Integer.parseInt( payloadArg(0) ) <20)"]
    		}
 	}	
 	Goto stepFail if "foundObstacle" else ready
@@ -258,11 +242,11 @@ QActor onecellforward context ctxRobot {
 	Goto goBackFromFail
 	
 	State goBackFromFail{
-	
  		forward resourcemodel -m modelChange : modelChange(robot,s)  
- 		delayVar Duration 
+ 		["val Jal = Duration/4"]
+ 		delayVar Jal
   		forward resourcemodel -m modelChange : modelChange(robot,h) 
-  		
+  		delayVar PauseTime 
 		["replyToCaller(\"stepFail\", \"stepFail(obstacle,$Duration) \")"]
 		
 	}Goto ready

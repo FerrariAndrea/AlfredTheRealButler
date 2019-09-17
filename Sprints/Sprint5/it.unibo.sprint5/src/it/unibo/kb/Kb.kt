@@ -67,10 +67,6 @@ class Kb ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope){
 								forward("modelUpdate", "modelUpdate(pos,$Position)" ,"resourcemodel" ) 
 								 }
 								 }
-								if(Target=="map"){ val Temp =Value.split("X");val Name =Temp[2];val Y=Temp[1]; val X=Temp[0]
-								println("----------->RICEVUTO MESSAGGIO $Value")
-								solve("updatePos(pos($Name,$X,$Y))","") //set resVar	
-								 }
 						}
 						if( checkMsgContent( Term.createTerm("modelUpdateMap(NAME,X,Y)"), Term.createTerm("modelUpdateMap(NAME,X,Y)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
@@ -78,8 +74,8 @@ class Kb ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope){
 												var Name=payloadArg(0)
 												var X=payloadArg(1)
 												var Y=payloadArg(2)
-								println("----------->RICEVUTO MESSAGGIO $Name $X $Y")
-								solve("updatePos(pos($Name,$X,$Y))","") //set resVar	
+								println("hereee-->$Name $X $Y")
+								solve("updatePos($Name,$X,$Y)","") //set resVar	
 						}
 					}
 					 transition(edgeName="t05",targetState="handle",cond=whenDispatch("modelUpdate"))
