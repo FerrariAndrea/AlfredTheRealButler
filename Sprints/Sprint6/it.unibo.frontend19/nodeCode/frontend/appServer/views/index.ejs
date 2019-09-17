@@ -237,8 +237,8 @@
 
 			if (v.indexOf("robot") >= 0) {
 			document.getElementById('robotDisplay').innerHTML = getMsgPayload(v);
-			ResetSonar++;
-			if(ResetSonar>2){document.getElementById('sonarRobotDisplay').innerHTML ="+inf";}
+			ResetSonar=ResetSonar+1;
+			if(ResetSonar>10){document.getElementById('sonarRobotDisplay').innerHTML ="+inf";}
 			}
 			if (v.indexOf("fridge") >= 0) {
 				contentFood1 = v; contentFood2 = v;
