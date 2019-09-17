@@ -16,6 +16,8 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 		
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
+			var ignoreFail : Boolean=true;
+			//--------------------
 			var stepCounter = 0 
 			var Move = ""
 			var StepTime :Int  = 350	//for virtual
@@ -44,6 +46,9 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 			var StartOrientationCheckTable ="sud"
 			//go to
 			var GoToFailed =false;
+			//-------FIX GO HOME
+			var IsFixForHome = false;
+			var NeedReplyForFixHome =false;
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
@@ -59,6 +64,7 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				state("waitCmd") { //this:State
 					action { //it:State
 						println("Waiting for exploration cmd...")
+						needExploreBound=false;IsFixForHome=false;NeedReplyForFixHome=false;
 					}
 					 transition(edgeName="t011",targetState="handeCmd",cond=whenDispatch("doExplor"))
 					transition(edgeName="t012",targetState="goToPosition",cond=whenEvent("goTo"))
@@ -66,7 +72,6 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				state("handeCmd") { //this:State
 					action { //it:State
 						storeCurrentMessageForReply()
-						needExploreBound=false
 						if( checkMsgContent( Term.createTerm("doExplor(TARGET)"), Term.createTerm("doExplor(TARGET)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								
@@ -202,6 +207,7 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 											MapDimY = itunibo.planner.plannerUtil.getMapDimY()-1
 						println("Perimeter completely walked. DimX: $MapDimX DimY: $MapDimY")
 						replyToCaller("endExplor", "endExplor(ok)")
+						forward("modelUpdate", "modelUpdate(metre,endExplorBoundOk)" ,"resourcemodel" ) 
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
@@ -350,10 +356,48 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						println("Map after explore table")
 						itunibo.planner.plannerUtil.showMap(  )
 						itunibo.planner.plannerUtil.saveMap( mapname  )
-						println("Table exploration end.")
-						replyToCaller("endExplor", "endExplor(ok)")
+						println("Table exploration end, starting fix-go-home")
 					}
-					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
+					 transition( edgeName="goto",targetState="startFixGoHome", cond=doswitch() )
+				}	 
+				state("startFixGoHome") { //this:State
+					action { //it:State
+						IsFixForHome=true;NeedReplyForFixHome=true;
+						itunibo.planner.plannerUtil.setGoal( 0, 0  )
+						itunibo.planner.moveUtils.doPlan(myself)
+					}
+					 transition( edgeName="goto",targetState="executePlannedActions", cond=doswitchGuarded({itunibo.planner.moveUtils.existPlan()}) )
+					transition( edgeName="goto",targetState="checkRotation", cond=doswitchGuarded({! itunibo.planner.moveUtils.existPlan()}) )
+				}	 
+				state("checkNord") { //this:State
+					action { //it:State
+						itunibo.planner.moveUtils.doPlannedMove(myself ,Move )
+						Direction = itunibo.planner.plannerUtil.getDirection()
+						println("Actor: Explorer; State: rotateSouth; Payload: $Direction")
+					}
+					 transition( edgeName="goto",targetState="rotateSouth", cond=doswitchGuarded({(Direction!="upDir")}) )
+					transition( edgeName="goto",targetState="forceGoUp", cond=doswitchGuarded({! (Direction!="upDir")}) )
+				}	 
+				state("rotateNord") { //this:State
+					action { //it:State
+						Move="a"
+						delay(PauseTime)
+						forward("onerotationstep", "onerotationstep($Move)" ,"onerotateforward" ) 
+					}
+					 transition(edgeName="t029",targetState="checkRotation",cond=whenDispatch("rotationOk"))
+				}	 
+				state("forceGoUp") { //this:State
+					action { //it:State
+						forward("onestep", "onestep($StepTime)" ,"onecellforward" ) 
+					}
+					 transition(edgeName="t130",targetState="endFixGoHome",cond=whenDispatch("stepOk"))
+					transition(edgeName="t131",targetState="endFixGoHome",cond=whenDispatch("stepFail"))
+				}	 
+				state("endFixGoHome") { //this:State
+					action { //it:State
+						IsFixForHome=false
+					}
+					 transition( edgeName="goto",targetState="checkRotation", cond=doswitch() )
 				}	 
 				state("goToPosition") { //this:State
 					action { //it:State
@@ -373,7 +417,7 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						}
 					}
 					 transition( edgeName="goto",targetState="executePlannedActions", cond=doswitchGuarded({itunibo.planner.moveUtils.existPlan()}) )
-					transition( edgeName="goto",targetState="checkSouth", cond=doswitchGuarded({! itunibo.planner.moveUtils.existPlan()}) )
+					transition( edgeName="goto",targetState="checkRotation", cond=doswitchGuarded({! itunibo.planner.moveUtils.existPlan()}) )
 				}	 
 				state("executePlannedActions") { //this:State
 					action { //it:State
@@ -385,24 +429,22 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						 }
 					}
 					 transition( edgeName="goto",targetState="doTheMove", cond=doswitchGuarded({(Move.length>0) }) )
-					transition( edgeName="goto",targetState="checkSouth", cond=doswitchGuarded({! (Move.length>0) }) )
+					transition( edgeName="goto",targetState="checkRotation", cond=doswitchGuarded({! (Move.length>0) }) )
 				}	 
 				state("doTheMove") { //this:State
 					action { //it:State
-						println("doTheMove------------------------<<<<")
 						if(Move=="a" || Move=="d" ){ forward("onerotationstep", "onerotationstep($Move)" ,"onerotateforward" ) 
 						 }
 						else
 						 { forward("onestep", "onestep($StepTime)" ,"onecellforward" ) 
 						  }
 					}
-					 transition(edgeName="t029",targetState="handleStepOkGoTo",cond=whenDispatch("stepOk"))
-					transition(edgeName="t030",targetState="handleStepFailGoTo",cond=whenDispatch("stepFail"))
-					transition(edgeName="t031",targetState="handleStepOkGoTo",cond=whenDispatch("rotationOk"))
+					 transition(edgeName="t032",targetState="handleStepOkGoTo",cond=whenDispatch("stepOk"))
+					transition(edgeName="t033",targetState="handleStepFailGoTo",cond=whenDispatch("stepFail"))
+					transition(edgeName="t034",targetState="handleStepOkGoTo",cond=whenDispatch("rotationOk"))
 				}	 
 				state("handleStepOkGoTo") { //this:State
 					action { //it:State
-						println("GOTO->StepOK")
 						itunibo.planner.moveUtils.doPlannedMove(myself ,Move )
 						delay(PauseTime)
 					}
@@ -415,7 +457,8 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						delay(PauseTime)
 						GoToFailed=true
 					}
-					 transition( edgeName="goto",targetState="rotateSouth", cond=doswitch() )
+					 transition( edgeName="goto",targetState="executePlannedActions", cond=doswitchGuarded({ignoreFail}) )
+					transition( edgeName="goto",targetState="rotateSouth", cond=doswitchGuarded({! ignoreFail}) )
 				}	 
 				state("rotateSouth") { //this:State
 					action { //it:State
@@ -423,7 +466,7 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						delay(PauseTime)
 						forward("onerotationstep", "onerotationstep($Move)" ,"onerotateforward" ) 
 					}
-					 transition(edgeName="t032",targetState="checkSouth",cond=whenDispatch("rotationOk"))
+					 transition(edgeName="t035",targetState="checkRotation",cond=whenDispatch("rotationOk"))
 				}	 
 				state("checkSouth") { //this:State
 					action { //it:State
@@ -436,17 +479,29 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				}	 
 				state("endOfJob") { //this:State
 					action { //it:State
-						if(GoToFailed){ println("Actor: Explorer; State: handleStepFail; Payload: Fail step :(")
-						itunibo.planner.plannerUtil.showMap(  )
-						println("Actor: Explorer; State: handleStepFail; Payload: Replan and return at home.")
-						replyToCaller("goToFail", "goToFail(fail)")
+						if(NeedReplyForFixHome){ replyToCaller("endExplor", "endExplor(ok)")
+						forward("modelUpdate", "modelUpdate(metre,endExplorTableOk)" ,"resourcemodel" ) 
+						println("FixGoHome end.")
 						 }
 						else
-						 { println("Explorer: on the target cell!")
-						 replyToCaller("goToOk", "goToOk(ok)")
+						 { if(GoToFailed){ println("Actor: Explorer; State: handleStepFail; Payload: Fail step :(")
+						 itunibo.planner.plannerUtil.showMap(  )
+						 println("Actor: Explorer; State: handleStepFail; Payload: Replan and return at home.")
+						 replyToCaller("goToFail", "goToFail(fail)")
+						  }
+						 else
+						  { println("Explorer: on the target cell!")
+						  replyToCaller("goToOk", "goToOk(ok)")
+						   }
 						  }
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
+				}	 
+				state("checkRotation") { //this:State
+					action { //it:State
+					}
+					 transition( edgeName="goto",targetState="checkNord", cond=doswitchGuarded({IsFixForHome}) )
+					transition( edgeName="goto",targetState="checkSouth", cond=doswitchGuarded({! IsFixForHome}) )
 				}	 
 			}
 		}

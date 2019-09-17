@@ -36,6 +36,20 @@ class Fridge ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 						noFood = false
 					}
 					 transition(edgeName="t00",targetState="checkingFood",cond=whenEvent("takeFood"))
+					transition(edgeName="t01",targetState="puttingFood",cond=whenEvent("putFood"))
+				}	 
+				state("puttingFood") { //this:State
+					action { //it:State
+						
+										selectedFood = payloadArg(0).toInt()
+										quantityFood = payloadArg(1).toInt()
+						if(selectedFood == 1){ food1 += quantityFood
+						 }
+						else
+						 { food2 += quantityFood
+						  }
+					}
+					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
 				state("checkingFood") { //this:State
 					action { //it:State

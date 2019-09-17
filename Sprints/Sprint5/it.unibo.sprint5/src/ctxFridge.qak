@@ -2,6 +2,8 @@ System system5
 mqttBroker "localhost" : 1883
 
 Dispatch takeFood  : takeFood(X,Q)
+Dispatch putFood   : putFood(X,Q)
+
 Context ctxFridge ip[host="localhost" port=8035] -mqtt
 Context ctxDummy ip[host="dummyhost" port=9999] -mqtt 
 
@@ -24,6 +26,21 @@ QActor fridge context ctxFridge {
 		
 	State waitCmd { ["noFood = false"]} 
 	Transition t0 whenEvent takeFood -> checkingFood
+				  whenEvent putFood  -> puttingFood
+				  
+	State puttingFood {
+			["
+				selectedFood = payloadArg(0).toInt()
+				quantityFood = payloadArg(1).toInt()
+			"]
+			
+			if "selectedFood == 1" {
+				["food1 += quantityFood"]
+			} else {
+				["food2 += quantityFood"]
+			}
+			
+	} Goto waitCmd
 	
 	State checkingFood {
 		onMsg(   takeFood:  takeFood(X,Q) ) { 

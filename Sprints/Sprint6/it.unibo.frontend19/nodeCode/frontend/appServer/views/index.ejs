@@ -229,19 +229,23 @@
 				contentFood2 = contentFood2.substr(contentFood2.indexOf('[') + 1)
 				contentFood2 = contentFood2.substr(0, contentFood2.indexOf(']'))
 				console.log("Food 1: " + contentFood1 + "; Food 2: " + contentFood2)
+				window.sessionStorage.setItem("contentFood1", contentFood1)
+				window.sessionStorage.setItem("contentFood2", contentFood2)
 				document.getElementById('food').innerHTML = "Pizza: " + contentFood1 + "; Crescentina: " + contentFood2;
 			} //FOOD
-			if (v.indexOf("dishwasher") >= 0) { 
+			if (v.indexOf("dishwasher") >= 0) {
 				contentDishwasher = v;
-				contentDishwasher = contentDishwasher.substr(contentDishwasher.indexOf('{')+1)
+				contentDishwasher = contentDishwasher.substr(contentDishwasher.indexOf('{') + 1)
 				contentDishwasher = contentDishwasher.substr(0, contentDishwasher.indexOf('}'))
-				document.getElementById('dishwasher').innerHTML = ""+contentDishwasher
+				window.sessionStorage.setItem("contentDishwasher", contentDishwasher)
+				document.getElementById('dishwasher').innerHTML = "" + contentDishwasher
 			} //DISHWASHER 
 			if (v.indexOf("pantry") >= 0) {
 				contentPantry = v;
-				contentPantry = contentPantry.substr(contentPantry.indexOf('{')+1)
+				contentPantry = contentPantry.substr(contentPantry.indexOf('{') + 1)
 				contentPantry = contentPantry.substr(0, contentPantry.indexOf('}'))
-				document.getElementById('pantry').innerHTML = ""+contentPantry
+				window.sessionStorage.setItem("contentPantry", contentPantry)
+				document.getElementById('pantry').innerHTML = "" + contentPantry
 			} //PANTRY
 
 			if (v.indexOf("sonarRobot") >= 0) { document.getElementById('sonarRobotDisplay').innerHTML = v.split('(')[2].split(')')[0]; }
@@ -260,8 +264,6 @@
 					setState("ready")
 				} else if (lastPos === homePos && getSecondLastState() === "ready") {
 					setState("ready")
-				} else {
-					setState("done")
 				}
 			}
 		});
@@ -271,28 +273,74 @@
 	<script>
 		var state = getState()
 		var secondLastState = getSecondLastState()
+		contentFood1 = getContentFood1()
+		contentFood2 = getContentFood2()
+		contentPantry = getContentPantry()
+		contentDishwasher = getContentDishwasher()
+
+		//document.getElementById("robotState").innerHTML = state
+		//document.getElementById("robotSecondLastState").innerHTML = secondLastState
+
+		function getContentFood1() {
+			//console.log("Current State: " + window.sessionStorage.getItem("contentFood1"))
+			return window.sessionStorage.getItem("contentFood1")
+		}
+
+		function getContentFood2() {
+			//console.log("Current State: " + window.sessionStorage.getItem("contentFood2"))
+			return window.sessionStorage.getItem("contentFood2")
+		}
+
+		function getContentPantry() {
+			//console.log("Current State: " + window.sessionStorage.getItem("contentPantry"))
+			return window.sessionStorage.getItem("contentPantry")
+		}
+
+		function getContentDishwasher() {
+			//console.log("Current State: " + window.sessionStorage.getItem("contentDishwasher"))
+			return window.sessionStorage.getItem("contentDishwasher")
+		}
 
 		function getState() {
-			console.log("Current State: " + window.sessionStorage.getItem("state"))
+			//console.log("Current State: " + window.sessionStorage.getItem("state"))
+			return window.sessionStorage.getItem("state")
+		}
+
+		function getState() {
+			//console.log("Current State: " + window.sessionStorage.getItem("state"))
+			return window.sessionStorage.getItem("state")
+		}
+
+
+		function getState() {
+			//console.log("Current State: " + window.sessionStorage.getItem("state"))
 			return window.sessionStorage.getItem("state")
 		}
 
 		function getSecondLastState() {
-			console.log("Second Last State: " + window.sessionStorage.getItem("secondLastState"))
+			//console.log("Second Last State: " + window.sessionStorage.getItem("secondLastState"))
 			return window.sessionStorage.getItem("secondLastState")
 		}
 
 		function setState(stateName) {
-			console.log("stateName:" + stateName)
-			setSecondLastState(window.sessionStorage.getItem("state"))
-			window.sessionStorage.setItem("state", stateName);
+			//console.log("stateName:" + stateName)
+			if (stateName !== "stopped") setSecondLastState(getState())
+			state = window.sessionStorage.setItem("state", stateName);
 			loadLayout(stateName)
+			document.getElementById("robotState").innerHTML = state
+		}
+
+		function restoreState(stateName) {
+			state = window.sessionStorage.setItem("state", stateName);
+			secondLastState = window.sessionStorage.getItem("secondLastState")
+			loadLayout(stateName)
+			document.getElementById("robotState").innerHTML = state
 		}
 
 		function setSecondLastState(stateName) {
-			console.log("Second Last State:" + stateName)
-			window.sessionStorage.setItem("secondLastState", stateName);
-			loadLayout(stateName)
+			//console.log("Second Last State:" + stateName)
+			secondLastState = window.sessionStorage.setItem("secondLastState", stateName);
+			document.getElementById("robotSecondLastState").innerHTML = secondLastState
 		}
 	</script>
 	<!-- <script type="text/javascript" src="QActorWebUI.js"></script> -->
@@ -316,14 +364,20 @@
 		<div>
 			<b>SONAR STATE</b>: <span id="sonarRobotDisplay"></span>
 		</div>
+		<div>
+			<b>SONAR LEFT STATE</b>: <span id="sonarRobotLDisplay"></span>
+		</div>
+		<div>
+			<b>SONAR RIGHT STATE</b>: <span id="sonarRobotRDisplay"></span>
+		</div>
 		<!--
-  <div>
-    <b>SONAR LEFT STATE</b>: <span id="sonarRobotLDisplay"></span>
-  </div>
-  <div>
-    <b>SONAR RIGHT STATE</b>: <span id="sonarRobotRDisplay"></span>
-	</div>
-	-->
+		<div>
+			<b>CURRENT ROBOT STATE</b>: <span id="robotState"></span>
+		</div>
+		<div>
+			<b>SECOND LAST ROBOT STATE</b>: <span id="robotSecondLastState"></span>
+		</div>
+		-->
 	</div>
 
 	</div>
@@ -343,7 +397,7 @@
 							onclick="setState('working')">
 					</form>
 					<form action="/clear" method="post">
-						<input id="clear" type="submit" class="myButton" value="CLEAR" onclick="setState('working')">
+						<input id="clear" type="submit" class="myButton" value="CLEAR" onclick="setState('done')">
 					</form>
 				</th>
 
@@ -398,7 +452,7 @@
 					</form>
 					<form action="/resume" method="post">
 						<input id="resume" type="submit" class="myButtonGreen" value="RESUME"
-							onclick="setState('working')">
+							onclick="restoreState('working')">
 					</form>
 				</th>
 				<th class="tg-0lax">
@@ -448,6 +502,10 @@
 	state = getState(); //carico key: "state" su var state
 	secondLastState = getSecondLastState();
 
+	document.getElementById('food').innerHTML = "Pizza: " + contentFood1 + "; Crescentina: " + contentFood2;
+	document.getElementById('pantry').innerHTML = "" + contentPantry
+	document.getElementById('dishwasher').innerHTML = "" + contentDishwasher
+
 	loadLayout(state)
 
 	function loadLayout(stateLayout) {
@@ -479,8 +537,8 @@
 				stopDisabled = "myButtonDisabled"; resumeDisabled = "myButtonDisabled"; explorePerimeterDisabled = "myButtonDisabled";
 				exploreTableDisabled = "myButtonDisabled";
 
-				console.log("READY CF1:   "+contentFood1)
-				console.log("READY CF2:   "+contentFood2)
+				console.log("READY CF1:   " + contentFood1)
+				console.log("READY CF2:   " + contentFood2)
 				if (contentFood1 === "0") {
 					addFood11Disabled = "myButtonDisabled"; addFood12Disabled = "myButtonDisabled"; addFood13Disabled = "myButtonDisabled";
 				} else if (contentFood1 === "1") {
@@ -491,7 +549,7 @@
 					addFood11Disabled = "myButtonBlue"; addFood12Disabled = "myButtonBlue"; addFood13Disabled = "myButtonBlue";
 				}
 
-				if (contentFood2 ===  "0") {
+				if (contentFood2 === "0") {
 					addFood21Disabled = "myButtonDisabled"; addFood22Disabled = "myButtonDisabled"; addFood23Disabled = "myButtonDisabled";
 				} else if (contentFood2 === "1") {
 					addFood21Disabled = "myButtonBlue"; addFood22Disabled = "myButtonDisabled"; addFood23Disabled = "myButtonDisabled";
@@ -506,8 +564,8 @@
 			case "working":
 				prepareDisabled = "myButtonDisabled"; clearDisabled = "myButtonDisabled"; addFood11Disabled = "myButtonDisabled";
 				addFood12Disabled = "myButtonDisabled"; addFood13Disabled = "myButtonDisabled"; addFood21Disabled = "myButtonDisabled";
-				addFood22Disabled = "myButtonDisabled"; addFood23Disabled = "myButtonDisabled"; goHomeDisabled = "myButtonDisabled";
-				stopDisabled = "myButtonRed"; resumeDisabled = "myButtonGreen"; explorePerimeterDisabled = "myButtonDisabled";
+				addFood22Disabled = "myButtonDisabled"; addFood23Disabled = "myButtonDisabled"; goHomeDisabled = "myButton";
+				stopDisabled = "myButtonRed"; resumeDisabled = "myButtonDisabled"; explorePerimeterDisabled = "myButtonDisabled";
 				exploreTableDisabled = "myButtonDisabled";
 
 				setButtons();
