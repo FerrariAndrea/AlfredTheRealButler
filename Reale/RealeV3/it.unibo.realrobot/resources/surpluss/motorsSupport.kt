@@ -7,6 +7,7 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import java.io.BufferedWriter
 import java.io.OutputStreamWriter
+import kotlinx.coroutines.delay
 
 
 object motorsSupport {
@@ -60,7 +61,8 @@ object motorsSupport {
 		writer_compass.flush()		
 		 GlobalScope.launch{
 				var data = reader_compass.readLine()
-				if(data!=null && data!="killed"){				 
+				if(data!=null && data!="killed"){
+							delay(20)	 //for fix		 
 							actor.emit(msgType, msgType+"($data)" )
 				}				
 		}

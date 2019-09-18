@@ -47,7 +47,8 @@ Dispatch compassRes : compassRes( ORIENTATION )
 
 Dispatch setLed : setLed(BLINKN,BLINKDELAY )//BLINKDELAY=-1 ->ledOFF  //BLINKDELAY=0 -> ledOn //BLINKDELAY>0 --> blink for BLINKN time
 
-
+Dispatch stop  : stop(V )  
+Dispatch resume  : resume( V ) 
 
 Context ctxRobot ip[host="localhost" port=8038] -mqtt
 Context ctxDummy ip[host="dummyhost" port=9999] -mqtt //as ctdResourceModel and ctxMaitre
@@ -195,9 +196,9 @@ QActor sonarcollector context ctxRobot{
 			val medianaW = SonarW[minCount/3]
 			val medianaR = SonarR[minCount/3]
 			val medianaL = SonarL[minCount/3]
-			replyToCaller(\"internalSonarRes\", \"internalSonarRes($medianaW,$medianaR,$medianaL)\")
 		"]
-		
+		delay 50 //for fix
+		["	replyToCaller(\"internalSonarRes\", \"internalSonarRes($medianaW,$medianaR,$medianaL)\")"]
 	}Transition t0 whenMsg internalSonarReq ->  handleReq
 
 }
@@ -284,11 +285,23 @@ QActor onerotateforward context ctxRobot {
 		var Arotate = false
 		var NeedCalibration = true
 		var NeedCorrezione =false
+		//-----------FIX rotation
+		val FixEnable = false
 	"]  
 	State s0 initial {	   		
-		println("Start onerotateforward")
+		println("Start onerotateforward")		
+	}Goto ready
+	
+	State ready{
+		println("onerotateforward is READY")
+	}Transition t0 whenMsg onerotationstep -> checkFirst
+					whenMsg stop -> paused
+			
+			
+	State paused{
+		println("onerotateforward is PAUSED")
+	}Transition t0 whenMsg resume -> ready
 		
-	}Transition t0 whenMsg onerotationstep -> checkFirst 
 	
 	State checkFirst{
 		//qui in futuro si possono controllare i vari sensori e dedurre uno stallo
@@ -336,8 +349,16 @@ QActor onerotateforward context ctxRobot {
 	
 	State endRotate{
 		forward resourcemodel -m modelUpdate : modelUpdate(robot,h)
-		["replyToCaller(\"rotationOk\", \"rotationOk(0)\")"]//da togliere se vuoi startFix	
-	}Transition t0 whenMsg onerotationstep -> checkFirst //Goto startFix
+		if "!FixEnable"{
+			if "RealMove==\"a\""{
+		  		forward kb -m modelUpdate : modelUpdate(  robot,  a)
+		  	}
+			if "RealMove==\"d\""{
+				forward kb -m modelUpdate : modelUpdate(  robot, d)
+			}  	
+			["replyToCaller(\"rotationOk\", \"rotationOk(0)\")"]
+		}		
+	}Goto startFix if "FixEnable" else ready  
 		
 	State startFix{
 			delayVar WaitingTimg	
@@ -393,10 +414,10 @@ QActor onerotateforward context ctxRobot {
 	  		delay 50 //fix missing 
 			if"Arotate"{
 				forward basicrobot -m internalRobotReq :  internalRobotReq( am,1, 2,0)
-				forward resourcemodel -m modelUpdate : modelUpdate(robot,a)	
+				//forward resourcemodel -m modelUpdate : modelUpdate(robot,a)	
 			}else{
 				forward basicrobot -m internalRobotReq :  internalRobotReq( dm,1, 2,0 )
-				forward resourcemodel -m modelUpdate : modelUpdate(robot,d)		  			  		
+				//forward resourcemodel -m modelUpdate : modelUpdate(robot,d)		  			  		
 			}			
 	  }Transition t1 whenEvent internalRobotRes ->  endMiniRotate
 	  
@@ -416,8 +437,9 @@ QActor onerotateforward context ctxRobot {
 		if "RealMove==\"d\""{
 			forward kb -m modelUpdate : modelUpdate(  robot, d)
 		}  		
+		delay 50 //fix
 		["replyToCaller(\"rotationOk\", \"rotationOk(0)\")"]
-	}Transition t0 whenMsg onerotationstep -> checkFirst 
+	}Goto ready
 	
 	
 }
@@ -431,7 +453,7 @@ QActor onecellforward context ctxRobot {
 		var FoundObstacle = false
 		var StepTime = 0L
 		var Duration : Long =0
-		var DistanzaMinima :Long =10
+		var DistanzaMinima :Long =15
 		
 		var ActualStep : Int =0
 		var ActualL : Int =0
@@ -446,8 +468,13 @@ QActor onecellforward context ctxRobot {
 	}Goto ready
 	
 	State ready{
-			println("ready!!")
+			println("onecellforward is READY")
 	}Transition t0 whenMsg onestep -> checkFirst
+					whenMsg stop -> paused
+						
+	State paused{
+		println("onecellforward is PAUSED")
+	}Transition t0 whenMsg resume -> ready
 	
 	State checkFirst{
 		["
@@ -471,7 +498,7 @@ QActor onecellforward context ctxRobot {
 				DeviazioneR=0
             "]  
              if"FoundObstacle"{
-             		["replyToCaller(\"collision\", \" collision(wall) \")"]	//per l'explorer	
+             		["replyToCaller(\"collision\", \" collision(RealWall) \")"]	//per l'explorer	
 					["replyToCaller(\"stepFail\", \"stepFail(obstacle,$W) \")"]
 				println("Actor: OneStepForward; State:cantDoOneStep")	
               }else{              	
@@ -486,11 +513,11 @@ QActor onecellforward context ctxRobot {
 			delay 50 //fix missing 
 			["ActualStep=ActualStep+1"]	
 			forward basicrobot -m internalRobotReq :  internalRobotReq( ws, 2,$WorkTime,$SleepTime )
-			forward resourcemodel -m modelUpdate : modelUpdate(robot,w)	
 	}Transition t0 whenEvent internalRobotRes  -> checkFinish
 	
 	State checkFinish{
-			println("checkFinish")
+		println("checkFinish")
+		forward resourcemodel -m modelUpdate : modelUpdate(robot,w)
 	}Goto mustGoOn if "(ActualStep<StepTime)" else endDoMoveForward
 	
 	  State mustGoOn{
@@ -561,17 +588,16 @@ QActor onecellforward context ctxRobot {
 		println("goBackFromFail")
 		delay 50 //fix missing 
 		if "ActualStep>0" {
-			forward resourcemodel -m modelUpdate : modelUpdate(robot,s)	
 			forward basicrobot -m internalRobotReq :  internalRobotReq( ss, $ActualStep,$WorkTime,$SleepTime )
 		}else{
-			forward resourcemodel -m modelUpdate : modelUpdate(robot,s)
 			forward basicrobot -m internalRobotReq :  internalRobotReq(ss,1,10,100)		
-		}
-		
+		}		
 	}Transition t0 whenEvent internalRobotRes  -> endGoBackFormFail	
 	
 	State endGoBackFormFail{		
 		println("endGoBackFormFail")
+		forward resourcemodel -m modelUpdate : modelUpdate(robot,s)
+		delay 50 //fix
 		forward resourcemodel -m modelChange : modelChange(robot,h)
 		["replyToCaller(\"collision\", \" collision(RealWall) \")"]	//per l'explorer	
 		["replyToCaller(\"stepFail\", \"stepFail(obstacle,$Duration) \")"]		

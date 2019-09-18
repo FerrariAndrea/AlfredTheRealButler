@@ -23,7 +23,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				var FoundObstacle = false
 				var StepTime = 0L
 				var Duration : Long =0
-				var DistanzaMinima :Long =10
+				var DistanzaMinima :Long =15
 				
 				var ActualStep : Int =0
 				var ActualL : Int =0
@@ -41,9 +41,16 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				}	 
 				state("ready") { //this:State
 					action { //it:State
-						println("ready!!")
+						println("onecellforward is READY")
 					}
 					 transition(edgeName="t036",targetState="checkFirst",cond=whenDispatch("onestep"))
+					transition(edgeName="t037",targetState="paused",cond=whenDispatch("stop"))
+				}	 
+				state("paused") { //this:State
+					action { //it:State
+						println("onecellforward is PAUSED")
+					}
+					 transition(edgeName="t038",targetState="ready",cond=whenDispatch("resume"))
 				}	 
 				state("checkFirst") { //this:State
 					action { //it:State
@@ -56,7 +63,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						}
 						forward("internalSonarReq", "internalSonarReq(V)" ,"sonarcollector" ) 
 					}
-					 transition(edgeName="t037",targetState="waitingForcheckFirstSonar",cond=whenDispatch("internalSonarRes"))
+					 transition(edgeName="t039",targetState="waitingForcheckFirstSonar",cond=whenDispatch("internalSonarRes"))
 				}	 
 				state("waitingForcheckFirstSonar") { //this:State
 					action { //it:State
@@ -69,7 +76,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 												FoundObstacle=W<DistanzaMinima
 												DeviazioneL=0
 												DeviazioneR=0
-								if(FoundObstacle){ replyToCaller("collision", " collision(wall) ")
+								if(FoundObstacle){ replyToCaller("collision", " collision(RealWall) ")
 								replyToCaller("stepFail", "stepFail(obstacle,$W) ")
 								println("Actor: OneStepForward; State:cantDoOneStep")
 								 }
@@ -88,13 +95,13 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						delay(50) 
 						ActualStep=ActualStep+1
 						forward("internalRobotReq", "internalRobotReq(ws,2,$WorkTime,$SleepTime)" ,"basicrobot" ) 
-						forward("modelUpdate", "modelUpdate(robot,w)" ,"resourcemodel" ) 
 					}
-					 transition(edgeName="t038",targetState="checkFinish",cond=whenEvent("internalRobotRes"))
+					 transition(edgeName="t040",targetState="checkFinish",cond=whenEvent("internalRobotRes"))
 				}	 
 				state("checkFinish") { //this:State
 					action { //it:State
 						println("checkFinish")
+						forward("modelUpdate", "modelUpdate(robot,w)" ,"resourcemodel" ) 
 					}
 					 transition( edgeName="goto",targetState="mustGoOn", cond=doswitchGuarded({(ActualStep<StepTime)}) )
 					transition( edgeName="goto",targetState="endDoMoveForward", cond=doswitchGuarded({! (ActualStep<StepTime)}) )
@@ -104,7 +111,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						println("mustGoOn")
 						forward("internalSonarReq", "internalSonarReq(V)" ,"sonarcollector" ) 
 					}
-					 transition(edgeName="t039",targetState="checkMove",cond=whenEvent("internalSonarRes"))
+					 transition(edgeName="t041",targetState="checkMove",cond=whenEvent("internalSonarRes"))
 				}	 
 				state("checkMove") { //this:State
 					action { //it:State
@@ -175,19 +182,19 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 					action { //it:State
 						println("goBackFromFail")
 						delay(50) 
-						if(ActualStep>0){ forward("modelUpdate", "modelUpdate(robot,s)" ,"resourcemodel" ) 
-						forward("internalRobotReq", "internalRobotReq(ss,$ActualStep,$WorkTime,$SleepTime)" ,"basicrobot" ) 
+						if(ActualStep>0){ forward("internalRobotReq", "internalRobotReq(ss,$ActualStep,$WorkTime,$SleepTime)" ,"basicrobot" ) 
 						 }
 						else
-						 { forward("modelUpdate", "modelUpdate(robot,s)" ,"resourcemodel" ) 
-						 forward("internalRobotReq", "internalRobotReq(ss,1,10,100)" ,"basicrobot" ) 
+						 { forward("internalRobotReq", "internalRobotReq(ss,1,10,100)" ,"basicrobot" ) 
 						  }
 					}
-					 transition(edgeName="t040",targetState="endGoBackFormFail",cond=whenEvent("internalRobotRes"))
+					 transition(edgeName="t042",targetState="endGoBackFormFail",cond=whenEvent("internalRobotRes"))
 				}	 
 				state("endGoBackFormFail") { //this:State
 					action { //it:State
 						println("endGoBackFormFail")
+						forward("modelUpdate", "modelUpdate(robot,s)" ,"resourcemodel" ) 
+						delay(50) 
 						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
 						replyToCaller("collision", " collision(RealWall) ")
 						replyToCaller("stepFail", "stepFail(obstacle,$Duration) ")

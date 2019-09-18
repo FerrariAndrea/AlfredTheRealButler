@@ -127,6 +127,7 @@ QActor onerotateforward context ctxRobot {
 	}Goto ready
 	
 	State ready{
+		println("onerotateforward is Ready")
 	}Transition t0 whenMsg onerotationstep -> doRotationForward
 					whenMsg stop -> paused
 					

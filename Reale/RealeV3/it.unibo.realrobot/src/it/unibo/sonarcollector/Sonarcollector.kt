@@ -75,7 +75,8 @@ class Sonarcollector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 									val medianaW = SonarW[minCount/3]
 									val medianaR = SonarR[minCount/3]
 									val medianaL = SonarL[minCount/3]
-									replyToCaller("internalSonarRes", "internalSonarRes($medianaW,$medianaR,$medianaL)")
+						delay(50) 
+							replyToCaller("internalSonarRes", "internalSonarRes($medianaW,$medianaR,$medianaL)")
 					}
 					 transition(edgeName="t09",targetState="handleReq",cond=whenDispatch("internalSonarReq"))
 				}	 

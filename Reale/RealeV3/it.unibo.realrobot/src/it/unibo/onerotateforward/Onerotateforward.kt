@@ -34,12 +34,27 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 				var Arotate = false
 				var NeedCalibration = true
 				var NeedCorrezione =false
+				//-----------FIX rotation
+				val FixEnable = false
 		return { //this:ActionBasciFsm
 				state("s0") { //this:State
 					action { //it:State
 						println("Start onerotateforward")
 					}
+					 transition( edgeName="goto",targetState="ready", cond=doswitch() )
+				}	 
+				state("ready") { //this:State
+					action { //it:State
+						println("onerotateforward is READY")
+					}
 					 transition(edgeName="t016",targetState="checkFirst",cond=whenDispatch("onerotationstep"))
+					transition(edgeName="t017",targetState="paused",cond=whenDispatch("stop"))
+				}	 
+				state("paused") { //this:State
+					action { //it:State
+						println("onerotateforward is PAUSED")
+					}
+					 transition(edgeName="t018",targetState="ready",cond=whenDispatch("resume"))
 				}	 
 				state("checkFirst") { //this:State
 					action { //it:State
@@ -51,9 +66,9 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 								 }
 						}
 					}
-					 transition(edgeName="t117",targetState="calibration",cond=whenEvent("sonarRobot"))
-					transition(edgeName="t118",targetState="calibration",cond=whenEvent("sonarLeft"))
-					transition(edgeName="t119",targetState="calibration",cond=whenEvent("sonarRight"))
+					 transition(edgeName="t119",targetState="calibration",cond=whenEvent("sonarRobot"))
+					transition(edgeName="t120",targetState="calibration",cond=whenEvent("sonarLeft"))
+					transition(edgeName="t121",targetState="calibration",cond=whenEvent("sonarRight"))
 				}	 
 				state("calibration") { //this:State
 					action { //it:State
@@ -77,9 +92,9 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 				state("calibrationAgaint") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t120",targetState="calibration",cond=whenEvent("sonarRobot"))
-					transition(edgeName="t121",targetState="calibration",cond=whenEvent("sonarLeft"))
-					transition(edgeName="t122",targetState="calibration",cond=whenEvent("sonarRight"))
+					 transition(edgeName="t122",targetState="calibration",cond=whenEvent("sonarRobot"))
+					transition(edgeName="t123",targetState="calibration",cond=whenEvent("sonarLeft"))
+					transition(edgeName="t124",targetState="calibration",cond=whenEvent("sonarRight"))
 				}	 
 				state("doRotationForward") { //this:State
 					action { //it:State
@@ -91,23 +106,29 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 						forward("modelUpdate", "modelUpdate(robot,d)" ,"resourcemodel" ) 
 						 }
 					}
-					 transition(edgeName="t123",targetState="endRotate",cond=whenEvent("internalRobotRes"))
+					 transition(edgeName="t125",targetState="endRotate",cond=whenEvent("internalRobotRes"))
 				}	 
 				state("endRotate") { //this:State
 					action { //it:State
 						forward("modelUpdate", "modelUpdate(robot,h)" ,"resourcemodel" ) 
+						if(!FixEnable){ if(RealMove=="a"){ forward("modelUpdate", "modelUpdate(robot,a)" ,"kb" ) 
+						 }
+						if(RealMove=="d"){ forward("modelUpdate", "modelUpdate(robot,d)" ,"kb" ) 
+						 }
 						replyToCaller("rotationOk", "rotationOk(0)")
+						 }
 					}
-					 transition(edgeName="t024",targetState="checkFirst",cond=whenDispatch("onerotationstep"))
+					 transition( edgeName="goto",targetState="startFix", cond=doswitchGuarded({FixEnable}) )
+					transition( edgeName="goto",targetState="ready", cond=doswitchGuarded({! FixEnable}) )
 				}	 
 				state("startFix") { //this:State
 					action { //it:State
 						delay(WaitingTimg)
 						SonarDAfter=-1;SonarAAfter=-1;SonarWAfter-1;
 					}
-					 transition(edgeName="t125",targetState="calibrationAfter",cond=whenEvent("sonarRobot"))
-					transition(edgeName="t126",targetState="calibrationAfter",cond=whenEvent("sonarLeft"))
-					transition(edgeName="t127",targetState="calibrationAfter",cond=whenEvent("sonarRight"))
+					 transition(edgeName="t126",targetState="calibrationAfter",cond=whenEvent("sonarRobot"))
+					transition(edgeName="t127",targetState="calibrationAfter",cond=whenEvent("sonarLeft"))
+					transition(edgeName="t128",targetState="calibrationAfter",cond=whenEvent("sonarRight"))
 				}	 
 				state("calibrationAfter") { //this:State
 					action { //it:State
@@ -131,9 +152,9 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 				state("calibrationAfterAgaint") { //this:State
 					action { //it:State
 					}
-					 transition(edgeName="t128",targetState="calibrationAfter",cond=whenEvent("sonarRobot"))
-					transition(edgeName="t129",targetState="calibrationAfter",cond=whenEvent("sonarLeft"))
-					transition(edgeName="t130",targetState="calibrationAfter",cond=whenEvent("sonarRight"))
+					 transition(edgeName="t129",targetState="calibrationAfter",cond=whenEvent("sonarRobot"))
+					transition(edgeName="t130",targetState="calibrationAfter",cond=whenEvent("sonarLeft"))
+					transition(edgeName="t131",targetState="calibrationAfter",cond=whenEvent("sonarRight"))
 				}	 
 				state("correggi") { //this:State
 					action { //it:State
@@ -163,14 +184,12 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 					action { //it:State
 						delay(50) 
 						if(Arotate){ forward("internalRobotReq", "internalRobotReq(am,1,2,0)" ,"basicrobot" ) 
-						forward("modelUpdate", "modelUpdate(robot,a)" ,"resourcemodel" ) 
 						 }
 						else
 						 { forward("internalRobotReq", "internalRobotReq(dm,1,2,0)" ,"basicrobot" ) 
-						 forward("modelUpdate", "modelUpdate(robot,d)" ,"resourcemodel" ) 
 						  }
 					}
-					 transition(edgeName="t131",targetState="endMiniRotate",cond=whenEvent("internalRobotRes"))
+					 transition(edgeName="t132",targetState="endMiniRotate",cond=whenEvent("internalRobotRes"))
 				}	 
 				state("endMiniRotate") { //this:State
 					action { //it:State
@@ -178,9 +197,9 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 						delay(WaitingTimg)
 						SonarDAfter=-1;SonarAAfter=-1;SonarWAfter-1;
 					}
-					 transition(edgeName="t132",targetState="calibrationAfter",cond=whenEvent("sonarRobot"))
-					transition(edgeName="t133",targetState="calibrationAfter",cond=whenEvent("sonarLeft"))
-					transition(edgeName="t134",targetState="calibrationAfter",cond=whenEvent("sonarRight"))
+					 transition(edgeName="t133",targetState="calibrationAfter",cond=whenEvent("sonarRobot"))
+					transition(edgeName="t134",targetState="calibrationAfter",cond=whenEvent("sonarLeft"))
+					transition(edgeName="t135",targetState="calibrationAfter",cond=whenEvent("sonarRight"))
 				}	 
 				state("endDoRotationForward") { //this:State
 					action { //it:State
@@ -188,9 +207,10 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 						 }
 						if(RealMove=="d"){ forward("modelUpdate", "modelUpdate(robot,d)" ,"kb" ) 
 						 }
+						delay(50) 
 						replyToCaller("rotationOk", "rotationOk(0)")
 					}
-					 transition(edgeName="t035",targetState="checkFirst",cond=whenDispatch("onerotationstep"))
+					 transition( edgeName="goto",targetState="ready", cond=doswitch() )
 				}	 
 			}
 		}

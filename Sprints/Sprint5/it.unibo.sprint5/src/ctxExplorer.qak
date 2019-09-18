@@ -273,7 +273,8 @@ QActor missionsolver context ctxExplorer{
  	
 }
 
-QActor explorer context ctxExplorer{     
+QActor explorer context ctxExplorer{ 
+	    
 	["
 	var ignoreFail : Boolean=true;
 	//--------------------
@@ -281,6 +282,8 @@ QActor explorer context ctxExplorer{
 	var Move = \"\"
 	//var StepTime :Int  = 350	//for virtual
 	var StepTime :Int  = 4	//for REAL
+	var FixForReal : Long =80 //for REAL
+	//var FixForReal : Long =0 //for virtual
 	var RotateTime = 300L	//for virtual
 	var PauseTime  = 250L 
 	var Direction = \"\"
@@ -359,6 +362,7 @@ QActor explorer context ctxExplorer{
 	} Goto goOneStepAhead if "(NumStep<5)" else perimeterWalked
 	
 	State goOneStepAhead {
+		delayVar FixForReal
    		run itunibo.planner.moveUtils.attemptTomoveAhead(myself, StepTime, "onecellforward")
 	} 
 	Transition t0 whenMsg stepOk -> handleStepOk

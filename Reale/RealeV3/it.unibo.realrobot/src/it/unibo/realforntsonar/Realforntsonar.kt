@@ -27,7 +27,7 @@ class Realforntsonar ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						stateTimer = TimerActor("timer_s0", 
 							scope, context!!, "local_tout_realforntsonar_s0", ActualTimer )
 					}
-					 transition(edgeName="t047",targetState="doNotifyAll",cond=whenTimeout("local_tout_realforntsonar_s0"))   
+					 transition(edgeName="t049",targetState="doNotifyAll",cond=whenTimeout("local_tout_realforntsonar_s0"))   
 				}	 
 				state("doNotifyAll") { //this:State
 					action { //it:State
@@ -37,7 +37,7 @@ class Realforntsonar ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						stateTimer = TimerActor("timer_doNotifyAll", 
 							scope, context!!, "local_tout_realforntsonar_doNotifyAll", ActualTimer )
 					}
-					 transition(edgeName="t048",targetState="doNotifyAll",cond=whenTimeout("local_tout_realforntsonar_doNotifyAll"))   
+					 transition(edgeName="t050",targetState="doNotifyAll",cond=whenTimeout("local_tout_realforntsonar_doNotifyAll"))   
 				}	 
 			}
 		}

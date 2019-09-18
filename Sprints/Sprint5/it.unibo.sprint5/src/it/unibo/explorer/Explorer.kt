@@ -22,6 +22,8 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 			var Move = ""
 			//var StepTime :Int  = 350	//for virtual
 			var StepTime :Int  = 4	//for REAL
+			var FixForReal : Long =80 //for REAL
+			//var FixForReal : Long =0 //for virtual
 			var RotateTime = 300L	//for virtual
 			var PauseTime  = 250L 
 			var Direction = ""
@@ -108,6 +110,7 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				}	 
 				state("goOneStepAhead") { //this:State
 					action { //it:State
+						delay(FixForReal)
 						itunibo.planner.moveUtils.attemptTomoveAhead(myself ,StepTime, "onecellforward" )
 					}
 					 transition(edgeName="t014",targetState="handleStepOk",cond=whenDispatch("stepOk"))
