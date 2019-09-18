@@ -5,6 +5,7 @@ mqttBroker "localhost" : 1883
 Dispatch takeFood  : takeFood(X,Q)
 Dispatch takeDish  : takeDish(X)
 Dispatch putDish  : putDish(X)
+Dispatch putFood 	: putFood(X,Q)
 
 Context ctxCoapTester ip[host="localhost" port=8035] -mqtt
 Context ctxDummy ip[host="dummyhost" port=9999] -mqtt 
@@ -28,7 +29,12 @@ QActor coaptester context ctxCoapTester {
 	
 	State interactWithFridge {
 		run itunibo.coap.observer.resourceObserverCoapClient.create("coap://localhost:5684/fridge")
-	} Goto takeFood1
+	} Goto putFood1
+	
+	State putFood1 {
+		forward fridge -m putFood: putFood(1,5)
+		delay 2000	
+	} Goto putFood1
 	
 	State takeFood1 {
 		forward fridge -m takeFood: takeFood(1,1)		

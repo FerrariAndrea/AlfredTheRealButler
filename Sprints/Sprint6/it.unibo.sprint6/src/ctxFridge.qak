@@ -41,7 +41,7 @@ QActor fridge context ctxFridge {
 				["food2 += quantityFood"]
 			}
 		}
-	} Goto waitCmd
+	} Goto updateModelFridge
 	
 	State checkingFood {
 		onMsg(   takeFood:  takeFood(X,Q) ) { 

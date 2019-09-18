@@ -32,6 +32,7 @@ class Missionsolver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 			var quantityFood = -1
 			var quantityDish = -1
 		
+			var tableReachedForClearing = false
 			var takeFoodFridge = false
 			var putFoodFridge = false
 			var takeDishPantry = false
@@ -111,8 +112,9 @@ class Missionsolver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 								  goHome = true
 								  goDishwasher = true
 								  goPantry = false
-								  putDishDishwasher = true
-								  putFoodFridge = true
+								  putDishDishwasher = false
+								  putFoodFridge = false
+								  tableReachedForClearing = true
 					}
 					 transition( edgeName="goto",targetState="goToTable", cond=doswitch() )
 				}	 
@@ -191,23 +193,39 @@ class Missionsolver ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 					action { //it:State
 						println("Explorer: on the target cell (simulate action 1.5s)!")
 						delay(1500) 
-						if(takeFoodFridge){ var X = selectedFood; var Q = quantityFood
-									if (X == -1 && Q == -1) {
-										X = 1; Q = 10;
-									}
-						forward("takeFood", "takeFood($X,$Q)" ,"fridge" ) 
-						takeFoodFridge = false
+						println("CONDITIONS: PUT_FOOD_FRIDGE: $putFoodFridge")
+						println("CONDITIONS: TAKE_FOOD_FRIDGE: $takeFoodFridge")
+						println("CONDITIONS: PUT_DISH_DISHWASHER: $putDishDishwasher")
+						println("CONDITIONS: TAKE_DISH_PANTRY: $takeDishPantry")
+						println("CONDITIONS: TABLE_REACHED_FOR_CLEARING: $tableReachedForClearing")
+						if(tableReachedForClearing){ 
+										tableReachedForClearing = false;
+										putFoodFridge = true;
 						 }
-						if(putFoodFridge){ forward("putFood", "putFood(1,5)" ,"fridge" ) 
-						forward("putFood", "putFood(2,5)" ,"fridge" ) 
-						putFoodFridge = false
-						 }
-						if(takeDishPantry){ forward("takeDish", "takeDish(20)" ,"pantry" ) 
-						takeDishPantry = false
-						 }
-						if(putDishDishwasher){ forward("putDish", "putDish(20)" ,"dishwasher" ) 
-						putDishDishwasher = false
-						 }
+						else
+						 { if(putFoodFridge){ forward("putFood", "putFood(1,5)" ,"fridge" ) 
+						 putFoodFridge = false;
+						 putDishDishwasher = true
+						  }
+						 else
+						  { if(putDishDishwasher){ forward("putDish", "putDish(20)" ,"dishwasher" ) 
+						  putDishDishwasher = false
+						   }
+						   }
+						 if(takeDishPantry){ forward("takeDish", "takeDish(20)" ,"pantry" ) 
+						 takeDishPantry = false
+						  }
+						 else
+						  { if(takeFoodFridge){ var X = selectedFood; var Q = quantityFood
+						  					if (X == -1 && Q == -1) {
+						  						X = 1; Q = 10;
+						  					}
+						  forward("takeFood", "takeFood($X,$Q)" ,"fridge" ) 
+						  selectedFood = -1; quantityFood = -1;
+						  takeFoodFridge = false
+						   }
+						   }
+						  }
 					}
 					 transition( edgeName="goto",targetState="checkAddingFood", cond=doswitch() )
 				}	 

@@ -31,7 +31,14 @@ class Coaptester ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 					action { //it:State
 						itunibo.coap.observer.resourceObserverCoapClient.create( "coap://localhost:5684/fridge"  )
 					}
-					 transition( edgeName="goto",targetState="takeFood1", cond=doswitch() )
+					 transition( edgeName="goto",targetState="putFood1", cond=doswitch() )
+				}	 
+				state("putFood1") { //this:State
+					action { //it:State
+						forward("putFood", "putFood(1,5)" ,"fridge" ) 
+						delay(2000) 
+					}
+					 transition( edgeName="goto",targetState="putFood1", cond=doswitch() )
 				}	 
 				state("takeFood1") { //this:State
 					action { //it:State

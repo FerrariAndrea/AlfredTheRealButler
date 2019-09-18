@@ -52,7 +52,7 @@ class Fridge ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 								  }
 						}
 					}
-					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
+					 transition( edgeName="goto",targetState="updateModelFridge", cond=doswitch() )
 				}	 
 				state("checkingFood") { //this:State
 					action { //it:State

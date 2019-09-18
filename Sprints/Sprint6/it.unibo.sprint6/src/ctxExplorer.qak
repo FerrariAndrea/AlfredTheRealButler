@@ -74,6 +74,7 @@ QActor missionsolver context ctxExplorer{
 	var quantityFood = -1
 	var quantityDish = -1
 
+	var tableReachedForClearing = false
 	var takeFoodFridge = false
 	var putFoodFridge = false
 	var takeDishPantry = false
@@ -146,8 +147,9 @@ QActor missionsolver context ctxExplorer{
 		  goHome = true
 		  goDishwasher = true
 		  goPantry = false
-		  putDishDishwasher = true
-		  putFoodFridge = true
+		  putDishDishwasher = false
+		  putFoodFridge = false
+		  tableReachedForClearing = true
 		 "]		//PRENDERE CIBO DAL TAVOLO, PORTARLO AL FRIGO E I PIATTI NEL DISHWASHER
 	} Goto goToTable
 	
@@ -214,33 +216,50 @@ QActor missionsolver context ctxExplorer{
  		delay 1500 // to simulate the action
  		
  		//Interacting with Smart Devices
+ 		println("CONDITIONS: PUT_FOOD_FRIDGE: $putFoodFridge")
+ 		println("CONDITIONS: TAKE_FOOD_FRIDGE: $takeFoodFridge")
+ 		println("CONDITIONS: PUT_DISH_DISHWASHER: $putDishDishwasher")
+ 		println("CONDITIONS: TAKE_DISH_PANTRY: $takeDishPantry")
+ 		println("CONDITIONS: TABLE_REACHED_FOR_CLEARING: $tableReachedForClearing")
  		
- 		//Add Food e Prepare (caso IF)
- 		if "takeFoodFridge" {
- 			["var X = selectedFood; var Q = quantityFood
-			if (X == -1 && Q == -1) {
-				X = 1; Q = 10;
-			}
+ 		if "tableReachedForClearing" {
+ 			["
+				tableReachedForClearing = false;
+				putFoodFridge = true;
 			"]
- 			forward fridge -m takeFood:takeFood($X,$Q)
- 			["takeFoodFridge = false"]
- 		}  			
- 		//Clear
+ 		} else {
+ 			 //Clear
  			if "putFoodFridge" {
- 				forward fridge -m putFood:putFood(1,5)
- 				forward fridge -m putFood:putFood(2,5)
- 				["putFoodFridge = false"]
- 			}		
+ 				forward fridge -m putFood: putFood(1,5)
+ 				//forward fridge -m putFood:putFood(2,5)
+ 				["putFoodFridge = false;"]
+ 				["putDishDishwasher = true"]
+ 			} else {
+ 				if "putDishDishwasher" {
+ 				forward dishwasher -m putDish:putDish(20)
+ 				["putDishDishwasher = false"]
+ 				}
+			}
  		//Prepare
  			if "takeDishPantry" {
  				forward pantry -m takeDish:takeDish(20)
  				["takeDishPantry = false"]
+ 			} else {
+ 				 		//Add Food e Prepare (caso IF)
+ 				if "takeFoodFridge" {
+ 					["var X = selectedFood; var Q = quantityFood
+					if (X == -1 && Q == -1) {
+						X = 1; Q = 10;
+					}
+					"]
+ 					forward fridge -m takeFood:takeFood($X,$Q)
+ 					["selectedFood = -1; quantityFood = -1;"]
+ 					["takeFoodFridge = false"]
+ 				}  		
  			}
- 		//Clear
- 			if "putDishDishwasher" {
- 				forward dishwasher -m putDish:putDish(20)
- 				["putDishDishwasher = false"]
- 			}
+ 		}
+ 		
+
  	} Goto checkAddingFood
  	
  	//Macro Missions Flags
@@ -280,10 +299,10 @@ QActor explorer context ctxExplorer{
 	//--------------------
 	var stepCounter = 0 
 	var Move = \"\"
-	//var StepTime :Int  = 350	//for virtual
-	var StepTime :Int  = 4	//for REAL
-	var FixForReal : Long =80 //for REAL
-	//var FixForReal : Long =0 //for virtual
+	var StepTime :Int  = 350	//for virtual
+	//var StepTime :Int  = 4	//for REAL
+	//var FixForReal : Long =80 //for REAL
+	var FixForReal : Long =0 //for virtual
 	var RotateTime = 300L	//for virtual
 	var PauseTime  = 250L 
 	var Direction = \"\"
