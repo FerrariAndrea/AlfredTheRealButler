@@ -213,17 +213,17 @@
 	</style>
 	<script type="text/javascript" src="/socket.io/socket.io.js"></script>
 	<script>
-		var ResetSonar =0;
-		function getMsgPayload(msg){
-			var start = msg.split("(").length-1;
-			if(start>0){
-				var temp =  msg.split("(")[start].split(")");
-				if(temp[0]!==undefined){
+		var ResetSonar = 0;
+		function getMsgPayload(msg) {
+			var start = msg.split("(").length - 1;
+			if (start > 0) {
+				var temp = msg.split("(")[start].split(")");
+				if (temp[0] !== undefined) {
 					return temp[0];
-				}else{
+				} else {
 					return "";
 				}
-			}else{
+			} else {
 				return "";
 			}
 		}
@@ -236,50 +236,60 @@
 			console.log(v);
 
 			if (v.indexOf("robot") >= 0) {
-			document.getElementById('robotDisplay').innerHTML = getMsgPayload(v);
-			ResetSonar=ResetSonar+1;
-			if(ResetSonar>10){document.getElementById('sonarRobotDisplay').innerHTML ="+inf";}
+				document.getElementById('robotDisplay').innerHTML = getMsgPayload(v);
+				ResetSonar = ResetSonar + 1;
+				if (ResetSonar > 10) { document.getElementById('sonarRobotDisplay').innerHTML = "+inf"; }
 			}
 			if (v.indexOf("fridge") >= 0) {
-				contentFood1 = v; contentFood2 = v;
-				contentFood1 = contentFood1.substr(contentFood1.indexOf('{') + 1)
-				contentFood1 = contentFood1.substr(0, contentFood1.indexOf('}'))
-				contentFood2 = contentFood2.substr(contentFood2.indexOf('[') + 1)
-				contentFood2 = contentFood2.substr(0, contentFood2.indexOf(']'))
-				console.log("Food 1: " + contentFood1 + "; Food 2: " + contentFood2)
-				window.sessionStorage.setItem("contentFood1", contentFood1)
-				window.sessionStorage.setItem("contentFood2", contentFood2)
-				document.getElementById('food').innerHTML = "Pizza: " + contentFood1 + "; Crescentina: " + contentFood2;
+				var isFound = v.indexOf("collision") != -1 ? true : false;
+				if (!isFound) {
+					contentFood1 = v; contentFood2 = v;
+					contentFood1 = contentFood1.substr(contentFood1.indexOf('{') + 1)
+					contentFood1 = contentFood1.substr(0, contentFood1.indexOf('}'))
+					contentFood2 = contentFood2.substr(contentFood2.indexOf('[') + 1)
+					contentFood2 = contentFood2.substr(0, contentFood2.indexOf(']'))
+					window.sessionStorage.setItem("contentFood1", contentFood1)
+					window.sessionStorage.setItem("contentFood2", contentFood2)
+					document.getElementById('food').innerHTML = "Pizza: " + contentFood1 + "; Crescentina: " + contentFood2;
+
+				}
 			} //FOOD
 			if (v.indexOf("dishwasher") >= 0) {
-				contentDishwasher = v;
-				contentDishwasher = contentDishwasher.substr(contentDishwasher.indexOf('{') + 1)
-				contentDishwasher = contentDishwasher.substr(0, contentDishwasher.indexOf('}'))
-				window.sessionStorage.setItem("contentDishwasher", contentDishwasher)
-				document.getElementById('dishwasher').innerHTML = "" + contentDishwasher
+				var isFound = v.indexOf("collision") != -1 ? true : false;
+				if (!isFound) {
+					contentDishwasher = v;
+					contentDishwasher = contentDishwasher.substr(contentDishwasher.indexOf('{') + 1)
+					contentDishwasher = contentDishwasher.substr(0, contentDishwasher.indexOf('}'))
+					window.sessionStorage.setItem("contentDishwasher", contentDishwasher)
+					document.getElementById('dishwasher').innerHTML = "" + contentDishwasher
+
+				}
 			} //DISHWASHER 
 			if (v.indexOf("pantry") >= 0) {
-				contentPantry = v;
-				contentPantry = contentPantry.substr(contentPantry.indexOf('{') + 1)
-				contentPantry = contentPantry.substr(0, contentPantry.indexOf('}'))
-				window.sessionStorage.setItem("contentPantry", contentPantry)
-				document.getElementById('pantry').innerHTML = "" + contentPantry
+				var isFound = v.indexOf("collision") != -1 ? true : false;
+				if (!isFound) {
+					contentPantry = v;
+					contentPantry = contentPantry.substr(contentPantry.indexOf('{') + 1)
+					contentPantry = contentPantry.substr(0, contentPantry.indexOf('}'))
+					window.sessionStorage.setItem("contentPantry", contentPantry)
+					document.getElementById('pantry').innerHTML = "" + contentPantry
+				}
 			} //PANTRY
 
-			if (v.indexOf("sonarRobot") >= 0) {ResetSonar=0; document.getElementById('sonarRobotDisplay').innerHTML = getMsgPayload(v); }
+			if (v.indexOf("sonarRobot") >= 0) { ResetSonar = 0; document.getElementById('sonarRobotDisplay').innerHTML = getMsgPayload(v); }
 			if (v.indexOf("sonarLeft") >= 0) { document.getElementById('sonarRobotLDisplay').innerHTML = getMsgPayload(v); }
 			if (v.indexOf("sonarRight") >= 0) { document.getElementById('sonarRobotRDisplay').innerHTML = getMsgPayload(v); }
-			if (v.indexOf("posRobot") >= 0 && v.split('(')[2].split(')')[0] !== "") {document.getElementById('robotPosDisplay').innerHTML = getMsgPayload(v);}
-			if(v.indexOf("metre") >= 0 ){
+			if (v.indexOf("posRobot") >= 0 && v.split('(')[2].split(')')[0] !== "") { document.getElementById('robotPosDisplay').innerHTML = getMsgPayload(v); }
+			if (v.indexOf("metre") >= 0) {
 				var resp = getMsgPayload(v);
-				document.getElementById('lastCompleteMission').innerHTML =resp;
-				if(resp==="endExplorBoundOk"){
+				document.getElementById('lastCompleteMission').innerHTML = resp;
+				if (resp === "endExplorBoundOk") {
 					setState("toExploreTable");
-				}else if(resp==="endExplorTableOk"){
+				} else if (resp === "endExplorTableOk") {
 					setState("toPrepare");
-				}else if(resp==="OkClearingRoom" || resp==="FailClearingRoom"){
+				} else if (resp === "OkClearingRoom" || resp === "FailClearingRoom") {
 					setState("done");
-				}else if((resp[0]==="O" && resp[1]==="k" )|| (resp[0]==="F" && resp[1]==="a")){
+				} else if ((resp[0] === "O" && resp[1] === "k") || (resp[0] === "F" && resp[1] === "a")) {
 					setState("ready")
 				}
 				/*
@@ -531,9 +541,9 @@
 	state = getState(); //carico key: "state" su var state
 	secondLastState = getSecondLastState();
 
-	document.getElementById('food').innerHTML = "Pizza: " + contentFood1 + "; Crescentina: " + contentFood2;
-	document.getElementById('pantry').innerHTML = "" + contentPantry
-	document.getElementById('dishwasher').innerHTML = "" + contentDishwasher
+	if (contentPantry == null) { document.getElementById('pantry').innerHTML = "0" } else { document.getElementById('pantry').innerHTML = "" + contentPantry }
+	if (contentDishwasher == null) { document.getElementById('dishwasher').innerHTML = "0" } else { document.getElementById('dishwasher').innerHTML = "" + contentDishwasher }
+	if (contentFood1 == null && contentFood2 == null) { document.getElementById('food').innerHTML = "Pizza: 0; Crescentina: 0"; } else { document.getElementById('food').innerHTML = "Pizza: " + contentFood1 + "; Crescentina: " + contentFood2; }
 
 	loadLayout(state)
 
