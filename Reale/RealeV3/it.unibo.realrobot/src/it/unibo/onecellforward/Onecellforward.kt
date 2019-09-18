@@ -69,7 +69,8 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 												FoundObstacle=W<DistanzaMinima
 												DeviazioneL=0
 												DeviazioneR=0
-								if(FoundObstacle){ replyToCaller("stepFail", "stepFail(obstacle,$W) ")
+								if(FoundObstacle){ replyToCaller("collision", " collision(wall) ")
+								replyToCaller("stepFail", "stepFail(obstacle,$W) ")
 								println("Actor: OneStepForward; State:cantDoOneStep")
 								 }
 								else
@@ -84,6 +85,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				state("doMoveForward") { //this:State
 					action { //it:State
 						println("doMoveForward")
+						delay(50) 
 						ActualStep=ActualStep+1
 						forward("internalRobotReq", "internalRobotReq(ws,2,$WorkTime,$SleepTime)" ,"basicrobot" ) 
 						forward("modelUpdate", "modelUpdate(robot,w)" ,"resourcemodel" ) 
@@ -172,6 +174,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 				state("goBackFromFail") { //this:State
 					action { //it:State
 						println("goBackFromFail")
+						delay(50) 
 						if(ActualStep>0){ forward("modelUpdate", "modelUpdate(robot,s)" ,"resourcemodel" ) 
 						forward("internalRobotReq", "internalRobotReq(ss,$ActualStep,$WorkTime,$SleepTime)" ,"basicrobot" ) 
 						 }
@@ -186,6 +189,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 					action { //it:State
 						println("endGoBackFormFail")
 						forward("modelChange", "modelChange(robot,h)" ,"resourcemodel" ) 
+						replyToCaller("collision", " collision(RealWall) ")
 						replyToCaller("stepFail", "stepFail(obstacle,$Duration) ")
 					}
 					 transition( edgeName="goto",targetState="ready", cond=doswitch() )

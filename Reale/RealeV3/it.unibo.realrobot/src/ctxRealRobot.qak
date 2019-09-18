@@ -114,6 +114,7 @@ QActor basicrobot context ctxRobot{
 					whenMsg	 internalRobotRes  -> handleRobotCmd
 	
 	State handleRobotCmd{ 
+		delay 50 //fix missing 
 		["storeCurrentMessageForReply()"]
 		onMsg( robotCmd : robotCmd( MOVE ) ) { 
 			//println("handleRobotCmd-->${payloadArg(0)}")	
@@ -321,7 +322,7 @@ QActor onerotateforward context ctxRobot {
 					 whenEvent sonarRight ->  calibration
 	
 	State doRotationForward{
-		delay 80
+		delay 80 //fix missing 
 		if "RealMove==\"a\""{ 			
 	  		forward basicrobot -m internalRobotReq :  internalRobotReq( as,1, $CompleteRotateTimeA ,0)
 			forward resourcemodel -m modelUpdate : modelUpdate(robot,a)	
@@ -389,6 +390,7 @@ QActor onerotateforward context ctxRobot {
 	}Goto miniRotate if "NeedCorrezione" else endDoRotationForward
 	
 	  State miniRotate{
+	  		delay 50 //fix missing 
 			if"Arotate"{
 				forward basicrobot -m internalRobotReq :  internalRobotReq( am,1, 2,0)
 				forward resourcemodel -m modelUpdate : modelUpdate(robot,a)	
@@ -469,7 +471,8 @@ QActor onecellforward context ctxRobot {
 				DeviazioneR=0
             "]  
              if"FoundObstacle"{
-              	  ["replyToCaller(\"stepFail\", \"stepFail(obstacle,$W) \")"]
+             		["replyToCaller(\"collision\", \" collision(wall) \")"]	//per l'explorer	
+					["replyToCaller(\"stepFail\", \"stepFail(obstacle,$W) \")"]
 				println("Actor: OneStepForward; State:cantDoOneStep")	
               }else{              	
               	println("Actor: OneStepForward; State: OK-> $W")	
@@ -480,6 +483,7 @@ QActor onecellforward context ctxRobot {
 
 	State doMoveForward{
 			println("doMoveForward")
+			delay 50 //fix missing 
 			["ActualStep=ActualStep+1"]	
 			forward basicrobot -m internalRobotReq :  internalRobotReq( ws, 2,$WorkTime,$SleepTime )
 			forward resourcemodel -m modelUpdate : modelUpdate(robot,w)	
@@ -555,6 +559,7 @@ QActor onecellforward context ctxRobot {
 	
 	State goBackFromFail{
 		println("goBackFromFail")
+		delay 50 //fix missing 
 		if "ActualStep>0" {
 			forward resourcemodel -m modelUpdate : modelUpdate(robot,s)	
 			forward basicrobot -m internalRobotReq :  internalRobotReq( ss, $ActualStep,$WorkTime,$SleepTime )
@@ -568,6 +573,7 @@ QActor onecellforward context ctxRobot {
 	State endGoBackFormFail{		
 		println("endGoBackFormFail")
 		forward resourcemodel -m modelChange : modelChange(robot,h)
+		["replyToCaller(\"collision\", \" collision(RealWall) \")"]	//per l'explorer	
 		["replyToCaller(\"stepFail\", \"stepFail(obstacle,$Duration) \")"]		
 	}Goto ready
 	

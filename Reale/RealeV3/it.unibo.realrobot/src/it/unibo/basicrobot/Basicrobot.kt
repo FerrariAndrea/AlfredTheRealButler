@@ -35,6 +35,7 @@ class Basicrobot ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 				}	 
 				state("handleRobotCmd") { //this:State
 					action { //it:State
+						delay(50) 
 						storeCurrentMessageForReply()
 						if( checkMsgContent( Term.createTerm("robotCmd(CMD)"), Term.createTerm("robotCmd(MOVE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList

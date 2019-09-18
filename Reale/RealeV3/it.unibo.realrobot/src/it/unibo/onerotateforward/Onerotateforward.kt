@@ -161,6 +161,7 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 				}	 
 				state("miniRotate") { //this:State
 					action { //it:State
+						delay(50) 
 						if(Arotate){ forward("internalRobotReq", "internalRobotReq(am,1,2,0)" ,"basicrobot" ) 
 						forward("modelUpdate", "modelUpdate(robot,a)" ,"resourcemodel" ) 
 						 }

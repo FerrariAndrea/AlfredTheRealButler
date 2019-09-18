@@ -1,0 +1,80 @@
+System realrobot
+mqttBroker "localhost" : 1883
+
+Dispatch local_modelChanged   : modelChanged( TARGET, VALUE )
+
+Dispatch onestep       : onestep(DURATION)
+Dispatch stepOk        : stepOk(V)		//TODO eliminate  V
+Dispatch stepFail      : stepFail(R,T) //R=ok | obstacle, T = time
+Dispatch onerotationstep   : onerotationstep(MOVE)
+Dispatch rotationOk        : rotationOk(STALL)
+Event  sonarRobot     : sonar( DISTANCE )	     //from  sonar on robot 
+
+
+
+Context ctxController ip[host="localhost"port=8083] -mqtt
+Context ctxDummy ip[host="dummyhost" port=8084] -mqtt //as ctxRobot
+//ATTENZIONE:
+//viene usata direttamente la mindrobot e non la reourcesmodel
+//per semplicità
+ExternalQActor mindrobot context ctxDummy
+ExternalQActor onecellforward context ctxDummy
+ExternalQActor onerotateforward context ctxDummy
+
+
+QActor controller context ctxController {
+["
+	
+	var Tback      = 0L
+	var StepTime   = 10L	//for real steps (*50ms)
+	var RotateTime = 300L	//for real
+	var PauseTime  = 250L 
+"]	
+	State s0 initial {
+		/*/
+		forward mindrobot -m local_modelChanged : modelChanged(  robot, w)
+		delay 250
+		forward mindrobot -m local_modelChanged : modelChanged(  robot, h)
+		delay 2000
+		forward mindrobot -m local_modelChanged : modelChanged(  robot, s)
+		delay 250
+		forward mindrobot -m local_modelChanged : modelChanged(  robot, h)
+		*/
+		println("Start one step")
+		delay 1000
+	}
+	Goto oneStep
+
+	State oneRotate{
+			forward onerotateforward -m onerotationstep : onerotationstep(d)	
+	}
+	
+	State next{
+		println("next")
+	}
+	
+	State oneStep{
+			forward onecellforward -m onestep : onestep($StepTime)	
+	}
+	Transition t0 	whenMsg stepOk   -> handleStepOk   
+					whenMsg stepFail -> handleStepFail 
+
+	State handleStepOk{	
+		println("OK step :)")
+		delayVar PauseTime	
+	}
+	Goto next
+	
+	State handleStepFail{ 
+			
+		println("Fail step :(")	
+			
+	}
+	Goto next
+
+	
+}
+
+
+
+

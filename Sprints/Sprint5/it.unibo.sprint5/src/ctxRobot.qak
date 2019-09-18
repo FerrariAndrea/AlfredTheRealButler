@@ -117,7 +117,6 @@ QActor sonarhandler context ctxRobot {
  	Goto waitForEvents
 }
 
-
 QActor onerotateforward context ctxRobot {
 	["
 		var RealMove = \"a\"
@@ -175,8 +174,6 @@ QActor onerotateforward context ctxRobot {
 	}
 	Goto ready
 }
-
-
 
 QActor onecellforward context ctxRobot {
 	["
