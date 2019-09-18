@@ -33,7 +33,7 @@ class Reallateralsonar ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 						if(Distance_L>0){ emit("sonarLeft", "sonarLeft($Distance_L)" ) 
 						 }
 						val Distance_R = surpluss.pollingSonar.askToSonarLaterali(0).toInt()
-						if(Distance_R>0){ emit("sonarRigth", "sonarRigth($Distance_R)" ) 
+						if(Distance_R>0){ emit("sonarRight", "sonarRight($Distance_R)" ) 
 						 }
 						stateTimer = TimerActor("timer_doNotifyAll", 
 							scope, context!!, "local_tout_reallateralsonar_doNotifyAll", ActualTimer )

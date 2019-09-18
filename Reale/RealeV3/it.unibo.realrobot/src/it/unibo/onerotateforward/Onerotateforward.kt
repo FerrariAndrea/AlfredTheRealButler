@@ -53,7 +53,7 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 					}
 					 transition(edgeName="t117",targetState="calibration",cond=whenEvent("sonarRobot"))
 					transition(edgeName="t118",targetState="calibration",cond=whenEvent("sonarLeft"))
-					transition(edgeName="t119",targetState="calibration",cond=whenEvent("sonarRigth"))
+					transition(edgeName="t119",targetState="calibration",cond=whenEvent("sonarRight"))
 				}	 
 				state("calibration") { //this:State
 					action { //it:State
@@ -65,7 +65,7 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								SonarA=Integer.parseInt( payloadArg(0) )
 						}
-						if( checkMsgContent( Term.createTerm("sonarRigth(DISTANCE)"), Term.createTerm("sonarRigth(DISTANCE)"), 
+						if( checkMsgContent( Term.createTerm("sonarRight(DISTANCE)"), Term.createTerm("sonarRight(DISTANCE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								SonarD=Integer.parseInt( payloadArg(0) )
 						}
@@ -79,7 +79,7 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 					}
 					 transition(edgeName="t120",targetState="calibration",cond=whenEvent("sonarRobot"))
 					transition(edgeName="t121",targetState="calibration",cond=whenEvent("sonarLeft"))
-					transition(edgeName="t122",targetState="calibration",cond=whenEvent("sonarRigth"))
+					transition(edgeName="t122",targetState="calibration",cond=whenEvent("sonarRight"))
 				}	 
 				state("doRotationForward") { //this:State
 					action { //it:State
@@ -107,7 +107,7 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 					}
 					 transition(edgeName="t125",targetState="calibrationAfter",cond=whenEvent("sonarRobot"))
 					transition(edgeName="t126",targetState="calibrationAfter",cond=whenEvent("sonarLeft"))
-					transition(edgeName="t127",targetState="calibrationAfter",cond=whenEvent("sonarRigth"))
+					transition(edgeName="t127",targetState="calibrationAfter",cond=whenEvent("sonarRight"))
 				}	 
 				state("calibrationAfter") { //this:State
 					action { //it:State
@@ -119,7 +119,7 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								SonarAAfter=Integer.parseInt( payloadArg(0) )
 						}
-						if( checkMsgContent( Term.createTerm("sonarRigth(DISTANCE)"), Term.createTerm("sonarRigth(DISTANCE)"), 
+						if( checkMsgContent( Term.createTerm("sonarRight(DISTANCE)"), Term.createTerm("sonarRight(DISTANCE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								SonarDAfter=Integer.parseInt( payloadArg(0) )
 						}
@@ -133,7 +133,7 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 					}
 					 transition(edgeName="t128",targetState="calibrationAfter",cond=whenEvent("sonarRobot"))
 					transition(edgeName="t129",targetState="calibrationAfter",cond=whenEvent("sonarLeft"))
-					transition(edgeName="t130",targetState="calibrationAfter",cond=whenEvent("sonarRigth"))
+					transition(edgeName="t130",targetState="calibrationAfter",cond=whenEvent("sonarRight"))
 				}	 
 				state("correggi") { //this:State
 					action { //it:State
@@ -179,7 +179,7 @@ class Onerotateforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( 
 					}
 					 transition(edgeName="t132",targetState="calibrationAfter",cond=whenEvent("sonarRobot"))
 					transition(edgeName="t133",targetState="calibrationAfter",cond=whenEvent("sonarLeft"))
-					transition(edgeName="t134",targetState="calibrationAfter",cond=whenEvent("sonarRigth"))
+					transition(edgeName="t134",targetState="calibrationAfter",cond=whenEvent("sonarRight"))
 				}	 
 				state("endDoRotationForward") { //this:State
 					action { //it:State

@@ -52,7 +52,7 @@ class Sonarcollector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 								if(CountL<minCount){ SonarL[CountL]=payloadArg(0).toInt();CountL++;
 								 }
 						}
-						if( checkMsgContent( Term.createTerm("sonarRigth(DISTANCE)"), Term.createTerm("sonarRigth(DISTANCE)"), 
+						if( checkMsgContent( Term.createTerm("sonarRight(DISTANCE)"), Term.createTerm("sonarRight(DISTANCE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								if(CountR<minCount){ SonarR[CountR]=payloadArg(0).toInt();CountR++;
 								 }
@@ -66,7 +66,7 @@ class Sonarcollector ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 					}
 					 transition(edgeName="t06",targetState="collect",cond=whenEvent("sonarRobot"))
 					transition(edgeName="t07",targetState="collect",cond=whenEvent("sonarLeft"))
-					transition(edgeName="t08",targetState="collect",cond=whenEvent("sonarRigth"))
+					transition(edgeName="t08",targetState="collect",cond=whenEvent("sonarRight"))
 				}	 
 				state("response") { //this:State
 					action { //it:State

@@ -8,7 +8,7 @@ Event  sonarRobot     : sonar( DISTANCE )	     //from  sonar on robot
 Event  sonar          : sonar(SONAR, DISTANCE)	 //from sonar in the robot environment          
 Event  polar          : p( Distance, Angle ) 
 Event  sonarLeft     : sonarLeft( DISTANCE )
-Event  sonarRigth     : sonarRigth( DISTANCE )
+Event  sonarRight     : sonarRight( DISTANCE )
 
 Dispatch internalSonarReq   : internalSonarReq( V ) 
 Dispatch internalSonarRes   : internalSonarRes( SonarW,SonarL,SonarR ) 
@@ -175,7 +175,7 @@ QActor sonarcollector context ctxRobot{
  			}
  		
  		}
- 		onMsg ( sonarRigth : sonarRigth( DISTANCE ) ){
+ 		onMsg ( sonarRight : sonarRight( DISTANCE ) ){
  			if "CountR<minCount"{  
 				["SonarR[CountR]=payloadArg(0).toInt();CountR++;"]				
 			}
@@ -186,7 +186,7 @@ QActor sonarcollector context ctxRobot{
 		
 	}Transition t0 whenEvent sonarRobot ->  collect
 					 whenEvent sonarLeft ->  collect
-					  whenEvent sonarRigth ->  collect
+					  whenEvent sonarRight ->  collect
 					  
 	State response{
 		["		
@@ -243,11 +243,11 @@ QActor sonarhandler context ctxRobot {
 	//		emit polar : p( $D, 90  ) 
 			forward resourcemodel -m modelChange : modelChange(sonarLeft,$payloadArg(0))
  		}
- 		//---------------------------------------------------------------SONAR Rigth
- 		onMsg ( sonarRigth : sonarRigth( DISTANCE ) ){     
+ 		//---------------------------------------------------------------SONAR Right
+ 		onMsg ( sonarRight : sonarRight( DISTANCE ) ){     
 	//	[" val D = Integer.parseInt( payloadArg(0) ) * 5"] //AMPLIFY
 	//		emit polar : p( $D, 270  ) 
-			forward resourcemodel -m modelChange : modelChange(sonarRigth,$payloadArg(0))
+			forward resourcemodel -m modelChange : modelChange(sonarRight,$payloadArg(0))
  		}
  		//per il dispatch interno dell'ultimo sonar
  		onMsg ( internalReq : internalReq( TARGET ) ){     
@@ -259,7 +259,7 @@ QActor sonarhandler context ctxRobot {
  	Transition t0 whenEvent sonar      ->  handleSonar
    	              whenEvent sonarRobot ->  handleSonar
    	              whenEvent sonarLeft ->  handleSonar
-   	              whenEvent sonarRigth ->  handleSonar
+   	              whenEvent sonarRight ->  handleSonar
    	              whenMsg internalReq ->  handleSonar
 }
 
@@ -300,7 +300,7 @@ QActor onerotateforward context ctxRobot {
 		}		
 	}Transition t1 whenEvent sonarRobot ->  calibration
 					 whenEvent sonarLeft ->  calibration
-					 whenEvent sonarRigth ->  calibration
+					 whenEvent sonarRight ->  calibration
  	
 	State calibration{
 		onMsg ( sonarRobot : sonar( DISTANCE ) ){  
@@ -309,7 +309,7 @@ QActor onerotateforward context ctxRobot {
 		onMsg ( sonarRobot : sonar( DISTANCE ) ){  
 			["SonarA=Integer.parseInt( payloadArg(0) )"]
 		}
-		onMsg ( sonarRigth : sonarRigth( DISTANCE ) ){  
+		onMsg ( sonarRight : sonarRight( DISTANCE ) ){  
 			["SonarD=Integer.parseInt( payloadArg(0) )"]
 		}		
 		["NeedCalibration=(SonarD<0 || SonarA<0 || SonarW<0)"]		
@@ -318,7 +318,7 @@ QActor onerotateforward context ctxRobot {
 	State calibrationAgaint{		
 	}Transition t1 whenEvent sonarRobot ->  calibration
 					 whenEvent sonarLeft ->  calibration
-					 whenEvent sonarRigth ->  calibration
+					 whenEvent sonarRight ->  calibration
 	
 	State doRotationForward{
 		delay 80
@@ -343,7 +343,7 @@ QActor onerotateforward context ctxRobot {
 		["SonarDAfter=-1;SonarAAfter=-1;SonarWAfter-1;"]
 	}Transition t1 whenEvent sonarRobot ->  calibrationAfter
 					 whenEvent sonarLeft ->  calibrationAfter
-					 whenEvent sonarRigth ->  calibrationAfter			 
+					 whenEvent sonarRight ->  calibrationAfter			 
 	State calibrationAfter{
 		onMsg ( sonarRobot : sonar( DISTANCE ) ){  
 			["SonarWAfter=Integer.parseInt( payloadArg(0) )"]	
@@ -351,7 +351,7 @@ QActor onerotateforward context ctxRobot {
 		onMsg ( sonarRobot : sonar( DISTANCE ) ){  
 			["SonarAAfter=Integer.parseInt( payloadArg(0) )"]
 		}
-		onMsg ( sonarRigth : sonarRigth( DISTANCE ) ){  
+		onMsg ( sonarRight : sonarRight( DISTANCE ) ){  
 			["SonarDAfter=Integer.parseInt( payloadArg(0) )"]
 		}		
 		["NeedCalibration=(SonarDAfter<0 || SonarAAfter<0 || SonarWAfter<0)"]
@@ -360,7 +360,7 @@ QActor onerotateforward context ctxRobot {
 	State calibrationAfterAgaint{		
 	}Transition t1 whenEvent sonarRobot ->  calibrationAfter
 					 whenEvent sonarLeft ->  calibrationAfter
-					 whenEvent sonarRigth ->  calibrationAfter
+					 whenEvent sonarRight ->  calibrationAfter
 	
 	State correggi{
 		["NeedCorrezione =false"]
@@ -404,7 +404,7 @@ QActor onerotateforward context ctxRobot {
 		["SonarDAfter=-1;SonarAAfter=-1;SonarWAfter-1;"]
 	}Transition t1 whenEvent sonarRobot ->  calibrationAfter
 					 whenEvent sonarLeft ->  calibrationAfter
-					 whenEvent sonarRigth ->  calibrationAfter
+					 whenEvent sonarRight ->  calibrationAfter
 	  
 	State endDoRotationForward{
 		//Rotation ok quindi salvo sulla kb
@@ -734,7 +734,7 @@ QActor reallateralsonar context ctxRobot{
 		}
 		["val Distance_R = surpluss.pollingSonar.askToSonarLaterali(0).toInt()"]
 		if"Distance_R>0"{			
-			emit sonarRigth : sonarRigth($Distance_R)
+			emit sonarRight : sonarRight($Distance_R)
 		}
 	}
 	Transition t1  whenTimeVar  ActualTimer -> doNotifyAll	

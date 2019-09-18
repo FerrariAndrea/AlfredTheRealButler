@@ -42,9 +42,9 @@ class Sonarhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								forward("modelChange", "modelChange(sonarLeft,${payloadArg(0)})" ,"resourcemodel" ) 
 						}
-						if( checkMsgContent( Term.createTerm("sonarRigth(DISTANCE)"), Term.createTerm("sonarRigth(DISTANCE)"), 
+						if( checkMsgContent( Term.createTerm("sonarRight(DISTANCE)"), Term.createTerm("sonarRight(DISTANCE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								forward("modelChange", "modelChange(sonarRigth,${payloadArg(0)})" ,"resourcemodel" ) 
+								forward("modelChange", "modelChange(sonarRight,${payloadArg(0)})" ,"resourcemodel" ) 
 						}
 						if( checkMsgContent( Term.createTerm("internalReq(TARGET)"), Term.createTerm("internalReq(TARGET)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
@@ -54,7 +54,7 @@ class Sonarhandler ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name
 					 transition(edgeName="t011",targetState="handleSonar",cond=whenEvent("sonar"))
 					transition(edgeName="t012",targetState="handleSonar",cond=whenEvent("sonarRobot"))
 					transition(edgeName="t013",targetState="handleSonar",cond=whenEvent("sonarLeft"))
-					transition(edgeName="t014",targetState="handleSonar",cond=whenEvent("sonarRigth"))
+					transition(edgeName="t014",targetState="handleSonar",cond=whenEvent("sonarRight"))
 					transition(edgeName="t015",targetState="handleSonar",cond=whenDispatch("internalReq"))
 				}	 
 			}
