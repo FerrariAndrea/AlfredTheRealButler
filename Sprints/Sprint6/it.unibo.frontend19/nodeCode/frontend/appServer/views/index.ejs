@@ -238,7 +238,7 @@
 			if (v.indexOf("robot") >= 0) {
 				document.getElementById('robotDisplay').innerHTML = getMsgPayload(v);
 				ResetSonar = ResetSonar + 1;
-				if (ResetSonar > 10) { document.getElementById('sonarRobotDisplay').innerHTML = "+inf"; }
+				//if (ResetSonar > 10) { document.getElementById('sonarRobotDisplay').innerHTML = "+inf"; }
 			}
 			if (v.indexOf("fridge") >= 0) {
 				var isFound = v.indexOf("collision") != -1 ? true : false;
