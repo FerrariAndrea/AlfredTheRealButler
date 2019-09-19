@@ -228,7 +228,7 @@
 			}
 		}
 		let homePos = "X0Y0Osud"
-		var contentFood1 = ""; var contentFood2 = ""; var contentDishwasher = ""; var contentPantry = ""; var robotPosition = "";
+		var contentFood1 = ""; var contentFood2 = ""; var contentDishwasher = ""; var contentPantry = ""; var robotPosition = ""; var lastMission = "";
 		var socket = io.connect();
 		socket.on('connect', function () { console.log("socket connected"); });
 		//ricevo messaggio da socket con contenuto v rappresentante la stringa che verrà inserita nel form.
@@ -251,7 +251,6 @@
 					window.sessionStorage.setItem("contentFood1", contentFood1)
 					window.sessionStorage.setItem("contentFood2", contentFood2)
 					document.getElementById('food').innerHTML = "Pizza: " + contentFood1 + "; Crescentina: " + contentFood2;
-
 				}
 			} //FOOD
 			if (v.indexOf("dishwasher") >= 0) {
@@ -281,14 +280,16 @@
 			if (v.indexOf("sonarRight") >= 0) { document.getElementById('sonarRobotRDisplay').innerHTML = getMsgPayload(v); }
 			if (v.indexOf("posRobot") >= 0 && v.split('(')[2].split(')')[0] !== "") {
 				robotPosition = getMsgPayload(v)
-				sessionStorage.setItem("position",robotPosition)
-				document.getElementById('robotPosDisplay').innerHTML = robotPosition; }
-			if (v.indexOf("metre") >= 0) {
+				sessionStorage.setItem("position", robotPosition)
+				document.getElementById('robotPosDisplay').innerHTML = robotPosition;
+			}
+			if (v.indexOf("maitre") >= 0) {
 				var resp = getMsgPayload(v);
+				sessionStorage.setItem("lastMission",resp)
 				document.getElementById('lastCompleteMission').innerHTML = resp;
-				if (resp === "endExplorBoundOk") {
+				if (resp === "endExploreBoundOk") {
 					setState("toExploreTable");
-				} else if (resp === "endExplorTableOk") {
+				} else if (resp === "endExploreTableOk") {
 					setState("toPrepare");
 				} else if (resp === "OkClearingRoom" || resp === "FailClearingRoom") {
 					setState("done");
@@ -321,10 +322,16 @@
 		contentPantry = getContentPantry()
 		contentDishwasher = getContentDishwasher()
 		robotPosition = getRobotPosition()
+		lastMission = getLastMission()
 
 		//document.getElementById("robotState").innerHTML = state
 		//document.getElementById("robotSecondLastState").innerHTML = secondLastState
-		
+
+		function getLastMission() {
+			//console.log("Current State: " + window.sessionStorage.getItem("lastMission"))
+			return window.sessionStorage.getItem("lastMission")
+		}
+
 		function getRobotPosition() {
 			//console.log("Current State: " + window.sessionStorage.getItem("position"))
 			return window.sessionStorage.getItem("position")
@@ -554,7 +561,7 @@
 	if (contentDishwasher == null) { document.getElementById('dishwasher').innerHTML = "0" } else { document.getElementById('dishwasher').innerHTML = "" + contentDishwasher }
 	if (contentFood1 == null && contentFood2 == null) { document.getElementById('food').innerHTML = "Pizza: 0; Crescentina: 0"; } else { document.getElementById('food').innerHTML = "Pizza: " + contentFood1 + "; Crescentina: " + contentFood2; }
 	document.getElementById('robotPosDisplay').innerHTML = robotPosition;
-
+	document.getElementById('lastCompleteMission').innerHTML = lastMission;
 	loadLayout(state)
 
 	function loadLayout(stateLayout) {

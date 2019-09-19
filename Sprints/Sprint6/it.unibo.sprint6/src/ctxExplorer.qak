@@ -40,8 +40,8 @@ Dispatch onestepIW       : onestepIW(DURATION)//IgnoreWall (forse inutile)
 
 Dispatch modelRobotResponse : modelRobotResponse( X,Y,O ) 
 
-Dispatch doExplor : doExplor( TARGET )  
-Dispatch endExplor : endExplor(V)
+Dispatch doExplore : doExplore( TARGET )  
+Dispatch endExplore : endExplore(V)
 
 Context ctxExplorer ip[host="localhost" port=8039] -mqtt
 Context ctxDummy ip[host="dummyhost" port=9999] -mqtt 
@@ -207,7 +207,7 @@ QActor missionsolver context ctxExplorer{
  	State fail{
  		println("WARNING: Explorer: fail.")
  		["val Resp = \"Fail$ActualMissionName\""]
- 		forward resourcemodel -m modelUpdate : modelUpdate(metre,$Resp)
+ 		forward resourcemodel -m modelUpdate : modelUpdate(maitre,$Resp)
 		//["replyToCaller(\"missionFinish\", \"missionFinish(fail)\")"]		
  	}Goto waiting
  	
@@ -286,7 +286,7 @@ QActor missionsolver context ctxExplorer{
  	
  	State reply{
  		["val Resp = \"Ok$ActualMissionName\""]
- 		forward resourcemodel -m modelUpdate : modelUpdate(metre,$Resp)
+ 		forward resourcemodel -m modelUpdate : modelUpdate(maitre,$Resp)
  		//["replyToCaller(\"missionFinish\", \"missionFinish($ActualMissionName)\")"]
  	}Goto waiting
  	
@@ -345,18 +345,18 @@ QActor explorer context ctxExplorer{
 	State waitCmd{
 		println("Waiting for exploration cmd...")
 		["needExploreBound=false;IsFixForHome=false;NeedReplyForFixHome=false;"]
-	}Transition t0 whenMsg doExplor -> handeCmd
+	}Transition t0 whenMsg doExplore -> handeCmd
 				 whenEvent   goTo  -> goToPosition
 		
 	State handeCmd{
 		["storeCurrentMessageForReply()"]	
-		onMsg(   doExplor:  doExplor(TARGET) ) { 
+		onMsg(   doExplore:  doExplore(TARGET) ) { 
 			
 			["
 				needExploreBound = (payloadArg(0)==\"bound\")				
 			"]
 		}//else explore for table 		
-	}Goto exploreBounds if "needExploreBound" else exploreTale
+	}Goto exploreBounds if "needExploreBound" else exploreTable
 	
 	
 	
@@ -485,12 +485,12 @@ QActor explorer context ctxExplorer{
 			println("Perimeter completely walked. DimX: $MapDimX DimY: $MapDimY")
 			//["val D = \"down\""]
 			//run itunibo.planner.plannerUtil.autoResetRobotPos(0,0,D)
-			["replyToCaller(\"endExplor\", \"endExplor(ok)\")"]	
-			forward resourcemodel -m modelUpdate : modelUpdate(metre,endExplorBoundOk)
+			["replyToCaller(\"endExplore\", \"endExplore(ok)\")"]	
+			forward resourcemodel -m modelUpdate : modelUpdate(maitre,endExploreBoundOk)
 	} Goto waitCmd 
-	//----------------------------------------------------------------------------------------------------------exploreTale
+	//----------------------------------------------------------------------------------------------------------exploreTable
 
-	State exploreTale{
+	State exploreTable{
 		println("Start explore table.")
 		["tableFound=false;ActualTX =0;ActualTY =0;CheckTableSizeStep=0;"]
 	}Goto goOneStepAhead 
@@ -623,7 +623,7 @@ QActor explorer context ctxExplorer{
 		run itunibo.planner.plannerUtil.showMap()
 		run itunibo.planner.plannerUtil.saveMap(mapname)//facoltativo
 		println("Table exploration end, starting fix-go-home")
-		//["replyToCaller(\"endExplor\", \"endExplor(ok)\")"]	
+		//["replyToCaller(\"endExplore\", \"endExplore(ok)\")"]	
 	}Goto startFixGoHome
 	//--------------------------------------------------------------EXPLORE FIX GOHOME
 	State startFixGoHome{
@@ -733,8 +733,8 @@ QActor explorer context ctxExplorer{
 	
 	State endOfJob{
 		if "NeedReplyForFixHome"{
-			["replyToCaller(\"endExplor\", \"endExplor(ok)\")"]	
-			forward resourcemodel -m modelUpdate : modelUpdate(metre,endExplorTableOk)
+			["replyToCaller(\"endExplore\", \"endExplore(ok)\")"]	
+			forward resourcemodel -m modelUpdate : modelUpdate(maitre,endExploreTableOk)
 			println("FixGoHome end.")	
 		}else{
 			if "GoToFailed"{
@@ -742,11 +742,11 @@ QActor explorer context ctxExplorer{
 				run itunibo.planner.plannerUtil.showMap()	
 				println("Actor: Explorer; State: handleStepFail; Payload: Replan and return at home.")
 				["replyToCaller(\"goToFail\", \"goToFail(fail)\")"]	
-				//forward resourcemodel -m modelUpdate : modelUpdate(metre,goToFail)
+				//forward resourcemodel -m modelUpdate : modelUpdate(maitre,goToFail)
 			}else{
 				println("Explorer: on the target cell!")
 				["replyToCaller(\"goToOk\", \"goToOk(ok)\")"]
-				//forward resourcemodel -m modelUpdate : modelUpdate(metre,goToOk)	
+				//forward resourcemodel -m modelUpdate : modelUpdate(maitre,goToOk)	
 			}
 		}
 	

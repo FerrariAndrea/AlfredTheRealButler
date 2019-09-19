@@ -32,10 +32,10 @@ lateinit var resourceCoap : modelResourceCoap
 				resourceCoap.updateState( "sonarRobot( $SonarState )" )
  			}	
 	}
-	fun updateMetreModel( actor: ActorBasic, content: String ){
+	fun updateMaitreModel( actor: ActorBasic, content: String ){
  			actor.scope.launch{
- 				actor.emit( "modelContent" , "metre( $content )" )
-				resourceCoap.updateState( "metre( $content )" )
+ 				actor.emit( "modelContent" , "maitre( $content )" )
+				resourceCoap.updateState( "maitre( $content )" )
  			}	
 	}
 	fun updatePosRobotModel( actor: ActorBasic, content: String ){

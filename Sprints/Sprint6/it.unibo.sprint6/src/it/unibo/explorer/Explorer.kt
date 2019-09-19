@@ -69,20 +69,20 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 						println("Waiting for exploration cmd...")
 						needExploreBound=false;IsFixForHome=false;NeedReplyForFixHome=false;
 					}
-					 transition(edgeName="t011",targetState="handeCmd",cond=whenDispatch("doExplor"))
+					 transition(edgeName="t011",targetState="handeCmd",cond=whenDispatch("doExplore"))
 					transition(edgeName="t012",targetState="goToPosition",cond=whenEvent("goTo"))
 				}	 
 				state("handeCmd") { //this:State
 					action { //it:State
 						storeCurrentMessageForReply()
-						if( checkMsgContent( Term.createTerm("doExplor(TARGET)"), Term.createTerm("doExplor(TARGET)"), 
+						if( checkMsgContent( Term.createTerm("doExplore(TARGET)"), Term.createTerm("doExplore(TARGET)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								
 												needExploreBound = (payloadArg(0)=="bound")				
 						}
 					}
 					 transition( edgeName="goto",targetState="exploreBounds", cond=doswitchGuarded({needExploreBound}) )
-					transition( edgeName="goto",targetState="exploreTale", cond=doswitchGuarded({! needExploreBound}) )
+					transition( edgeName="goto",targetState="exploreTable", cond=doswitchGuarded({! needExploreBound}) )
 				}	 
 				state("exploreBounds") { //this:State
 					action { //it:State
@@ -210,12 +210,12 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 											MapDimX = itunibo.planner.plannerUtil.getMapDimX()-1
 											MapDimY = itunibo.planner.plannerUtil.getMapDimY()-1
 						println("Perimeter completely walked. DimX: $MapDimX DimY: $MapDimY")
-						replyToCaller("endExplor", "endExplor(ok)")
-						forward("modelUpdate", "modelUpdate(metre,endExplorBoundOk)" ,"resourcemodel" ) 
+						replyToCaller("endExplore", "endExplore(ok)")
+						forward("modelUpdate", "modelUpdate(maitre,endExploreBoundOk)" ,"resourcemodel" ) 
 					}
 					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
-				state("exploreTale") { //this:State
+				state("exploreTable") { //this:State
 					action { //it:State
 						println("Start explore table.")
 						tableFound=false;ActualTX =0;ActualTY =0;CheckTableSizeStep=0;
@@ -485,8 +485,8 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 				}	 
 				state("endOfJob") { //this:State
 					action { //it:State
-						if(NeedReplyForFixHome){ replyToCaller("endExplor", "endExplor(ok)")
-						forward("modelUpdate", "modelUpdate(metre,endExplorTableOk)" ,"resourcemodel" ) 
+						if(NeedReplyForFixHome){ replyToCaller("endExplore", "endExplore(ok)")
+						forward("modelUpdate", "modelUpdate(maitre,endExploreTableOk)" ,"resourcemodel" ) 
 						println("FixGoHome end.")
 						 }
 						else

@@ -49,9 +49,9 @@ QActor resourcemodel context ctxResourceModel {
 		onMsg( modelUpdate : modelUpdate(sonarRobot,V ) ) {
 			run itunibo.robot.resourceModelSupport.updateSonarRobotModel( myself, payloadArg(1) )
 		}
-		//Messaggi di fine missione per il metre (frontend)
-		onMsg( modelUpdate : modelUpdate(metre,V ) ) {
-			run itunibo.robot.resourceModelSupport.updateMetreModel( myself, payloadArg(1) )
+		//Messaggi di fine missione per il maitre (frontend)
+		onMsg( modelUpdate : modelUpdate(maitre,V ) ) {
+			run itunibo.robot.resourceModelSupport.updateMaitreModel( myself, payloadArg(1) )
 		}
 		onMsg( modelUpdate : modelUpdate(pos,V ) ) {
 			run itunibo.robot.resourceModelSupport.updatePosRobotModel( myself, payloadArg(1) )
@@ -71,8 +71,8 @@ QActor resourcemodel context ctxResourceModel {
 		}
 		/*
 		 // Start and stop msg  (richiesta comando)
-		onMsg( modelChange : modelChange( metre,CMD) ) {
-			forward mindrobot -m local_modelChanged : modelChanged(  metre,  $payloadArg(1)) 
+		onMsg( modelChange : modelChange( maitre,CMD) ) {
+			forward mindrobot -m local_modelChanged : modelChanged(  maitre,  $payloadArg(1)) 
 		} 
 		onMsg( modelChange : modelChange(robotPos,V ) ) {
 			println("---------------->ola")
