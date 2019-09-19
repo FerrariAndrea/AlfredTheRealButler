@@ -86,8 +86,7 @@ app.post("/clear", function (req, res, next) { superHandlePostMove("clear", "cle
 
 //PER ANDREA FERRARI: LEGGI LE DUE SEGUENTI LINEE
 app.post("/stop", function (req, res, next) { superHandlePostMove("stop", "freezing time", req, res, next); });
-app.post("/resume", function (req, res, next) { superHandlePostMove("resume", "resuming time", req, res, next); });
-
+app.post("/reactivate", function (req, res, next) { superHandlePostMove("reactivate", "resuming time", req, res, next); });
 app.post("/home", function (req, res, next) { superHandlePostMove("home", "going to home", req, res, next); });
 app.post("/exploreroom", function (req, res, next) { superHandlePostMove("exploreroom", "explore bunds", req, res, next); });
 app.post("/exploretable", function (req, res, next) { superHandlePostMove("exploretable", "explore for table", req, res, next); });
@@ -243,11 +242,11 @@ var publishMsg = function (cmd) {
 			mqttUtils.publish(msgstr, "unibo/qak/onecellforward");
 			break;
 
-		case "resume":
-			var msgstr = "msg(resume,dispatch,js,onerotateforward,resume(X),1)";
+		case "reactivate":
+			var msgstr = "msg(reactivate,dispatch,js,onerotateforward,reactivate(X),1)";
 			console.log("publishMsg forward> " + msgstr);
 			mqttUtils.publish(msgstr, "unibo/qak/onerotateforward");
-			msgstr = "msg(resume,dispatch,js,onecellforward,resume(X),1)";
+			msgstr = "msg(reactivate,dispatch,js,onecellforward,reactivate(X),1)";
 			console.log("publishMsg forward> " + msgstr);
 			mqttUtils.publish(msgstr, "unibo/qak/onecellforward");
 			break;

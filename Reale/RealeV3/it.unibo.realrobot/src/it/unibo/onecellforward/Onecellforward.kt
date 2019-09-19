@@ -50,7 +50,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 					action { //it:State
 						println("onecellforward is PAUSED")
 					}
-					 transition(edgeName="t038",targetState="ready",cond=whenDispatch("resume"))
+					 transition(edgeName="t038",targetState="ready",cond=whenDispatch("reactivate"))
 				}	 
 				state("checkFirst") { //this:State
 					action { //it:State

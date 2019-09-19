@@ -21,7 +21,7 @@ Dispatch modelChange  : modelChange( TARGET, VALUE )  //force a resource-model c
 Dispatch modelUpdate  : modelUpdate( TARGET, VALUE )  //sent by the mind
 
 Dispatch stop  : stop(V )  
-Dispatch resume  : resume( V )  
+Dispatch reactivate  : reactivate( V )  
 
 
 
@@ -133,7 +133,7 @@ QActor onerotateforward context ctxRobot {
 					
 	State paused{
 		println("onerotateforward is PAUSED")
-	}Transition t0 whenMsg resume -> ready
+	}Transition t0 whenMsg reactivate -> ready
 		
 	State doRotationForward{		  
 		println("ROTATION")
@@ -197,7 +197,7 @@ QActor onecellforward context ctxRobot {
 					
 	State paused{
 		println("onecellforward is PAUSED")
-	}Transition t0 whenMsg resume -> ready
+	}Transition t0 whenMsg reactivate -> ready
 		
 	       
 	State doMoveForward{

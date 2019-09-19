@@ -505,8 +505,8 @@
 					<form action="/stop" method="post">
 						<input id="stop" type="submit" class="myButtonRed" value="STOP" onclick="setState('stopped')">
 					</form>
-					<form action="/resume" method="post">
-						<input id="resume" type="submit" class="myButtonGreen" value="RESUME"
+					<form action="/reactivate" method="post">
+						<input id="reactivate" type="submit" class="myButtonGreen" value="REACTIVE"
 							onclick="restoreState('working')">
 					</form>
 				</th>
@@ -675,7 +675,7 @@
 
 			//setButton("goHome", goHomeDisabled)
 			setButton("stop", stopDisabled)
-			setButton("resume", resumeDisabled)
+			setButton("reactivate", resumeDisabled)
 
 			setButton("explorePerimeter", explorePerimeterDisabled)
 			setButton("exploreTable", exploreTableDisabled)

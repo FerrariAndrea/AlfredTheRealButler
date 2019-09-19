@@ -48,7 +48,7 @@ Dispatch compassRes : compassRes( ORIENTATION )
 Dispatch setLed : setLed(BLINKN,BLINKDELAY )//BLINKDELAY=-1 ->ledOFF  //BLINKDELAY=0 -> ledOn //BLINKDELAY>0 --> blink for BLINKN time
 
 Dispatch stop  : stop(V )  
-Dispatch resume  : resume( V ) 
+Dispatch reactivate  : reactivate( V ) 
 
 Context ctxRobot ip[host="localhost" port=8038] -mqtt
 Context ctxDummy ip[host="dummyhost" port=9999] -mqtt //as ctdResourceModel and ctxMaitre
@@ -300,7 +300,7 @@ QActor onerotateforward context ctxRobot {
 			
 	State paused{
 		println("onerotateforward is PAUSED")
-	}Transition t0 whenMsg resume -> ready
+	}Transition t0 whenMsg reactivate -> ready
 		
 	
 	State checkFirst{
@@ -474,7 +474,7 @@ QActor onecellforward context ctxRobot {
 						
 	State paused{
 		println("onecellforward is PAUSED")
-	}Transition t0 whenMsg resume -> ready
+	}Transition t0 whenMsg reactivate -> ready
 	
 	State checkFirst{
 		["
