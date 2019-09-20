@@ -523,7 +523,7 @@ QActor onecellforward context ctxRobot {
 	  State mustGoOn{
 	  	println("mustGoOn")
 	  	forward sonarcollector -m internalSonarReq : internalSonarReq(V)
-	  }Transition t0 whenEvent internalSonarRes  -> checkMove	
+	  }Transition t0 whenMsg internalSonarRes  -> checkMove	
 		
 	State checkMove{
 			println("checkMove")

@@ -111,7 +111,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 						println("mustGoOn")
 						forward("internalSonarReq", "internalSonarReq(V)" ,"sonarcollector" ) 
 					}
-					 transition(edgeName="t041",targetState="checkMove",cond=whenEvent("internalSonarRes"))
+					 transition(edgeName="t041",targetState="checkMove",cond=whenDispatch("internalSonarRes"))
 				}	 
 				state("checkMove") { //this:State
 					action { //it:State
