@@ -1,6 +1,6 @@
 System systemrobotreal
-//mqttBroker "192.168.43.61" : 1883 //CELLULARE
-mqttBroker "11.0.0.54" : 1883 //CASA
+mqttBroker "192.168.43.61" : 1883 //CELLULARE
+//mqttBroker "11.0.0.54" : 1883 //CASA
 
 //----------------------------SONARS
 Event  envCond        : envCond( CONDTYPE )        //from the environment 
@@ -447,7 +447,7 @@ QActor onerotateforward context ctxRobot {
 QActor onecellforward context ctxRobot {
 	["
 		val WorkTime : Long =40 //ms
-		val SleepTime : Long =10 //ms
+		val SleepTime : Long =5 //ms
 		val DistanzaCella : Long =25 //cm
 
 		var FoundObstacle = false

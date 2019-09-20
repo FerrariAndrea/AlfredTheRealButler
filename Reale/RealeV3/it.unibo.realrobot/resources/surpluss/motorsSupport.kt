@@ -58,11 +58,11 @@ object motorsSupport {
 			 reader_compass.readLine()
 		}
 		writer_compass.write("$cmdForC-$steps-$workTime-$sleepTime\n")
-		writer_compass.flush()		
+		writer_compass.flush()
+		var data = reader_compass.readLine()	
 		 GlobalScope.launch{
-				var data = reader_compass.readLine()
-				if(data!=null && data!="killed"){
-							delay(20)	 //for fix		 
+			 	delay(20)	 //for fix			
+				if(data!=null && data!="killed"){								 
 							actor.emit(msgType, msgType+"($data)" )
 				}				
 		}

@@ -17,7 +17,7 @@ class Onecellforward ( name: String, scope: CoroutineScope ) : ActorBasicFsm( na
 	override fun getBody() : (ActorBasicFsm.() -> Unit){
 		
 				val WorkTime : Long =40 //ms
-				val SleepTime : Long =10 //ms
+				val SleepTime : Long =5 //ms
 				val DistanzaCella : Long =25 //cm
 		
 				var FoundObstacle = false
