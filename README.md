@@ -2,17 +2,16 @@
 
 This University Project was made for the UNIBO course "Ingegneria dei Sistemi Software 2019" kept by Prof. Antonio Natali (https://www.unibo.it/it/didattica/insegnamenti/insegnamento/2018/385373).
 
+
 ## Description
-The goal of this project is available in HTML Format at `userDocs/Objective/TemaFinaleBo19.html`
+The goal of this project is available in HTML Format at `userDocs/Objective/TemaFinaleBo19.html`.
 
-Our Robot uses an AI Planner to dinamically calculate a sequence of moves for reaching a position. 
-It also uses Prolog as a Knowledge Base .
-Everything is mainly developed using the DSL QAK Language (external DSL for generating Kotlin code) developed by Antonio Natali.
-The Robot is equipped with a Raspberry which was properly configured for this purpose.
-MQTT and CoAp are used in this project as described in the objective of this project.
-The Virtual Environment that was used to test the robot *in a virtual environment* was developed by *Pierfrancesco Soffritti* (https://pierfrancescosoffritti.com/), currently working for Google.
-
-
+- Our Robot uses an AI Planner to dinamically calculate a sequence of moves for reaching a position. 
+- Our Robot also uses Prolog as a Knowledge Base .
+- Everything is mainly developed using the DSL QAK Language (external DSL for generating Kotlin code) developed by Antonio Natali.
+- The Robot is equipped with a Raspberry which was properly configured for this purpose.
+- MQTT and CoAp are used in this project as described in the objective of this project.
+- The Virtual Environment that was used to test the robot *in a virtual environment* was developed by *Pierfrancesco Soffritti* (https://pierfrancescosoffritti.com/), currently working for Google.
 
 
 ## Virtual Environment Instructions
@@ -33,10 +32,13 @@ To launch correctly our virtual system:
 
 7. Lanciare da eclipse i seguenti contesti: **ctxRobot**, **ctxResourceModel**, **ctxExplorer**, **ctxFridge**, **ctxPantry**, **ctxDishwasher**.
 
+
 ## Demos
 Many demos (go check it out!!) are available at Demos
 
+
 ## The Team (sorted by Last Name)
+
 
 **Cesarano Luca** 
 https://lucacesarano.com
@@ -48,8 +50,10 @@ https://github.com/Shin94
 **Ferrari Andrea**
 https://github.com/FerrariAndrea
 
+
 ## Tags
 *PROLOG, IA, AI, ARTIFICIAL INTELLIGENCE, RASPBERRY, DSL, QAK, GOOGLE, VIRTUAL ENVIRONMENT, NODEJS, JAVASCRIPT, MQTT, COAP, IOT, SMART DEVICES*
+
 
 ## Copyright
 Check LICENSE.MD
