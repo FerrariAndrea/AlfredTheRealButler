@@ -37,10 +37,10 @@ To launch correctly our virtual system:
 
 ## Demos
 Many demos (go check it out!!) are available at Demos
-![Alfred](/Demos/Pictures/IMG_20190920_05803.jpg=100x20)
+![Alfred](https://raw.githubusercontent.com/FerrariAndrea/RaspberryAnotherRobot/master/Demos/Pictures/IMG_20190920_105803.jpg)
+
 
 ## The Team (sorted by Last Name)
-
 
 **Cesarano Luca** 
 https://lucacesarano.com
