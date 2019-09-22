@@ -14,7 +14,7 @@ The goal of this project is available in HTML Format at `userDocs/Objective/Tema
 - The Virtual Environment that was used to test the robot *in a virtual environment* was developed by *Pierfrancesco Soffritti* (https://pierfrancescosoffritti.com/), currently working for Google.
 - Frontend is developed entirely in NodeJS
 - SCRUM was used as method for organizing our work. All our Sprints are available to be consulted. We reached the final stage of the project in a *incremental way*.
-
+- 
 
 ## Virtual Environment Instructions
 
@@ -34,6 +34,7 @@ To launch correctly our virtual system:
 
 7. Lanciare da eclipse i seguenti contesti: **ctxRobot**, **ctxResourceModel**, **ctxExplorer**, **ctxFridge**, **ctxPantry**, **ctxDishwasher**.
 
+Note: QAK plugins and Libs required available at https://github.com/anatali/iss2019Lab
 
 ## Demos
 Many demos (go check it out!!) are available at Demos
