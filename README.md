@@ -44,7 +44,7 @@ Many demos (go check it out!!) are available at Demos
 ## The Team (sorted by Last Name)
 
 **Cesarano Luca** 
-https://lucacesarano.com
+https://lucacesarano.com - 
 https://github.com/Cesarsk
 
 **Croce Andrea**
