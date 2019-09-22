@@ -1,0 +1,274 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+    <!--
+<link rel="stylesheet" type="text/css" href="../css/issStyle1.css">
+<script type="text/javascript" src="../css/issStyle.js"></script>
+-->
+<style type="text/css">
+<!--
+
+body
+{
+    margin-left:  30px;
+    margin-right: 30px;
+};
+
+P
+{
+    font-family: Tahoma;
+    font-size: 10pt;
+};
+
+a, a:visited, a:active, a:link, a:hover {
+    text-decoration: underline;
+    color: #545454;
+    background-color: transparent;
+}
+
+a:hover {
+    background-color: #cccccc;
+}
+
+
+hr {
+    clear: both;
+    height: 1px;
+    color: #242424;
+    background-color: transparent;
+}
+
+h1, h2, h3 {
+    color: #242424;
+    clear: left;
+    font: 100% Tahoma, Helvetica, Arial, sans-serif;
+    margin: 10;
+    margin-right: 15px;
+    margin-bottom: 0.5em;
+    padding-top: 0.5em;
+    border-bottom: 1px solid #242424;
+}
+
+h1 {
+    font-size: 150%;
+    background-color: #b2c0ff;
+}
+
+h2 {
+    background-color: #d9fbff;
+    font-size: 110%;
+}
+
+h3 {
+	background-color: #e6ccff;
+    font-size: 80%;
+}
+h4 {
+    background-color: #99ffcc;
+    font-size: 100%;
+}
+#i {
+    color: #ff1010;
+}
+tt{
+	font-family: "Arial";
+    font-size: 80%;
+	color: #006600;
+}
+em{
+	font-family: "Arial";
+    font-size: 80%;
+	font-weight: bold;
+	border-style:solid;
+	border-color: #ccffff;
+    color: #0033cc;
+}
+bc{
+	font-family: "Arial";
+	font-size: 80%;
+	font-weight: bold;
+    color: #990000;
+	background-color: #fcf8c7;
+}
+k{
+	font-family: "Arial";
+	font-weight: bold;
+    color: #990000;
+	 
+}
+ks{
+	font-family: "Arial";
+	font-weight: bold;
+    color: #0000CD	;
+	 
+}
+kc{
+	font-family: "Arial";
+	font-weight: bold;
+    color: #008000	;
+	 
+}
+pre{
+	font-family: "Helvetica";
+	font-size: 70%;
+	background-color: #fcf8c7; 
+}
+m{
+	font-family: "Helvetica";
+	line-height: 100%;
+ 	font-size: 75%;
+}
+div.body{
+	width: 800px;
+    font-size: 18px;
+}    
+div.req{
+	background-color: #d9ffb3;
+    font-size: 18px;
+	width: 700px;
+    border: 3px solid green;
+    padding: 15px;
+    margin: 10px;
+}    
+div.remark{
+	background-color: #FFFC33;     
+    border: 3px solid green;
+    padding: 15px;
+    margin: 10px;
+}  
+table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+
+  -->
+</style>
+    
+<head>
+   
+<title>TFBO19ISS</title></head>
+    
+<body>
+
+<div class="body"> 
+
+<h1>72939 - Final task ISS-2019 Bologna</h1> 
+<a href="http://htmlpreview.github.com/?https://github.com/anatali/iss2019Lab/blob/master/LectureBologna1819.html" target="isslm">
+LabISS-lectures site</a></font> 
+ 
+<h2>Overview</h2> 
+
+A room dedicated to support a <kc>Standing Buffet Service</kc> is equipped  with a set of (smart and non-smart) resources including
+a <em>fridge</em>, a <em>dishwasher</em>, a <em>pantry</em>, and a ddr robot able to work as a <em>Room Butler</em> (called from
+now on <bc>RBR</bc> (<tt>Room Butter Robot</tt>).
+
+<br/><br/>
+The <em>fridge</em>, the <em>dishwasher</em> and the <em>pantry</em> are embedded into a wall of the room, 
+so to exclude any protuberance from the wall itself. 
+<br/><br/>
+A <em>Table</em> is put at the center of the room, so that a possible room configuration
+looks like that shown in the following picture:
+
+	<center><table style="width:98%">
+	<tbody>	
+	<tr>
+	<td style="width:60%">
+	<h3>Standing Buffet Service room </h3>
+	<center><img src="./roomLayout.png" alt="roomLayout" width="75%" height="32%"/></center>
+	</td> 
+	<td><m>
+	<li><em>RH</em> : home location of the <bc>RBR</bc></li>
+ 	<li><em>fridge</em> a 'Internet Thing'</li>
+	<br/><br/>
+	For a possible virtual environment, see <a href="../sceneConfig.js" target="lecture">sceneConfig.js</a>
+   	</m>
+ 	</td>
+	 </table>
+	</center> 	
+The behavior of the <tt>Buffet Service</tt> is supervised by a <em>Maître de salle</em> (or simply <bc>Maitre</bc>) 
+which can tell the <bc>RBR</bc> to perform a set of  tasks, including:
+
+<ol>
+<li><i>Prepare the room</i>. This task consists in putting on the <em>Table</em> dishes taken from the 
+<em>pantry</em>, and food taken from the <em>fridge</em>. The set of items to put on the table 
+in this phase is fixed and properly described somewhere.</li>
+
+<li><i>Clear the room</i>. This task consists in bringing non-consumed food  again  in the <em>fridge</em> and 
+the dishes in the <em>dishwasher</em>.</li>
+<li><i>Add food</i> on the table. This task consists in bringing some specific food (if it exists)
+from the <em>fridge</em> to the <em>Table</em>.
+</ol>
+
+Thus, the <em>fridge</em> is intended to be a smart device owning explicit knowledge of the food stored in it.
+Moreover, it should be able to answer (via <ks>CoAP</ks>) to questions about its content, asked by humans or machines.
+
+<br/><br/>
+The <em>pantry</em>  and the <em>dishwasher</em> are (at the moment) non-smart resources.
+<h2>Requirements</h2> 	
+
+<div class="req">
+Design and build the software to put on board of the <em>fridge</em> and of the <bc>RBR</bc>. In particular,
+the <bc>RBR</bc> must be able to accept the following commands sent by the <ks>smart-phone</ks> of <bc>Maitre</bc>:
+
+<ul>
+<li><em>prepare</em>: the <bc>RBR</bc> must execute in autonomous way the <i>Prepare the room</i> task.</li>
+<li><em>add food</em>:   the <bc>RBR</bc> must execute in autonomous way  the <i>Add food</i> task.</li>
+<li><em>clear</em>:  the <bc>RBR</bc> must execute in autonomous way the <i>Clear the room</i> task.</li>
+</ul>
+
+These tasks are normally executed in sequence, and the main scenario can be summarized as follows:
+
+<ol>
+<li>At start, the room is empty (i.e. no people is in it, besides the <bc>Maitre</bc>) while the <em>pantry</em>
+and the <em>fridge</em> are filled with a proper set of items. The <bc>RBR</bc> is in its <ks>RH</ks> location
+and the <em>dishwasher</em> is empty.</li>
+<li>The <bc>Maitre</bc> sends to the <bc>RBR</bc> the <em>prepare</em> command and waits for the completion
+of the related task. At the end, the <bc>RBR</bc> is in its <ks>RH</ks> location again. </li>
+<li>The <bc>Maitre</bc> opens the room to people. During the service, the <bc>Maitre</bc> can send to the <bc>RBR</bc>
+the <em>add food</em> command, by specifying a <em>food-code</em>. The <bc>RBR</bc> executes the task only if food
+with the given code is available in the <em>fridge</em>, otherwise it sends a warning to the <bc>Maitre</bc>. After the task completion,
+the <bc>RBR</bc> returns is in its <ks>RH</ks> location.
+</li>
+<li>At the end of the party, the <bc>Maitre</bc> <bc>Maitre</bc> sends to the <bc>RBR</bc> the <em>clear</em> command
+and waits for the completion of the task. The <bc>RBR</bc> returns is in its <ks>RH</ks> location again.
+</ol>
+
+
+
+However, the <bc>Maitre</bc> is able, at any time, to
+use his/her smart-phone to:
+<ul>
+<li><em>consult</em> the <kc>state of the room</kc>, e.g. to known what are the objects related to each resource;
+for example, the object currently posed on the <em>Table</em>, in the <em>dishwasher</em>, etc;</li>
+<li><em>stop</em> or <em>reactivate</em> an activated task.</li>
+</ul>
+ 
+Finally, the <bc>RBR</bc> must be able to 
+<ul>
+<li><em>avoid </em>the impact with mobile obstacles (e.g. the <bc>Maitre</bc> 
+or other humans / animals present in the room).</li>
+</ul>
+
+The software to put on the <em>fridge</em> should make the device able to:
+<ul>
+<li><em>expose</em> its current content on the <bc>Maitre</bc> smart-phone;</li>
+<li><em>answer</em> to questions about its content (e.g. if it contains food with a given code ).</li>
+</ul>
+
+
+</div>	    
+
+<h2>Non functional requirements</h2>  
+<ol>
+<li>The ideal work team is composed of 3 persons. Teams of 1 or 2 persons (NOT 4 or more) are also allowed. </li>
+<li>The team must present a workplan as the result of the requirement/problem analysis,
+including at least one TestPlan.</li>
+<li>The team must present the sequence of SPRINT performed, with appropriate motivations.</li>
+<li>The team must present (in synthetic, schematic way) the specific activity of each team-component.</li>
+</ol>	
+ 
+</div>
+<div style="background-color:rgba(86, 56, 253, 0.9); width:100%;text-align:center;font-size:small;color:white">
+By AN Unibo-DISI    
+</div> 
+</body>
+</html>
