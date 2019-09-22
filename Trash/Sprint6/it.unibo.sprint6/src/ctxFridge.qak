@@ -1,0 +1,82 @@
+System system5
+mqttBroker "localhost" : 1883
+
+Dispatch takeFood  : takeFood(X,Q)
+Dispatch putFood   : putFood(X,Q)
+
+Context ctxFridge ip[host="localhost" port=8035] -mqtt
+Context ctxDummy ip[host="dummyhost" port=9999] -mqtt 
+
+QActor fridge context ctxFridge {
+			["
+			var food1 = 12
+			var food2 = 10
+			var noFood : Boolean = false
+			var selectedFood = -1
+			var quantityFood = 0
+			"]
+	State s0 initial {
+
+		println("Fridge Started")
+		run itunibo.coap.modelResourceCoap.create( myself, "fridge", 5684 ) //CoAP access
+		forward fridge -m takeFood: takeFood(1,0)
+		forward fridge -m takeFood: takeFood(2,0)
+	}
+	Goto waitCmd
+		
+	State waitCmd { ["noFood = false"]} 
+	Transition t0 whenEvent takeFood -> checkingFood
+				  whenEvent putFood  -> puttingFood
+				  
+	State puttingFood {
+		onMsg(putFood: putFood(X,Q)) {
+			["
+				selectedFood = payloadArg(0).toInt()
+				quantityFood = payloadArg(1).toInt()
+			"]
+			
+			if "selectedFood == 1" {
+				["food1 += quantityFood"]
+			} else {
+				["food2 += quantityFood"]
+			}
+		}
+	} Goto updateModelFridge
+	
+	State checkingFood {
+		onMsg(   takeFood:  takeFood(X,Q) ) { 
+			["
+				selectedFood = payloadArg(0).toInt()
+				quantityFood = payloadArg(1).toInt()
+			"]
+			
+			if "selectedFood == 1" {
+				if "food1 == 0" {
+					//segnalo RBR all'explorer?
+					println("NO FOOD 1 ")
+					["noFood = true"]
+				}
+			} else {
+				if "food2 == 0" {
+					["noFood = true"]	
+					//segnalo RBR all'explorer?
+					println("NO FOOD 2 ")				
+				}
+			}
+		}		
+	} Goto waitCmd if "noFood == true" else takingFood
+	
+	State takingFood {		
+			println("selectedFood : $selectedFood")
+			if "selectedFood == 1" {
+			["food1 = food1 - quantityFood"]
+			} else {
+				if "selectedFood == 2" {["food2 = food2 - quantityFood"]}
+				else {println("Error")}	
+			}	
+	} Goto updateModelFridge
+	
+	State updateModelFridge {
+		run itunibo.robot.resourceModelSupport.updateFridgeModel(myself,"FOOD1:{$food1};FOOD2:[$food2];")
+	} Goto waitCmd
+}

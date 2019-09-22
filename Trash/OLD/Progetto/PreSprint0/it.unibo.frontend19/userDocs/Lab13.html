@@ -1,0 +1,527 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+    <!--
+<link rel="stylesheet" type="text/css" href="../css/issStyle1.css">
+<script type="text/javascript" src="../css/issStyle.js"></script>
+-->
+<style type="text/css">
+<!--
+
+body
+{
+    margin-left:  30px;
+    margin-right: 30px;
+};
+
+P
+{
+    font-family: Tahoma;
+    font-size: 10pt;
+};
+
+a, a:visited, a:active, a:link, a:hover {
+    text-decoration: underline;
+    color: #545454;
+    background-color: transparent;
+}
+
+a:hover {
+    background-color: #cccccc;
+}
+
+
+hr {
+    clear: both;
+    height: 1px;
+    color: #242424;
+    background-color: transparent;
+}
+
+h1, h2, h3 {
+    color: #242424;
+    clear: left;
+    font: 100% Tahoma, Helvetica, Arial, sans-serif;
+    margin: 10;
+    margin-right: 15px;
+    margin-bottom: 0.5em;
+    padding-top: 0.5em;
+    border-bottom: 1px solid #242424;
+}
+
+h1 {
+    font-size: 150%;
+    background-color: #b2c0ff;
+}
+
+h2 {
+    background-color: #d9fbff;
+    font-size: 110%;
+}
+
+h3 {
+	background-color: #e6ccff;
+    font-size: 80%;
+}
+h4 {
+    background-color: #99ffcc;
+    font-size: 100%;
+}
+#i {
+    color: #ff1010;
+}
+tt{
+	font-family: "Arial";
+    font-size: 80%;
+	color: #006600;
+}
+em{
+	font-family: "Arial";
+    font-size: 80%;
+	font-weight: bold;
+	border-style:solid;
+	border-color: #ccffff;
+    color: #0033cc;
+}
+bc{
+	font-family: "Arial";
+	font-size: 80%;
+	font-weight: bold;
+    color: #990000;
+	background-color: #fcf8c7;
+}
+k{
+	font-family: "Arial";
+	font-weight: bold;
+    color: #990000;
+	 
+}
+ks{
+	font-family: "Arial";
+	font-weight: bold;
+    color: #0000CD	;
+	 
+}
+kc{
+	font-family: "Arial";
+	font-weight: bold;
+    color: #008000	;
+	 
+}
+pre{
+	font-family: "Helvetica";
+	font-size: 70%;
+	background-color: #fcf8c7; 
+}
+m{
+	font-family: "Helvetica";
+	line-height: 100%;
+ 	font-size: 75%;
+}
+div.body{
+	width: 800px;
+    font-size: 18px;
+}    
+div.req{
+	background-color: #d9ffb3;
+    font-size: 18px;
+	width: 700px;
+    border: 3px solid green;
+    padding: 15px;
+    margin: 10px;
+}    
+div.remark{
+	background-color: #FFFC33;     
+    border: 3px solid green;
+    padding: 15px;
+    margin: 10px;
+}  
+table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+
+  -->
+</style>
+    
+<head>
+   
+<title>Lab13ISS</title></head>
+    
+<body>
+
+<div class="body"> 
+
+<h1>72939 - LAB13 | A frontend in Node.js</h1> 
+<a href="http://htmlpreview.github.com/?https://github.com/anatali/iss2019Lab/blob/master/LectureBologna1819.html" target="isslm">LabISS-lectures site</a></font> 
+ 
+ <h2>Overview</h2>
+ The goal of this section is to design and build a front-end application component by using 
+ <a href="https://en.wikipedia.org/wiki/Node.js">Node.js</a>
+ and <a href="https://en.wikipedia.org/wiki/Express.js">Express</a>. <br/><br/>
+ 	<center><table style="width:95%">
+	<tbody>	
+	<tr>
+	<td >
+	<center><img src="./javascript.png" alt="javascript.png" width="75%" height="32%"/></center>
+	</td> 
+	<td>
+	<center><img src="./nodebook.png" alt="nodebook.png" width="75%" height="32%"/></center>
+ 	</td>
+	<td>
+	<center><img src="./meanBook.png" alt="meanBook.png" width="75%" height="32%"/></center>
+ 	</td>
+	<td>
+	<m>
+	<h3>Readings</h3>
+	 <a href="eventProgramming2.pdf" target="lecture">Event programming in JavaScript and Node.js:
+an introduction (pdf)</a> <br/><br/>
+ 	 <a href="nodeExpressWeb.pdf" target="lecture">NodeExpressWeb (pdf)</a> <br/><br/>
+
+	</m>
+	</td>
+	 </table>
+	</center> 
+
+<h3>Node architecture</h3>	
+IO operations can be orders of magnitude slower than data processing. 
+Reading just one kilobyte of data would take 1.4 microseconds (read speed of 200-730 MB/s), 
+but during this time a CPU clocked at 2GHz could have performed 28000 of instruction-processing cycles.
+
+ 	<center><table style="width:95%">
+	<tbody>	
+	<tr>
+	<td >
+	<center><img src="./nodeArch.png" alt="nodeArch" width="100%" height="32%"/></center>
+	</td> 
+	<td>
+	<m>
+	<h3>Reading</h3>
+	 <a href="https://blog.risingstack.com/node-js-at-scale-understanding-node-js-event-loop/.pdf" target="web">
+	 Understanding the Node.js Event Loop</a> <br/><br/>
+  
+	</m>
+	</td>
+	 </table>
+	</center> 	
+	
+ <ol>
+<li><a href="#starting">Starting</a></li>
+<li><a href="#mvcrefact">Refactoring according to the MVC pattern</a></li>
+<li><a href="#serverode">Define the code of the server</a></li>
+<li><a href="#delegate">Interacting with the application</a></li>
+<li><a href="#config">Notes about configuration</a></li>
+ </ol>	 
+
+ 
+<h2 id="starting">Starting</h2>
+Read section 7.8 of <a href="nodeExpressWeb.pdf" target="lecture">nodeExpressWeb.pdf</a> and execute the following steps:
+<ol>
+<li>Execute <bc>npm install -g express-generator</bc>.</li>
+<li>In project <tt>it.unibo.frontend19</tt>, create the folder <bc>nodeCode/frontend</bc> and open a terminal in this folder.</li>
+<li>Execute <bc>express</bc></li>
+<li>Execute <bc>npm install</bc></li>
+<!-- <li>Move <bc>node_modules</bc> under <bc>nodeCode</bc> (to share it with other projects)</li> -->
+<li>Execute <ks>node bin/www</ks> and  open a browser on <ks>http://localhost:3000/</ks>.
+</ol>
+
+
+	<center><table style="width:95%">
+	<tbody>	
+	<tr>
+	<td style="width:35%">
+	<center><img src="./expressStart.png" alt="expressStart.png" width="95%" height="32%"/></center>
+	</td> 
+	<td>
+	<m>
+	We recall that:
+<ul>
+<li> <em>Middleware</em>. In contrast to vanilla Node, where your requests flow through only one function, Express has a
+<bc>middleware stack</bc> (compatible with <bc>connect middleware</bc>) , which is effectively an array of functions.  </li>
+<li> <em>Routing</em>. Routing is a lot like middleware, but the functions are called only when you <bc>visit</bc> a specific <tt>URL</tt> with
+a specific <tt>HTTP</tt> method.</li>
+<li> <em>Extensions</em> to request and response objects. Express extends the request and response objects with <bc>extra
+methods and properties</bc> for developer convenience.</li>
+<li> <em>Views</em>. Views allow you to dynamically <bc>render HTML</bc>.</li>
+</ul>
+
+	</m>
+ 	</td>
+	 </table>
+	</center> 
+  
+ 
+<ul>
+<li>The code in the generated file <bc>bin/www</bc> (see <a href="../nodeCode/frontend/bin/www" target="code">nodeCode/frontend/bin/www</a>) 
+creates a <em>httpServer</em> and passes <bc>app</bc> as the handler.</li>
+<li>The file <bc>app.js</bc> (see <a href="../nodeCode/frontend/appOriginal.js" target="code">appOriginal.js</a>) defines 
+the application logic of the server and is structured according to the <kc>Express
+pattern</kc> introduced in <a href="nodeExpressWeb.pdf" target="lecture">nodeExpressWeb.pdf</a> section 7.8</li>
+<li>To understand the work of the server during the rendering phase, read sections 7.5, 7.6, 7.7 of 
+<a href="nodeExpressWeb.pdf" target="lecture">nodeExpressWeb.pdf</a>.</li>
+</ul>
+
+
+
+<h3 id="mvcrefact">Refactoring according to the MVC pattern</h3>
+Read section 7.9 of <a href="nodeExpressWeb.pdf" target="lecture">nodeExpressWeb.pdf</a> and execute the steps 1-3:
+
+<ol>
+<li> Create a new folder called <bc>appServer</bc>.</li>
+<li> In <bc>appServer</bc>  create two new folders, called <bc>models</bc> and <bc>controllers</bc>.</li>
+<li> Move the views and routes folders from the root of the application into the <bc>appServer</bc> folder.</li>
+</ol>
+
+Now modify the <bc>app.js</bc> to keep into account the modifications:
+
+	<center><table style="width:95%">
+	<tbody>	
+	<tr>
+	<td style="width:75%">
+	<center><img src="./appModified.png" alt="appModified.png" width="100%" height="32%"/></center><br/><br/>
+	Execute <bc>node bin/www</bc>: all goes as before.<br/><br/>
+	</td> 
+	<td>
+ 	<m>
+	<!-- <center><img src="./expressStart.png" alt="expressStart.png" width="65%" height="32%"/></center> -->
+	
+	Express has mainly two kind of apis: <em>middleware</em> and <em>routing</em>.<br/>
+	
+	<h4>Middleware</h4>
+	The middleware functions will be executed in the order they are called. 
+	Middleware layers can be added one by one in multiple invocations of <bc>use</bc>.<br/>
+	The <bc>next()</bc> function pass the request to the next middleware, it form a <em>chain</em> until the request is handled.<br/>
+	See <a href="https://expressjs.com/it/guide/using-middleware.html" target="web">Express middleware</a>.
+
+	<h4>Routing</h4>
+The routing api includes 
+<bc>app.METHOD()</bc> and 
+<bc> app.route().METHOD()</bc>, <tt>METHOD</tt> can be any <tt>HTTP</tt> method. 
+It is used to assign a handler functions for specific <em>request url path</em> and <tt>HTTP</tt> method.
+	
+	</m>
+	
+	</td>
+	 </table>
+	</center> 
+ 	
+	
+
+
+
+<h3 id="serverode">Define the code of the server </h3>	
+Let us now:
+
+<ul>
+<li>Execute <bc>npm install --save ejs</bc> in order to use the <em>EJS</em> (now replaced by done.js) rendering engine instead of <em>Jade</em> (also named Pug). </li>
+<li>Execute <bc>npm install --save mqtt</bc></li>
+<li>Execute <bc>npm install --save socket.io</bc></li>
+<li>Move the code of the server from <tt>bin/www</tt> into a user-defined file <bc>frontend/frontendServer.js</bc> 
+(see <a href="../nodeCode/frontend/frontendServer.js" target="code">frontendServer.js</a>).</li>
+<li>Define the application code of the server in a new file <bc>frontend/frontendServer.js</bc> 
+(see <a href="../nodeCode/frontend/applCode.js" target="code">applCode.js</a>).</li>
+</ul>
+
+<!--
+ The Socket.io Server listens properly (line 13) to our HTTP server. Thus, it will automatically serve the client
+ file to via http://localhost:<port>/socket.io/socket.io.js.
+-->	
+	
+	<center><table style="width:95%">
+	<tbody>	
+	<tr>
+	<td style="width:65%">
+
+	<center><img src="./webScheme.png" alt="webScheme.png" width="100%" height="32%"/></center>
+	</td> 
+	<td>
+	<m>
+	<h4>Templates <m>(in frontend/addserver/views)</m> </h4>
+	<li><a href="../nodeCode/frontend/appServer/views/index.ejs" target="code">index.ejs</a></li>
+	<li><a href="../nodeCode/frontend/appServer/views/indexAppl.ejs" target="code">indexAppl.ejs</a></li>
+
+	<h4>Server  <m>(in frontend)</m></h3>
+	<li><a href="../nodeCode/frontend/frontendServer.js" target="code">frontendServer.js</a></li>
+
+	<h4>Supports  <m>(in frontend/uniboSupports)</m></h4>
+	<li><a href="../nodeCode/frontend/uniboSupports/coapClientToResourceModel.js" target="code">coapClientToResourceModel.js</a></li>
+	<li><a href="../nodeCode/frontend/uniboSupports/mqttUtils.js" target="code">mqttUtils.js</a></li>
+
+	
+	<h4>Application  <m>(in frontend)</m></h4>
+	<li><a href="../nodeCode/frontend/applCode.js" target="code">applCode.js</a></li>
+ 	</m> 
+	</td>
+	</tr> </table>
+	</center> 
+	
+	
+<h3 id="views">Define the structure of the HTML page</h3>	
+In our implementation of the web-server, we use the <a href="https://ejs.co/">ejs<a> template engine to generate HTML pages
+with plain JavaScript.
+
+
+For an example:
+
+
+	<center><table style="width:95%">
+	<tbody>	
+	<tr>
+	<td style="width:65%">
+	<center><img src="./indexejshead.png" alt="indexejshead" width="95%" height="32%"/></center>
+	</td> 
+	<td>
+	 <m>
+	See the code: <a href="../nodeCode/frontend/appServer/views/index.ejs" target="code">index.ejs</a>
+	
+	<h4>Robot command page: Head</h4>
+	The page loaded on the client makes use of the <a href="https://en.wikipedia.org/wiki/Socket.IO" target="web">socket.io</a>
+	 support to receive from the server update messages related to the current state of the system.
+ 	</m>
+ 	</td>
+	</tr>
+	
+	
+	
+	<tr>
+	<td style="width:65%">
+	<center><img src="./indexejsbody.png" alt="indexejsbody" width="95%" height="32%"/></center>
+	</td> 
+	<td>
+	<m>
+	<h4>Robot command page: Body</h4>
+	 The page provides an input section (for the user commands) and an output section (the system-state display area).
+	<br/>	<br/>
+	<center><img src="./indexView.png" alt="indexView" width="95%" height="32%"/></center>
+ 	</m>
+ 	</td>
+	</tr>
+	
+	<tr>
+	<td style="width:65%">
+	<center><img src="./applView.png" alt="applView" width="95%" height="32%"/></center>
+	</td> 
+	<td>
+	<m>
+	<h4>Application page</h4>
+	 The page provides the input/output sections for a robot application).
+	<br/>	<br/>
+	The code: <a href="../nodeCode/frontend/appServer/views/indexAppl.ejs" target="code">indexAppl.ejs</a>
+ 	</m>
+ 	</td>
+	</tr>
+
+	 </table>
+	</center> 
+	
+	
+ <h2 id="delegate">Interacting with the application</h2>
+ In our implementation of the web-server, we introduce (in <a href="../nodeCode/frontend/applCode.js" target="code">applCode.js</a>)
+ a function named <bc>delegate</bc>, whose task is to sends commands to the application logic. Since in our case
+	the application logic is described as a qak model, we define at the moment the following actions:
+	
+ 
+	
+	<center><table style="width:95%"><tbody><tr>
+	<td style="width:45%"><h3>publishEmitUserCmd</h3>
+	<center><img src="./delegateUserCmd.png" alt="delegateUserCmd" width="90%" height="32%"/></center>
+	</td> <td>Publish (via <tt>MQTT</tt>) the qak event <bc>userCmd</bc> on the topic <em>unibo/qak/events</em>
+ 	<pre>
+ var publishEmitUserCmd = function( cmd ){  
+	var eventstr = "msg(userCmd,event,js,none,userCmd("+cmd +"),1)"  ;  
+	mqttUtils.publish( eventstr, "unibo/qak/events" );	 
+ }
+</pre>	
+	</td>
+	</tr></table></center> 
+<br/><br/>
+
+	<center><table style="width:95%"><tbody><tr>
+	<td style="width:45%"><h3>publishMsgToRobotmind</h3>
+	<center><img src="./delegateToMind.png" alt="delegateToMind" width="90%" height="32%"/></center>
+	</td> 
+	<td>
+	Publish (via <tt>MQTT</tt>) the qak dispatch <bc>robotCmd</bc> 
+	on the topic <em>unibo/qak/robotmind</em> 
+ 	<pre>
+var publishMsgToRobotmind = function( cmd ){  
+	var msgstr = "msg(robotCmd,dispatch,js,
+					robotmind,robotCmd("+cmd +"),1)"  ;  
+	mqttUtils.publish( msgstr, "unibo/qak/robotmind" );
+}
+</pre>	
+	</td>
+	</tr></table></center> 
+<br/><br/>
+
+
+
+<center><table style="width:95%"><tbody><tr>
+	<td style="width:45%"><h3>publishMsgToResourceModel</h3>
+	<center><img src="./delegateToResourcemodel.png" alt="delegateToResourcemodel" width="90%" height="32%"/></center>
+	</td> 
+	<td>Publish (via <tt>MQTT</tt>) the qak dispatch <bc>modelChange</bc> 
+	on the topic <em>unibo/qak/resourcemodel</em> 
+<pre>
+var publishMsgToResourceModel = function( target, cmd ){  
+  	var msgstr = "msg(modelChange,dispatch,js,resourcemodel,
+	                      modelChange("+target+", "+cmd +"),1)"  ;  
+  	console.log("publishMsgToResourceModel forward> "+ msgstr); 	
+   	mqttUtils.publish( msgstr, "unibo/qak/resourcemodel" );
+}
+</pre>	
+<m>For the <bc>resource model</bc> see 
+<a href="http://htmlpreview.github.com/?https://github.com/anatali/iss2019Lab/blob/master/it.unibo.eclipse.qak.robotMinds19/userDocs/Lab14.html#m2mcoap" 
+target="code">Lab14.html - Machine-to-machine interaction</a>
+
+
+ 
+</m>	</td>
+	</tr></table></center> 
+<br/><br/>
+	
+
+
+	<center><table style="width:95%"><tbody><tr>
+	<td style="width:45%"><h3>changeResourceModelCoap</h3>
+	<center><img src="./delegateToResourcecoap.png" alt="delegateToResourcecoap" width="90%" height="32%"/></center>
+	</td> 
+	<td>Publish (via <tt>MQTT</tt>) the qak dispatch <bc>modelChange</bc> 
+	on the topic <em>unibo/qak/resourcemodel</em> 
+<pre>
+var changeResourceModelCoap = function( cmd ){  
+ 	coap.coapPut(cmd);
+}
+</pre>	
+
+<m>For the <bc>CoAP support</bc> see <a href="../nodeCode/frontend/unibosupports/coapClientToResourceModel.js" 
+	target="code">frontend/unibosupports/coapClientToResourceModel.js</a>
+	</m>
+	</td>
+	</tr></table></center> 
+	
+	
+ 
+</li>
+  
+	
+ <h3 id="config">Notes about configuration</h3>	
+<ul>
+<li>Set the <kc>MQTT address</kc>:  <bc>client</bc> variable in 
+<a href="../nodeCode/frontend/unibosupports/mqttUtils.js", target="code"> 
+<em>frontend/uniboSupports/mqttUtils.js</em></a>.</li>
+<li>Set the <kc>CoAP address</kc>:  <bc>coapResourceAddr</bc> variable in 
+<a href="../nodeCode/frontend/unibosupports/coapClientToResourceModel.js", target="code">
+<em>frontend/uniboSupports/coapClientToResourceModel</em></a>.</li>
+
+<li></li>
+<li></li>
+</ul> 
+ 
+ 	
+
+</div>
+<div style="background-color:rgba(86, 56, 253, 0.9); width:100%;text-align:center;font-size:small;color:white">
+By AN Unibo-DISI    
+</div> 
+</body>
+</html>

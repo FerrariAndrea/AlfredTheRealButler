@@ -1,0 +1,611 @@
+//ATTENZIONE: viene supposto che il tavolo NON sia mai attaccato al muro, dunque che il robo possa sempre fare un giro completo intorno al tavolo
+System system3
+mqttBroker "localhost" : 1883
+
+Dispatch modelChange  : modelChange( TARGET, VALUE )  //force a resource-model change
+Dispatch onestep       : onestep(DURATION)
+Dispatch stepOk        : stepOk(V)		//TODO eliminate  V
+Dispatch stepFail      : stepFail(R,T) //R=ok | obstacle, T = time
+Dispatch onerotationstep   : onerotationstep(MOVE)
+Dispatch rotationOk        : rotationOk(STALL)
+
+Dispatch goTo  : goTo( X,Y )
+Dispatch goToOk  : goToOk( V )
+Dispatch goToFail  : goToFail( V )
+
+Dispatch modelRequest : modelRequest( TARGET,PROP)  
+Dispatch modelMapResponse : modelMapResponse( X,Y ) 
+
+//Macro dispatch
+Dispatch addFood : addFood(X) //1 or 2: payload for now is ignored.
+Dispatch prepare : prepare(X) //Non so perché senza Payload non mi funziona, quindi ne metto uno che viene ignorato. Idem per clear (Luca)
+Dispatch clear : clear(X)
+Dispatch home : home(X)
+Dispatch missionFinish : missionFinish(X)//risposta
+
+Event  sonarRobot     : sonar( DISTANCE )	     //from  sonar on robot 
+
+
+Event  collision     : collision(OBJECT)	     //from  sonar on robot 
+Dispatch modelUpdateMap  : modelUpdateMap( NAME,X,Y )
+Dispatch modelUpdate  : modelUpdate( TARGET, VALUE )
+Dispatch onestepIW       : onestepIW(DURATION)//IgnoreWall (forse inutile)
+
+Dispatch modelRobotResponse : modelRobotResponse( X,Y,O ) 
+
+Dispatch doExplor : doExplor( TARGET )  
+Dispatch endExplor : endExplor(V)
+
+Context ctxExplorer ip[host="localhost" port=8039] -mqtt
+Context ctxDummy ip[host="dummyhost" port=9999] -mqtt 
+
+ExternalQActor kb context ctxDummy
+ExternalQActor resourcemodel context ctxDummy
+ExternalQActor onecellforward context ctxDummy
+ExternalQActor onerotateforward context ctxDummy
+
+
+QActor missionsolver context ctxExplorer{ 
+	["	
+	var addingFood = false
+	var preparing = false
+	var clearing = false
+	var goingHome =false
+	"]
+	State s0 initial {	
+		println("Actor: Mission Solver; State: initial")	
+	}Goto waiting
+	
+	State waiting{
+			println("Waiting for mission... Please send an action!") 	
+	}	Transition t0 whenEvent	  addFood -> addingFood
+				  whenEvent   prepare -> preparingRoom
+				  whenEvent   clear -> clearingRoom
+				  whenEvent   home -> home 
+				  // ------------------ MACRO COMMANDS ------------------
+	
+	State addingFood {
+		//SI DEVE AGGIUNGERE IL PAYLOAD, OVVERO SE SI AGGIUNGE IL TIPO 1 DI CIBO (PIZZA) OPPURE IL TIPO 2 (CRESCENTINA)
+		//COSA FA QUESTO TASK?
+		//SE IL CIBO E' PRESENTE NEL FRIGO, LO AGGIUNGE AL TAVOLO; IN CASO CONTRARIO, NOTIFICA IL MAITRE (ANCORA DA FARE)
+		//RITORNA NELLA POSIZIONE HOME
+		["storeCurrentMessageForReply()"]
+		println("ADDING FOOD: Go to Fridge")
+		["addingFood = true"]
+	} Goto goToFridge
+	
+	State preparingRoom {
+		["storeCurrentMessageForReply()"]
+		println("PREPARING: Go to Pantry")
+		["preparing = true"]
+		//METTERE PIATTI DAL PANTRY AL TABLE
+	} Goto goToPantry
+	
+	State clearingRoom {
+		["storeCurrentMessageForReply()"]
+		println("ADDING FOOD: Go to Table")
+		["clearing = true"]
+		//PRENDERE CIBO DAL TAVOLO, PORTARLO AL FRIGO E I PIATTI NEL DISHWASHER
+	} Goto goToTable
+	
+	State home {
+		["storeCurrentMessageForReply()"]
+		println("GO HOME: Go to Home")
+		["	 addingFood = false
+			 preparing = false
+			 clearing = false
+			 goingHome =true
+		"]
+	} Goto goToHome
+	// ------------------ REACH OBJECTS ------------------
+	
+	State goToFridge {
+		forward kb -m modelRequest : modelRequest(map,fridge)
+	} Transition t0   whenMsg modelMapResponse  -> handlePos
+	
+	State goToPantry {
+		["goingHome=false"]	
+		forward kb -m modelRequest : modelRequest(map,pantry)
+	} Transition t0   whenMsg modelMapResponse  -> handlePos
+	
+	State goToDishwasher {
+		["goingHome=false; clearing=false"]	
+		forward kb -m modelRequest : modelRequest(map,dishwasher)
+	} Transition t0   whenMsg modelMapResponse  -> handlePos
+	
+	State goToTable {
+		["addingFood=false;preparing=false"]	
+		forward kb -m modelRequest : modelRequest(map,table)
+	} Transition t0   whenMsg modelMapResponse  -> handlePos
+	
+	State goToHome {
+		forward kb -m modelRequest : modelRequest(map,home)
+		["goingHome=false"]
+	} Transition t0   whenMsg modelMapResponse  -> handlePos
+	
+ 	State  handlePos{
+ 		["var X=0;var Y=0;"]
+ 		onMsg(   modelMapResponse:  modelMapResponse(X,Y) ) {			
+			["X=payloadArg(0).toInt();Y=payloadArg(1).toInt()"]				
+		}
+		forward explorer -m goTo : goTo($X,$Y)
+ 	} Transition t0   whenMsg goToOk  -> goalOk
+ 					  whenMsg goToFail  -> fail
+	
+		
+ 	State fail{
+ 		println("WARNING: Explorer: fail.")
+ 		["replyToCaller(\"missionFinish\", \"missionFinish(fail)\")"]		
+ 	}Goto waiting
+ 	
+	State goalOk{		  
+ 		println("Explorer: on the target cell (simulate action 2s)!")
+ 		delay 2000 // to simulate the action
+ 	} Goto checkAddingFood
+ 	
+ 	State checkAddingFood {} Goto goToTable if "addingFood" else checkPreparingRoom
+ 	State checkPreparingRoom {} Goto goToTable if "preparing" else checkClearingRoom
+ 	State checkClearingRoom {} Goto goToDishwasher if "clearing" else checkGoingHome
+ 	State checkGoingHome {} Goto goToHome if "goingHome" else reply
+ 	
+ 	State reply{["replyToCaller(\"missionFinish\", \"missionFinish(ok)\")"]	}Goto waiting
+ 	
+}
+
+QActor explorer context ctxExplorer{     
+	["
+	var ignoreFail : Boolean=true;
+	//--------------------
+	var stepCounter = 0 
+	var Move = \"\"
+	var StepTime :Int  = 350	//for virtual
+	var RotateTime = 300L	//for virtual
+	var PauseTime  = 250L 
+	var Direction = \"\"
+	//-------------------------------
+	var mapEmpty    = false
+	val mapname     = \"roomBoundary\" 
+	var Tback       = 0
+	var NumStep     = 0
+
+	var mustStop : Boolean = false
+	var RotateStepCount : Int =0
+
+	var needExploreBound : Boolean =false
+	var tableFound : Boolean =false
+	var directionSud : Boolean =false
+	//-------table
+	var MapDimX =0;
+	var MapDimY=0;
+	var ActualTX =0;
+	var ActualTY =0;
+	var NeedAnotherStep =true;
+	var CheckTableSizeStep =0;
+	var StartOrientationCheckTable =\"sud\"
+	//go to
+	var GoToFailed =false;
+	//-------FIX GO HOME
+	var IsFixForHome = false;
+	var NeedReplyForFixHome =false;
+	"]
+	State s0 initial {
+		
+		println("Actor: Explorer; State: initial")		
+	    solve( consult("moves.pl")	 )//forse da rimuovere
+		run itunibo.coap.observer.resourceObserverCoapClient.create( "coap://localhost:5683/resourcemodel" )
+ 		run itunibo.planner.plannerUtil.initAI()
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+		run itunibo.planner.plannerUtil.showMap()
+	}Goto waitCmd
+	//--------------------------------------------------------------EXPLORE BOUND AND TABLE
+	State waitCmd{
+		println("Waiting for exploration cmd...")
+		["needExploreBound=false;IsFixForHome=false;NeedReplyForFixHome=false;"]
+	}Transition t0 whenMsg doExplor -> handeCmd
+				 whenEvent   goTo  -> goToPosition
+		
+	State handeCmd{
+		["storeCurrentMessageForReply()"]	
+		onMsg(   doExplor:  doExplor(TARGET) ) { 
+			
+			["
+				needExploreBound = (payloadArg(0)==\"bound\")				
+			"]
+		}//else explore for table 		
+	}Goto exploreBounds if "needExploreBound" else exploreTale
+	
+	
+	
+	//----------------------------------------------------------------------------------------------------------exploreBounds
+	State exploreBounds {		
+			println("Start explore bounds.")
+			["NumStep=0;RotateStepCount=0"]
+	} 
+	Goto  detectPerimeter
+	
+	State rotateEast {
+		["NumStep=0"]
+		["Move=\"a\""]
+		forward onerotateforward -m onerotationstep : onerotationstep(a)				
+		run itunibo.planner.moveUtils.doPlannedMove(myself, Move)
+			 		
+	} Transition t0 whenMsg rotationOk -> detectPerimeter
+
+	State detectPerimeter {		
+		["NumStep++;RotateStepCount=0"]
+  		run itunibo.planner.plannerUtil.showMap()  	
+	} Goto goOneStepAhead if "(NumStep<5)" else perimeterWalked
+	
+	State goOneStepAhead {
+   		run itunibo.planner.moveUtils.attemptTomoveAhead(myself, StepTime, "onecellforward")
+	} 
+	Transition t0 whenMsg stepOk -> handleStepOk
+				whenEvent collision -> checkingObject
+
+	State handleStepOk {
+		["NeedAnotherStep =true;"]
+		if "needExploreBound"{			
+			run itunibo.planner.moveUtils.updateMapAfterAheadOk(myself)
+		}else{			
+			run itunibo.planner.moveUtils.updateMapAfterAheadOk(myself)//facoltativo
+			["	
+				ActualTY++
+				NeedAnotherStep= (ActualTY<MapDimY-1 && CheckTableSizeStep==0)
+			"]			
+			if "CheckTableSizeStep>0"{
+				if "(CheckTableSizeStep==3)"{
+					["CheckTableSizeStep=4"]//fine tavolo DimY trovata
+				}else{
+					["CheckTableSizeStep=2"]//fine tavolo DimX trovata
+				}			
+			}
+			
+		}
+		
+		delay 250
+	} Goto goOneStepAhead if "NeedAnotherStep" else handleStepFailTable
+		  
+	State checkingObject {
+		onMsg(collision : collision(OBJECT)) {
+			["val ObjName = payloadArg(0)"]
+			println("OGGETTO IN COLLISIONE: $ObjName")
+			if "(ObjName.equals(\"pantry\") || ObjName.equals(\"dishwasher\") || ObjName.equals(\"fridge\")|| ObjName.equals(\"table\"))" {
+				["
+				val XTemp = itunibo.planner.plannerUtil.getPosX()
+				val YTemp = itunibo.planner.plannerUtil.getPosY()	
+				tableFound	=ObjName.equals(\"table\")		
+				"]
+				forward kb -m modelUpdateMap : modelUpdateMap($ObjName, $XTemp,$YTemp)
+				//per il tavolo si potrebbe pensare di salvare tutte le posizioni in cui risiede
+				//in modo da fare quando serve un ToGo Table alla posizione più vicina
+			}
+			
+		}
+	} Goto consumeStepFailBound if "needExploreBound" else consumeStepFailTable
+	
+	State consumeStepFailBound{}Transition t0 whenMsg stepFail ->  handleStepFail	
+	
+	State consumeStepFailTable{
+		println("Part of table found, map:")
+		run itunibo.planner.plannerUtil.showMap()
+	}Transition t0 whenMsg stepFail ->  handleStepFailTable
+		
+	State handleStepFail {
+		delay 500	
+		if "RotateStepCount==0" {			
+			run itunibo.planner.plannerUtil.wallFound()
+			["Move=\"d\""]
+			forward onerotateforward -m onerotationstep : onerotationstep(d)				
+			run itunibo.planner.moveUtils.doPlannedMove(myself, Move)
+		}
+		if "RotateStepCount==1"{			
+			["val MapStr =  itunibo.planner.plannerUtil.getMapOneLine()"]
+			forward resourcemodel -m modelUpdate : modelUpdate(roomMap, $MapStr)
+			//run itunibo.planner.plannerUtil.wallFound() //facoltativo
+			["Move=\"a\""]
+			forward onerotateforward -m onerotationstep : onerotationstep(a)				
+			run itunibo.planner.moveUtils.doPlannedMove(myself, Move)				
+		}
+		if "RotateStepCount==2"{	
+			//facoltativo
+			/*
+			["val MapStr =  itunibo.planner.plannerUtil.getMapOneLine()"]
+			forward resourcemodel -m modelUpdate : modelUpdate(roomMap, $MapStr)		
+			run itunibo.planner.plannerUtil.wallFound() 
+			 */
+			["Move=\"a\""]
+			forward onerotateforward -m onerotationstep : onerotationstep(a)				
+			run itunibo.planner.moveUtils.doPlannedMove(myself, Move)				
+		}
+		["RotateStepCount++"]
+	}Transition t0 whenMsg rotationOk -> checkRotateStep1
+
+	State checkRotateStep1{
+		
+	}Goto goOneStepAhead if "(RotateStepCount==1)" else checkRotateStep2
+	
+	State checkRotateStep2{
+		
+	}Goto handleStepFail if "(RotateStepCount==2)" else detectPerimeter
+	
+	
+	State perimeterWalked {println("FINAL MAP")
+			run itunibo.planner.moveUtils.showCurrentRobotState()
+			run itunibo.planner.plannerUtil.saveMap(mapname)
+			["
+					MapDimX = itunibo.planner.plannerUtil.getMapDimX()-1
+					MapDimY = itunibo.planner.plannerUtil.getMapDimY()-1
+			"]
+			
+			println("Perimeter completely walked. DimX: $MapDimX DimY: $MapDimY")
+			//["val D = \"down\""]
+			//run itunibo.planner.plannerUtil.autoResetRobotPos(0,0,D)
+			["replyToCaller(\"endExplor\", \"endExplor(ok)\")"]	
+			forward resourcemodel -m modelUpdate : modelUpdate(metre,endExplorBoundOk)
+	} Goto waitCmd 
+	//----------------------------------------------------------------------------------------------------------exploreTale
+
+	State exploreTale{
+		println("Start explore table.")
+		["tableFound=false;ActualTX =0;ActualTY =0;CheckTableSizeStep=0;"]
+	}Goto goOneStepAhead 
+	
+
+	State handleStepFailTable {
+		if "CheckTableSizeStep<2"{
+			//facoltativo----inizio
+			["val MapStr =  itunibo.planner.plannerUtil.getMapOneLine()"]
+			forward resourcemodel -m modelUpdate : modelUpdate(roomMap, $MapStr)
+			//facoltativo----fine
+			if "tableFound"{
+				run itunibo.planner.plannerUtil.autoSetTablePos()
+				["CheckTableSizeStep=1"]
+			}
+		}
+		
+	} Goto askOrientation if "(CheckTableSizeStep<2)" else swithcerCheckTableDim1
+	
+	State swithcerCheckTableDim1{}Goto rotateForTableDimY if "(CheckTableSizeStep<3)" else swithcerCheckTableDim2
+	
+	State swithcerCheckTableDim2{}Goto checkTableDimYRotateBefore if "(CheckTableSizeStep<4)" else endOfJobTable
+	
+	State askOrientation{
+		forward kb -m modelRequest : modelRequest(robot, location)
+	}Transition t0 whenMsg modelRobotResponse ->  rotateBefore	
+	
+	State rotateForTableDimY{
+			if "StartOrientationCheckTable==\"sud\""{
+				["Move=\"d\""]
+				forward onerotateforward -m onerotationstep : onerotationstep(d)				
+				run itunibo.planner.moveUtils.doPlannedMove(myself, Move)	
+			}
+			if "StartOrientationCheckTable==\"nord\""{
+				["Move=\"a\""]
+				forward onerotateforward -m onerotationstep : onerotationstep(a)				
+				run itunibo.planner.moveUtils.doPlannedMove(myself, Move)	
+			}		
+			["CheckTableSizeStep=3"]	
+	}Transition t0 whenMsg rotationOk -> goOneStepAhead
+	
+
+	State checkTableDimYRotateBefore{
+			if "StartOrientationCheckTable==\"sud\""{
+				["Move=\"a\""]
+				forward onerotateforward -m onerotationstep : onerotationstep(a)				
+				run itunibo.planner.moveUtils.doPlannedMove(myself, Move)	
+			}
+			if "StartOrientationCheckTable==\"nord\""{
+				["Move=\"d\""]
+				forward onerotateforward -m onerotationstep : onerotationstep(d)				
+				run itunibo.planner.moveUtils.doPlannedMove(myself, Move)	
+			}		
+	}Transition t0 whenMsg rotationOk -> checkTableDimYmoveOne
+	
+	State checkTableDimYmoveOne{
+		delay 250
+		run itunibo.planner.moveUtils.attemptTomoveAhead(myself, StepTime, "onecellforward")
+	} 
+	Transition t0 whenMsg stepOk -> checkTableDimYRotateAfter
+				whenEvent collision -> checkingObject//questo potrebbe creare molti problemi se il tavolo è attaccato al muro
+				
+	State checkTableDimYRotateAfter{	
+			run itunibo.planner.moveUtils.updateMapAfterAheadOk(myself)
+			println("stand by the table, map:")
+			run itunibo.planner.plannerUtil.showMap()			
+			if "StartOrientationCheckTable==\"sud\""{
+				["Move=\"d\""]
+				forward onerotateforward -m onerotationstep : onerotationstep(d)				
+				run itunibo.planner.moveUtils.doPlannedMove(myself, Move)	
+			}
+			if "StartOrientationCheckTable==\"nord\""{
+				["Move=\"a\""]
+				forward onerotateforward -m onerotationstep : onerotationstep(a)				
+				run itunibo.planner.moveUtils.doPlannedMove(myself, Move)	
+			}		
+	}Transition t0 whenMsg rotationOk -> goOneStepAhead
+	
+	State rotateBefore{
+		onMsg(modelRobotResponse : modelRobotResponse(X,Y,O)) {
+			["StartOrientationCheckTable = payloadArg(2)"]
+			if "StartOrientationCheckTable==\"sud\""{
+				["Move=\"a\""]
+				forward onerotateforward -m onerotationstep : onerotationstep(a)				
+				run itunibo.planner.moveUtils.doPlannedMove(myself, Move)	
+			}
+			if "StartOrientationCheckTable==\"nord\""{
+				["Move=\"d\""]
+				forward onerotateforward -m onerotationstep : onerotationstep(d)				
+				run itunibo.planner.moveUtils.doPlannedMove(myself, Move)	
+			}			
+		}
+	}Transition t0 whenMsg rotationOk -> moveOne
+	
+	State moveOne{
+		delay 250
+		run itunibo.planner.moveUtils.attemptTomoveAhead(myself, StepTime, "onecellforward")
+	} 
+	Transition t0 whenMsg stepOk -> rotateAfter
+				whenEvent collision -> checkingObject//questo potrebbe creare molti problemi se il tavolo è attaccato al muro
+				
+	State rotateAfter{
+		if "tableFound"{
+			run itunibo.planner.moveUtils.updateMapAfterAheadOk(myself)
+			delay 250
+			if "Move==\"a\""{
+				["Move=\"d\""]
+				forward onerotateforward -m onerotationstep : onerotationstep(d)
+			}else{
+				["Move=\"a\""]
+				forward onerotateforward -m onerotationstep : onerotationstep(a)
+			}			
+		}else{
+			run itunibo.planner.moveUtils.updateMapAfterAheadOk(myself)
+			delay 250
+			if "Move==\"a\""{
+				forward onerotateforward -m onerotationstep : onerotationstep(a)
+			}else{
+				forward onerotateforward -m onerotationstep : onerotationstep(d)
+			}				
+		}
+			run itunibo.planner.moveUtils.doPlannedMove(myself, Move)		
+			["ActualTY=0;ActualTX++"]	
+			
+	}Transition t0 whenMsg rotationOk -> goOneStepAhead
+	
+	State endOfJobTable {
+		run itunibo.planner.moveUtils.showCurrentRobotState()
+		println("Map after explore table")
+		run itunibo.planner.plannerUtil.showMap()
+		run itunibo.planner.plannerUtil.saveMap(mapname)//facoltativo
+		println("Table exploration end, starting fix-go-home")
+		//["replyToCaller(\"endExplor\", \"endExplor(ok)\")"]	
+	}Goto startFixGoHome
+	//--------------------------------------------------------------EXPLORE FIX GOHOME
+	State startFixGoHome{
+		["IsFixForHome=true;NeedReplyForFixHome=true;"]
+		run itunibo.planner.plannerUtil.setGoal(0,0)
+		run itunibo.planner.moveUtils.doPlan( myself )
+	}Goto executePlannedActions  if "itunibo.planner.moveUtils.existPlan()" else checkRotation 
+
+	State checkNord{
+		run itunibo.planner.moveUtils.doPlannedMove(myself, Move)
+		["Direction = itunibo.planner.plannerUtil.getDirection()"]
+		println("Actor: Explorer; State: rotateSouth; Payload: $Direction")
+	}Goto rotateSouth  if "(Direction!=\"upDir\")" else forceGoUp
+	State rotateNord{
+		["Move=\"a\""]
+		delayVar PauseTime //questo prima era uno StepTime
+		forward onerotateforward -m onerotationstep : onerotationstep($Move)//
+   		
+	}Transition t0	whenMsg rotationOk 	-> checkRotation
+	
+	State forceGoUp{
+		forward onecellforward -m onestep : onestep($StepTime)//non lo registro nel planner
+	}Transition t1 whenMsg stepOk   	-> endFixGoHome   
+					whenMsg stepFail 	-> endFixGoHome
+	
+	State endFixGoHome{
+		["IsFixForHome=false"]
+	}Goto checkRotation
+	
+	
+	
+	//--------------------------------------------------------------EXPLORE GO TO 
+ 	
+	State goToPosition{
+		["GoToFailed=false"]
+	 	["storeCurrentMessageForReply()"]
+	 	onMsg(   goTo:  goTo(X,Y) ) { 
+			
+			["
+				var X = payloadArg(0).toInt()
+				var Y = payloadArg(1).toInt()
+				//var O = payloadArg(2)
+			"]
+				
+		solve( direction(D) )   
+   		println("Actor: Explorer; State: goToPosition; Payload: direction at start: ${getCurSol(\"D\").toString()}")
+		run itunibo.planner.plannerUtil.showMap()		
+		run itunibo.planner.plannerUtil.setGoal(X,Y)
+		run itunibo.planner.moveUtils.doPlan( myself )
+		}
+ 	}Goto executePlannedActions  if "itunibo.planner.moveUtils.existPlan()" else checkRotation 
+
+
+	State executePlannedActions{ 
+		solve( retract( move(M) ) ) //consume a move
+		ifSolved {  
+			["Move = getCurSol(\"M\").toString()"]
+		} else { ["Move = \"\""]  } 
+ 	}
+	Goto doTheMove  if "(Move.length>0) " else checkRotation
+ 	
+ 	State doTheMove{
+		if "Move==\"a\" || Move==\"d\" " {//ROTATION			
+			forward onerotateforward -m onerotationstep : onerotationstep($Move)	
+		} else{ // W			
+			forward onecellforward -m onestep : onestep($StepTime)	
+		}	
+		
+	}
+	Transition t0   whenMsg stepOk   	-> handleStepOkGoTo   
+					whenMsg stepFail 	-> handleStepFailGoTo//endOfJobFail  
+					whenMsg rotationOk 	-> handleStepOkGoTo
+	 	
+	State handleStepOkGoTo{
+		//println("GOTO->StepOK")		
+		run itunibo.planner.moveUtils.doPlannedMove(myself, Move)	
+		delayVar PauseTime	
+	}
+	Goto executePlannedActions
+	
+	State handleStepFailGoTo{
+		println("GOTO->StepFail")		
+		run itunibo.planner.moveUtils.doPlannedMove(myself, Move)	
+		delayVar PauseTime
+		["GoToFailed=true"]	
+	}
+	Goto executePlannedActions if "ignoreFail" else rotateSouth
+
+	State rotateSouth{
+		["Move=\"a\""]
+		delayVar PauseTime //questo prima era uno StepTime
+		forward onerotateforward -m onerotationstep : onerotationstep($Move)//
+   		
+	}Transition t0	whenMsg rotationOk 	-> checkRotation
+
+	State checkSouth{
+		run itunibo.planner.moveUtils.doPlannedMove(myself, Move)	
+		//solve( direction(D) )
+		//["Direction = getCurSol(\"D\").toString() "]
+		["Direction = itunibo.planner.plannerUtil.getDirection()"]
+		println("Actor: Explorer; State: rotateSouth; Payload: $Direction")
+	}
+	Goto rotateSouth  if "(Direction!=\"downDir\")" else endOfJob
+	
+	State endOfJob{
+		if "NeedReplyForFixHome"{
+			["replyToCaller(\"endExplor\", \"endExplor(ok)\")"]	
+			forward resourcemodel -m modelUpdate : modelUpdate(metre,endExplorTableOk)
+			println("FixGoHome end.")	
+		}else{
+			if "GoToFailed"{
+				println("Actor: Explorer; State: handleStepFail; Payload: Fail step :(")
+				run itunibo.planner.plannerUtil.showMap()	
+				println("Actor: Explorer; State: handleStepFail; Payload: Replan and return at home.")
+				["replyToCaller(\"goToFail\", \"goToFail(fail)\")"]	
+				//forward resourcemodel -m modelUpdate : modelUpdate(metre,goToFail)
+			}else{
+				println("Explorer: on the target cell!")
+				["replyToCaller(\"goToOk\", \"goToOk(ok)\")"]
+				//forward resourcemodel -m modelUpdate : modelUpdate(metre,goToOk)	
+			}
+		}
+	
+		
+	
+	} Goto waitCmd 
+	
+	State checkRotation{}Goto checkNord if "IsFixForHome" else checkSouth
+	
+}	

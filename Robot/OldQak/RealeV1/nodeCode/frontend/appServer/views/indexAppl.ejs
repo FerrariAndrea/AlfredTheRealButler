@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>ResourceAccess</title>
+<link rel="stylesheet" href="//maxcdn.bootstrapcdn.com/bootstrap/3.3.1/css/bootstrap.min.css">
+<script type="text/javascript" src="/socket.io/socket.io.js"></script>
+<script>
+       var socket  = io.connect();
+       socket.on('connect', function(){ console.log("socket connected");});
+       socket.on('message', function(v){ 
+       			if( v.indexOf("robot") >= 0 ){document.getElementById('robotDisplay').innerHTML=v; }
+       			if( v.indexOf("sonarRobot") >= 0 ){document.getElementById('sonarRobotDisplay').innerHTML=v; }
+       			}
+       	);
+</script>
+<!-- <script type="text/javascript" src="QActorWebUI.js"></script> -->
+</head>
+
+<body>
+ 
+<div style="background-color: #D2B4DE">
+<h2>Application console</h2>   
+<center>
+			<table >	
+					<tr>
+						<td align="center">
+							<form action="/startappl" method="post">
+							  	<input type="submit" style="font-size:30px;"  value="START" >
+							</form>
+						</td>
+						<td align="center">							
+							<form action="/stopappl" method="post">							    
+							  	<input type="submit" style="font-size:30px; color:red;"  value="STOP"  >							  	 
+							</form>
+						</td>
+				</table>
+</center>
+ 
+ 
+</div>
+<div style="background-color: #FAF19C">
+	<div>
+ 		<b>ROBOT STATE</b>: <span id="robotDisplay"></span>
+  	</div>
+	<div>
+  		<b>SONAR STATE</b>: <span id="sonarRobotDisplay"></span>
+	</div>
+</div>
+<center></center>
+</body>
+</html>

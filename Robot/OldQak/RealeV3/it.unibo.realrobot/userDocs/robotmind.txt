@@ -1,0 +1,264 @@
+System robotmind
+ 
+mqttBroker "192.168.43.229" : 1883    //192.168.1.18  192.168.43.229
+
+//Event  userCmd        : userCmd(X)	//from GUI X = w | a | s | d | h 
+Event  envCond        : envCond( CONDTYPE )        //from the environment 
+
+Event  sonarRobot     : sonar( DISTANCE )	     //from  sonar on robot 
+Event  sonar          : sonar(SONAR, DISTANCE)	 //from sonar in the robot environment          
+Event  polar          : p( Distance, Angle ) 
+
+Event  modelChanged   : modelChanged( TARGET, VALUE )
+Event  modelContent   : content( VALUE ) 
+
+Dispatch robotCmd     : robotCmd( CMD )				  //sent by the mind to the basicrobot
+
+Dispatch modelChange  : modelChange( TARGET, VALUE )  //sent from outside (frontend)
+Dispatch modelUpdate  : modelUpdate( TARGET, VALUE )  //sent by the mind
+ 
+Dispatch stopAppl      : stopAppl( CMD )
+Dispatch startAppl     : startAppl( CMD )
+
+Dispatch onestep       : onetstep
+Dispatch stepOk        : stepOk  
+Dispatch stepFail      : stepFail(R,T) //R=ok | obstacle, T = time
+
+Context ctxRobotMind  ip [host="localhost" port=8035]   -mqtt
+Context ctxBasicRobot ip [host="localhost" port=8005]   //no mqtt: works as a local actuator
+
+QActor resourcemodel context ctxRobotMind{
+["var dobackstep = false"]
+	State s0 initial {		
+		solve( consult("sysRules.pl")	 )       
+		solve( consult("resourceModel.pl")	 )
+		solve( showResourceModel ) 		
+		run itunibo.coap.modelResourceCoap.create( myself, "resourcemodel" ) //CoAP access
+	} 
+	Goto waitModelChange
+	
+	State waitModelChange{ }
+	Transition t0 whenMsg modelChange -> changeModel
+	              whenMsg modelUpdate -> updateModel
+
+	State updateModel{  
+		onMsg( modelUpdate : modelUpdate(robot,V ) ) {
+			run itunibo.robot.resourceModelSupport.updateRobotModel( myself, payloadArg(1) )
+		}
+		onMsg( modelUpdate : modelUpdate(sonarRobot,V ) ) {
+			run itunibo.robot.resourceModelSupport.updateSonarRobotModel( myself, payloadArg(1) )
+		}
+	} 
+    Goto  waitModelChange
+    
+	State changeModel{  
+		printCurrentMessage 
+		//ROBOT MOVE
+		onMsg( modelChange : modelChange( robot,V ) ) { // V= w | ...
+			run itunibo.robot.resourceModelSupport.updateRobotModel( myself, payloadArg(1) )
+			//emit modelChanged : modelChanged(  robot,  $payloadArg(1))  //for the robotmind
+		} 
+		//SONAR DATA  
+		onMsg( modelChange : modelChange( sonarRobot,V ) ) { // V= w | ...
+			run itunibo.robot.resourceModelSupport.updateSonarRobotModel( myself, payloadArg(1) )
+		}
+		//APPLICATION COMMAND
+		onMsg( modelChange : modelChange( application,startappl ) ) { // V= startappl | stopappl
+			forward robotmindapplication -m startAppl : startAppl(noarg)
+  		} 
+		onMsg( modelChange : modelChange( application,stopappl ) ) { // V= startappl | stopappl
+			forward robotmindapplication -m stopAppl : stopAppl(noarg)
+  		} 
+	}  
+	Goto  waitModelChange
+}
+
+/*
+ * APPLICATION
+ */
+QActor robotmindapplication context ctxRobotMind{
+	State s0 initial {	  
+		solve( consult("sysRules.pl")	 )       
+		solve( consult("floorMap.pl")	 )
+		println("robotmindapplication STARTED")	
+	}
+	Goto waitCmd
+	 
+	State waitCmd {		} 
+	Transition t0 whenMsg stopAppl  -> endApplication 
+		          whenMsg startAppl -> doApplication 
+	
+	
+	State doApplication{
+		println("robotmindapplication doApplication ... ")	
+		forward onecellforward -m onestep : onestep		
+	}//wait the answer
+	Transition t0   whenMsg stepOk -> hadleStepOk
+					whenMsg stepFail -> hadleStepFail
+	State endApplication{
+		println("robotmindapplication endApplication ... ")			
+	} 
+	Goto waitCmd
+	
+	State hadleStepOk{
+		println("ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZ ")	
+		solve( updateMapAfterStep )
+		//solve( showMap )
+	}
+	Goto doApplication
+	 
+	State hadleStepFail{
+		printCurrentMessage		
+		println("FFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFf  ")
+	}
+	Goto waitCmd
+}
+
+//Application move step
+QActor onecellforward context ctxRobotMind {
+	State s0 initial {	   
+		println("onecellforward waits ... ")	
+	}
+	Transition t0 whenMsg onestep -> doMoveForward
+	
+	State doMoveForward{
+		//forward resourcemodel -m modelChange : modelChange(robot,w)
+ 		forward basicrobot -m robotCmd : robotCmd( w )	//First do ...
+ 		forward resourcemodel -m modelUpdate : modelUpdate(robot,w) //... then update the model
+	}
+	Transition t0 whenTime 300           -> endDoMoveForward
+		          whenEvent sonarRobot   -> handleSonarRobot
+		
+	State endDoMoveForward{
+ 		forward basicrobot -m robotCmd : robotCmd( h )	//First do ...
+ 		forward resourcemodel -m modelUpdate : modelUpdate(robot,h) //... then update the model
+		printCurrentMessage 
+		println("EEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE ")
+		forward robotmindapplication -m stepOk : stepOk  //answer
+	}
+	Goto s0
+	
+	State handleSonarRobot{
+		printCurrentMessage
+		println("OOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOO ")
+		forward robotmindapplication -m stepFail : stepFail(obstacle,10) //answer
+	}
+	Goto s0
+}
+
+
+/*
+ * MIND
+ * reacts to changes in the model
+ */
+QActor robotmind context ctxRobotMind{   
+["var obstacle = false"]
+	State s0 initial {	  
+		println("ROBOT MIND STARTED")	
+	}
+	Goto waitCmd
+	 
+	State waitCmd {		} 
+	Transition t0 whenEvent envCond      -> handleEnvCond
+		          whenEvent sonarRobot   -> handleSonarRobot
+		          whenEvent modelChanged -> handleModelChanged
+
+	State handleEnvCond{   
+		printCurrentMessage
+ 		onMsg( envCond : envCond(CMD) ) {
+ 			forward basicrobot -m robotCmd : robotCmd( h )	//First do ...
+ 			forward resourcemodel -m modelUpdate : modelUpdate(robot,h) //... then update the model
+		}
+	} 
+	Goto waitCmd
+ 
+ 	State handleModelChanged{ //action to actuate
+		printCurrentMessage
+		onMsg ( modelChanged : modelChanged(robot,CMD) ){ 
+			forward basicrobot -m robotCmd : robotCmd( $payloadArg(1) )
+		}
+	}
+	Goto waitCmd
+   
+ 	State handleSonarRobot{
+ 		printCurrentMessage
+ 		onMsg ( sonarRobot : sonar( DISTANCE ) ){
+			["obstacle = Integer.parseInt( payloadArg(0) ) < 10 "]
+ 		}//onMsg 	 
+ 	}
+	Goto handeObstacle if "obstacle" else waitCmd 
+	
+	State handeObstacle{		
+		println("handeObstacle: first react, the update the model")  
+		forward basicrobot -m robotCmd : robotCmd( s )	//First do ...
+		forward resourcemodel -m modelUpdate : modelUpdate(robot,s) //... then update the model
+		delay 200 
+		forward basicrobot -m robotCmd : robotCmd( h )	//First do ...
+		forward resourcemodel -m modelUpdate : modelUpdate(robot,h) //... then update the model
+	}
+	Goto waitCmd
+ 
+ }
+
+/*
+ * Works in ctxRobotMind since it is a policy
+ */
+QActor sonarhandler context ctxRobotMind{  
+ 	State init initial{
+		println("sonarhandler STARTS ... ")
+	}         
+	Goto waitForEvents 
+	   
+	State waitForEvents{  }      
+   	Transition t0 whenEvent sonar      ->  handleSonar
+   	              whenEvent sonarRobot ->  handleSonar
+   	               
+ 	State handleSonar{                      
+ 		printCurrentMessage                                        
+ 		onMsg ( sonar  : sonar( SONAR, DISTANCE ) ){    			
+[" val D = Integer.parseInt( payloadArg(1) ) * 5"] //AMPLIFY
+			emit polar : p( $D, 90  )  
+ 		}
+ 		onMsg ( sonarRobot : sonar( DISTANCE ) ){     
+[" val D = Integer.parseInt( payloadArg(0) ) * 5"] //AMPLIFY
+			emit polar : p( $D, 180  ) 
+			forward resourcemodel -m modelChange : modelChange(sonarRobot,$payloadArg(0))
+ 		}
+ 	} 
+ 	Goto waitForEvents
+}
+
+ /*
+  * --------------------------------------------------------
+  * Basic robot: just an actuator of move commands
+  * --------------------------------------------------------
+  */
+  QActor basicrobot context ctxBasicRobot {	
+	State s0 initial {  
+  		solve( consult("basicRobotConfig.pl") )   
+ 		solve( robot(R, PORT) )  //R = virtual | realmbot | realnano
+  		ifSolved println( "USING ROBOT : ${getCurSol(\"R\")},  port= ${getCurSol(\"PORT\")} " )
+  		 else println("no robot")
+   		ifSolved run itunibo.robot.robotSupport.create(myself, @R, @PORT )
+//   		run itunibo.robot.robotSupport.move( "msg(a)" )
+//   		delay 700
+//   		run itunibo.robot.robotSupport.move( "msg(d)" )
+//   		delay 700
+//   		run itunibo.robot.robotSupport.move( "msg(h)" )
+ 	}  
+	Goto waitCmd   
+ 	 
+	State waitCmd{  } //robotCmd comes from a console OUTSIDE this (sub)system
+	Transition t0  whenMsg   robotCmd  -> handleRobotCmd
+	
+	State handleRobotCmd{ //does not handle alarms 
+		//printCurrentMessage 
+		onMsg( robotCmd : robotCmd( MOVE ) ) { //MOVE = w | a | s | d | h
+			run itunibo.robot.robotSupport.move( "msg(${payloadArg(0)})" ) 
+		}	
+ 	}  
+	Goto waitCmd 
+} 
+ 
+
+  
