@@ -37,7 +37,7 @@ To launch correctly our virtual system:
 
 ## Demos
 Many demos (go check it out!!) are available at Demos
-
+![Alfred](/Demos/Pictures/IMG_20190920_05803.jpg=100x20)
 
 ## The Team (sorted by Last Name)
 
