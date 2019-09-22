@@ -34,7 +34,9 @@ To launch correctly our virtual system:
 
 7. Lanciare da eclipse i seguenti contesti: **ctxRobot**, **ctxResourceModel**, **ctxExplorer**, **ctxFridge**, **ctxPantry**, **ctxDishwasher**.
 
-Note: QAK plugins and Libs required available at https://github.com/anatali/iss2019Lab
+Note: QAK plugins (to put in Eclipse XText in Dropins folder) and Libs required available at https://github.com/anatali/iss2019Lab/tree/master/libs
+
+If repo goes down, PM Cesarsk
 
 ## Demos
 Many demos (go check it out!!) are available at Demos
