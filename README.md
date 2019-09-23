@@ -36,6 +36,8 @@ To launch correctly our virtual system:
 
 Note: QAK plugins (to put in Eclipse XText in Dropins folder) and Libs required available at https://github.com/anatali/iss2019Lab/tree/master/libs
 
+Note 2: Sometimes project GIT doesn't import the file .project correctly. Be sure when you import a sprint (e.g. sprint6) the matching .project file has a string "it.unibo.sprint6" in it, or Eclipse wouldn't import the project in the right way.
+
 If repo goes down, PM Cesarsk.
 
 ## Demos
