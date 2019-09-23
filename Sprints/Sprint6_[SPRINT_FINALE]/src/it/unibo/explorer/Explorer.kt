@@ -20,10 +20,10 @@ class Explorer ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, sc
 			//--------------------
 			var stepCounter = 0 
 			var Move = ""
-			var StepTime :Int  = 350	//for virtual
-			//var StepTime :Int  = 4	//for REAL
-			//var FixForReal : Long =80 //for REAL
-			var FixForReal : Long =0 //for virtual
+			//var StepTime :Int  = 350	//for virtual
+			var StepTime :Int  = 4	//for REAL
+			var FixForReal : Long =80 //for REAL
+			//var FixForReal : Long =0 //for virtual
 			var RotateTime = 300L	//for virtual
 			var PauseTime  = 250L 
 			var Direction = ""
