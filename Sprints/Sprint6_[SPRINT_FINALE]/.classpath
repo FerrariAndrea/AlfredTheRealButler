@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="src" path="it.unibo.sprint6/resources"/>
+	<classpathentry kind="lib" path="it.unibo.sprint6/build/libs/it.unibo.sprint4-1.0.jar"/>
+	<classpathentry kind="output" path="it.unibo.sprint6/build/classes/java/main"/>
+</classpath>

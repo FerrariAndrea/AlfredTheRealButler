@@ -1,0 +1,9 @@
+front-led->RaspiPin.GPIO_04
+ultrasonic_0(echo,trig)->(RaspiPin.GPIO_29,RaspiPin.GPIO_28)
+ultrasonic_1(echo,trig)->(RaspiPin.GPIO_27,RaspiPin.GPIO_26);
+ultrasonic_2(echo,trig)->(RaspiPin.GPIO_21,RaspiPin.GPIO_06);
+ultrasonic_3(echo,trig)->(RaspiPin.GPIO_25,RaspiPin.GPIO_24);
+ultrasonic_4(echo,trig)->(RaspiPin.GPIO_23,RaspiPin.GPIO_22);
+pir-sensor->RaspiPin.GPIO_00
+motor-0(forward,backward)->(RaspiPin.GPIO_03,RaspiPin.GPIO_02)
+motor-1(forward,backward)->(RaspiPin.GPIO_07,RaspiPin.GPIO_05)

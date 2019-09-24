@@ -1,0 +1,416 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+    <!--
+<link rel="stylesheet" type="text/css" href="../css/issStyle1.css">
+<script type="text/javascript" src="../css/issStyle.js"></script>
+-->
+<style type="text/css">
+<!--
+
+body
+{
+    margin-left:  30px;
+    margin-right: 30px;
+};
+
+P
+{
+    font-family: Tahoma;
+    font-size: 10pt;
+};
+
+a, a:visited, a:active, a:link, a:hover {
+    text-decoration: underline;
+    color: #545454;
+    background-color: transparent;
+}
+
+a:hover {
+    background-color: #cccccc;
+}
+
+
+hr {
+    clear: both;
+    height: 1px;
+    color: #242424;
+    background-color: transparent;
+}
+
+h1, h2, h3 {
+    color: #242424;
+    clear: left;
+    font: 100% Tahoma, Helvetica, Arial, sans-serif;
+    margin: 10;
+    margin-right: 15px;
+    margin-bottom: 0.5em;
+    padding-top: 0.5em;
+    border-bottom: 1px solid #242424;
+}
+
+h1 {
+    font-size: 150%;
+    background-color: #b2c0ff;
+}
+
+h2 {
+    background-color: #d9fbff;
+    font-size: 110%;
+}
+
+h3 {
+	background-color: #e6ccff;
+    font-size: 80%;
+}
+h4 {
+    background-color: #99ffcc;
+    font-size: 100%;
+}
+#i {
+    color: #ff1010;
+}
+tt{
+	font-family: "Arial";
+    font-size: 80%;
+	color: #006600;
+}
+em{
+	font-family: "Arial";
+    font-size: 80%;
+	font-weight: bold;
+	border-style:solid;
+	border-color: #ccffff;
+    color: #0033cc;
+}
+bc{
+	font-family: "Arial";
+	font-size: 80%;
+	font-weight: bold;
+    color: #990000;
+	background-color: #fcf8c7;
+}
+k{
+	font-family: "Arial";
+	font-weight: bold;
+    color: #990000;
+	 
+}
+ks{
+	font-family: "Arial";
+	font-weight: bold;
+    color: #0000CD	;
+	 
+}
+kc{
+	font-family: "Arial";
+	font-weight: bold;
+    color: #008000	;
+	 
+}
+pre{
+	font-family: "Helvetica";
+	font-size: 70%;
+	background-color: #fcf8c7; 
+}
+m{
+	font-family: "Helvetica";
+	line-height: 100%;
+ 	font-size: 75%;
+}
+div.body{
+	width: 800px;
+    font-size: 18px;
+}    
+div.req{
+	background-color: #d9ffb3;
+    font-size: 18px;
+	width: 700px;
+    border: 3px solid green;
+    padding: 15px;
+    margin: 10px;
+}    
+div.remark{
+	background-color: #FFFC33;     
+    border: 3px solid green;
+    padding: 15px;
+    margin: 10px;
+}  
+table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+
+  -->
+</style>
+    
+<head>
+   
+<title>Lab14ISS</title></head>
+    
+<body>
+
+<div class="body"> 
+
+<h1>72939 - LAB14 | Resource(domain) model  </h1> 
+<a href="http://htmlpreview.github.com/?https://github.com/anatali/iss2019Lab/blob/master/LectureBologna1819.html" target="isslm">LabISS-lectures site</a></font> 
+ 
+ <h2>Overview</h2>
+The goal of this section is to perform the <em>SprintIII</em> introduced in 
+<a href="http://htmlpreview.github.com/?https://github.com/anatali/iss2019Lab/blob/master/it.unibo.eclipse.qak.robots19/userDocs/Lab12.html#sprintIII" 
+target="lecture">Lab12.html-SprintIII</a> that builds the software system around a <bc>Resource Model</bc>.
+  	<center><table style="width:95%">
+	<tbody>	
+	<tr>
+	<td style="width:30%">
+ 	<center><img src="./wot.png" alt="wot.png" width="55%" height="32%"/></center>
+ 	</td>
+	<td>
+	<m>
+	<h3>Readings</h3>
+	 <a href="https://w3c.github.io/wot/current-practices/wot-practices.html" target="web">Wot practices</a> <br/><br/>
+ 	 <a href="nodeExpressWeb.pdf" target="lecture">NodeExpressWeb (pdf)</a> <br/><br/>
+
+	</m>
+	</td>
+	 </table>
+	</center> 
+
+
+ <ol>
+<li><a href="#hexbase">A robot control system based on a Resource-Model</a></li>
+<li><a href="#m2mcoap">Machine-to-machine interaction</a></li>
+<li><a href="#test">Experiments</a></li>
+ </ol>
+ 
+ 
+<h2 id="hexbase">A robot control system based on a Resource-Model</h2>
+ 
+	The Web server handles the command sent by the user and then puts in execution the 'business logic'
+	by sending (via <tt>MQTT</tt>) the <tt>qak</tt> dispatch  <em>modelChange</em> to the  <k>resourcemodel</k>.
+ 
+	<center><table style="width:98%">
+	<tbody>	
+	<tr>
+	<td style="width:70%">
+	<center><img src="./robotWithMind.png" alt="robotWithMind.png" width="95%" height="32%"/></center>
+	</td> 
+	<td>
+	<m>
+ 	
+<div class="remark">
+All the actions, including
+the execution of the business logic by the 'mind', are  a consequence of a change in the <k>resourcemodel</k>.
+</div>	
+The system model:<a href="../src/robotmind.qak" target="code">robotmind.qak</a>	<br/><br/>
+ 
+A resource model expressed in Prolog:<a href="../resourceModel.pl" target="code">resourceModel.pl</a>		<br/><br/>
+
+See also
+<a href="nodeExpressWeb.pdf" target="lecture">NodeExpressWeb section 11</a> 
+
+ 	</m>
+ 	</td>
+	 </table>
+	</center> 
+   <br/>
+
+ The Human-machine interaction supported by the front-end server 
+ (see <a href="http://htmlpreview.github.com/?https://github.com/anatali/iss2019Lab/blob/master/it.unibo.frontend19/userDocs/Lab13.html#delegate" 
+target="code">Lab13.html -Interacting with the application</a>)
+  must now implement the <bc>delegate</bc> function as follows:
+<br/><br/>
+<center><table style="width:95%"><tbody><tr>
+	<td style="width:45%"><h4>publishMsgToResourceModel</h4>
+	<center><img src="./delegateToResourcemodel.png" alt="delegateToResourcemodel" width="90%" height="32%"/></center>
+	</td> 
+	<td>Publish (via <tt>MQTT</tt>) the qak dispatch <bc>modelChange</bc> 
+	on the topic <em>unibo/qak/resourcemodel</em> 
+<pre>
+var publishMsgToResourceModel = function( target, cmd ){  
+  	var msgstr = "msg(modelChange,dispatch,js,resourcemodel,
+	                      modelChange("+target+", "+cmd +"),1)"  ;  
+  	console.log("publishMsgToResourceModel forward> "+ msgstr); 	
+   	mqttUtils.publish( msgstr, "unibo/qak/resourcemodel" );
+}
+</pre>	
+<m>  
+</m>	</td>
+	</tr></table></center> 
+<br/><br/>
+
+	 <h3 id="config">Notes about configuration</h3>	
+<ul>
+<li>Set the <kc>MQTT address</kc>:  <bc>client</bc> variable in 
+<a href="../nodeCode/frontend/unibosupports/mqttUtils.js", target="code"> 
+<em>frontend/uniboSupports/mqttUtils.js</em></a>.</li>
+<li>Set the <kc>CoAP address</kc>:  <bc>coapResourceAddr</bc> variable in 
+<a href="../nodeCode/frontend/unibosupports/coapClientToResourceModel.js", target="code">
+<em>frontend/uniboSupports/coapClientToResourceModel</em></a>.</li>
+
+<li></li>
+<li></li>
+</ul> 
+
+ 
+ 
+ <h2 id="m2mcoap">Machine-to-machine interaction</h2>
+ 	The Web server handles the command sent by the user and then puts in execution the 'business logic'
+	by sending  (via <tt>CoAP</tt>): a <k> PUT</k>  request to change the  <k>resourcemodel</k>.
+	<br/><br/>
+
+	<center><table style="width:98%">
+	<tbody>	
+	<tr>
+	<td style="width:66%">
+	<center><img src="./robotWithMindCoap.png" alt="robotWithMindCoap.png" width="95%" height="32%"/></center>
+	</td> 
+	<td>
+	<m>
+<div class="remark">
+The resource model is accesses in a standard, <k>RESTful</k> way.<br/>
+A CoAP resource can be mande <k>observable</k> by CoAP clients.
+</div>	
+ 
+See
+<a href="https://en.wikipedia.org/wiki/Representational_state_transfer" target="web">Representational state transfer</a>
+and  <a href="nodeExpressWeb.pdf" target="lecture">NodeExpressWeb sections 6,11</a> 
+<br/><br/>
+Code:<a href="../resources/itunibo/coap/modelResourceCoap.kt" target="code">modelResourceCoap.kt</a>
+ 	</m>
+ 	</td>
+	 </table>
+	</center> 
+
+
+ <h2 id="test">Experiments (SPRINT sequence)</h2>
+ 	
+	
+	<center><table style="width:98%">
+	<tbody>	
+	<tr>
+	<td style="width:70%">
+	<h3>Design and testing the core-logic</h3>
+	<center><img src="./archCoreCoap.png" alt="archCoreCoap" width="95%" height="32%"/></center>
+	</td> 
+	<td>
+	<m>
+	<h4>Project <tt>it.unibo.eclipse.qak.robotMinds19</tt></h4>
+ <ol>
+<li>Start the <bc>MQTT</bc> broker on the <tt>PC</tt>.</li>
+<li>Set the used robot into <bc>basicRobotConfig.pl</bc>.</li>
+</ol>	
+<h4>Testing</h4> 
+ <li><a href="../testSrc/it/unibo/eclipse/qak/robotMinds19/TestRobotmind.kt" target="code">TestRobotmind.kt</a>. </li>
+ <li><a href="../testSrc/it/unibo/eclipse/qak/robotMinds19/TestRobotmindAlarm.kt" target="code">TestRobotmindAlarm.kt</a>. </li>
+ <li><a href="../testSrc/it/unibo/eclipse/qak/robotMinds19/TestRobotmindObstacle.kt" target="code">TestRobotmindObstacle.kt</a>. </li>
+<h4>Using</h4> 
+ <li><a href="../resources/itunibo/coap/observer/resourceObserverCoapClient.kt" target="code">resourceObserverCoapClient.kt</a>. </li>
+ <li><a href="../resources/itunibo/coap/client/MainCoapClientModelRobot.kt" target="code">MainCoapClientModelRobot.kt</a>. </li>
+ 	</m>
+ 	</td>
+	 </table>
+	</center> 	
+
+	<br/><br/>	
+	
+	<center><table style="width:98%">
+	<tbody>	
+	<tr>
+	<td style="width:70%">
+	<h3>Core logic on RaspberryPi</h3>
+	<center><img src="./archLogicCoap.png" alt="archLogicCoap" width="95%" height="32%"/></center>
+	</td> 
+	<td>
+	<m>
+	Project <tt>it.unibo.eclipse.qak.robotMinds19</tt>
+ <ol>
+<li>Start the <bc>MQTT</bc> broker on the <tt>PC</tt>.</li>
+<li>Set the used robot into <bc>basicRobotConfig.pl</bc>.</li>
+<li>Activate <bc>MainCtxRobotMind.kt</bc> on <tt>RaspberryPi</tt>. </li>
+<li>Activate <bc>viewmodelkt</bc> on the <tt>PC</tt>. </li>
+<li>Activate <a href="../resources/itunibo/coap/observer/resourceObserverCoapClient.kt" target="code">resourceObserverCoapClient.kt</a>
+ on the <tt>PC</tt>. </li>
+<li>Launch <a href="../resources/itunibo/coap/client/MainCoapClientModelRobot.kt" target="code">MainCoapClientModelRobot.kt</a>
+ on the <tt>PC</tt>. </li>
+</ol>	 
+  	</m>
+ 	</td>
+	 </table>
+	</center> 	
+
+	<br/><br/>	
+
+	<center><table style="width:98%">
+	<tbody>	
+	<tr>
+	<td style="width:70%">
+	<h3>Remote human control</h3>
+	<center><img src="./archBaseCoap.png" alt="archBaseCoap" width="95%" height="32%"/></center>
+	</td> 
+	<td>
+	<m>
+<h4>Support</h4>
+<li>Start the <tt>MQTT</tt> broker.</li>
+
+<h4>Robot system</h4>
+<ol>
+<li>Start the robot (real or virtual) and set it into <bc>basicRobotConfig.pl</bc>.</li>
+<li>Activate the basic robotmind (<bc>it.unibo.ctxRobotMind/MainCtxRobotMind.kt</bc>) </li>
+</ol>	
+
+<h4>Front end</h4>
+<ol>
+<li>Start the frontend server ( <bc>node frontendServer.js</bc>).<(li>
+<li>Open a browser on <bc>http://192.168.43.229:8080/</bc></li>
+</ol>	 
+  	</m>
+ 	</td>
+	 </table>
+	</center> 
+<pre>
+curl -H -X POST http://localhost:8080/a
+curl -H "Content-Type: application/json" -X POST http://localhost:8080/a
+</pre>
+	
+ <h2 id="appls">Applications</h2>
+	
+ 	<center><table style="width:98%">
+	<tbody>	
+	<tr>
+	<td style="width:70%">
+	<h3>Adding an application</h3>
+	<center><img src="./archApplCoap.png" alt="archApplCoap" width="95%" height="32%"/></center>
+	</td> 
+	<td>
+	<m>
+ <li>Open <bc>http://192.168.43.229:8080/appl</li>
+  	</m>
+ 	</td>
+	 </table>
+	</center> 	
+
+	<br/><br/>	
+	
+ 	<center><table style="width:98%">
+	<tbody>	
+	<tr>
+	<td style="width:70%">
+	<h3>Adding custom observers</h3>
+	<center><img src="./archRadarCoap.png" alt="archRadarCoap" width="95%" height="32%"/></center>
+	</td> 
+	<td>
+	<m>
+   	</m>
+ 	</td>
+	 </table>
+	</center> 	
+
+	<br/><br/>	
+	
+ 	
+</div>
+<div style="background-color:rgba(86, 56, 253, 0.9); width:100%;text-align:center;font-size:small;color:white">
+By AN Unibo-DISI    
+</div> 
+</body>
+</html>

@@ -1,0 +1,212 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8"><style type="text/css">
+
+body
+{
+    margin-left:  30px;
+    margin-right: 30px;
+};
+
+P
+{
+    font-family: Tahoma;
+    font-size: 10pt;
+};
+
+a, a:visited, a:active, a:link, a:hover {
+    text-decoration: underline;
+    color: #545454;
+    background-color: transparent;
+}
+
+a:hover {
+    background-color: #cccccc;
+}
+
+
+hr {
+    clear: both;
+    height: 1px;
+    color: #242424;
+    background-color: transparent;
+}
+
+h1, h2, h3 {
+    color: #242424;
+    clear: left;
+    font: 100% Tahoma, Helvetica, Arial, sans-serif;
+    margin: 10;
+    margin-right: 15px;
+    margin-bottom: 0.5em;
+    padding-top: 0.5em;
+    border-bottom: 1px solid #242424;
+}
+
+h1 {
+    font-size: 150%;
+    background-color: #b2c0ff;
+}
+
+h2 {
+    background-color: #d9fbff;
+    font-size: 110%;
+}
+
+h3 {
+	background-color: #e6ccff;
+    font-size: 80%;
+}
+h4 {
+    background-color: #99ffcc;
+    font-size: 100%;
+}
+#i {
+    color: #ff1010;
+}
+tt{
+	font-family: "Arial";
+    font-size: 80%;
+	color: #006600;
+}
+em{
+	font-family: "Arial";
+    font-size: 80%;
+	font-weight: bold;
+	border-style:solid;
+	border-color: #ccffff;
+    color: #0033cc;
+}
+bc{
+	font-family: "Arial";
+	font-size: 80%;
+	font-weight: bold;
+    color: #990000;
+	background-color: #fcf8c7;
+}
+k{
+	font-family: "Arial";
+	font-weight: bold;
+    color: #990000;
+	 
+}
+ks{
+	font-family: "Arial";
+	font-weight: bold;
+    color: #0000CD	;
+	 
+}
+kc{
+	font-family: "Arial";
+	font-weight: bold;
+    color: #008000	;
+	 
+}
+pre{
+	font-family: "Helvetica";
+	font-size: 70%;
+	background-color: #fcf8c7; 
+}
+m{
+	font-family: "Helvetica";
+	line-height: 100%;
+ 	font-size: 75%;
+}
+div.body{
+	width: 800px;
+    font-size: 18px;
+}    
+div.req{
+	background-color: #d9ffb3;
+    font-size: 18px;
+	width: 700px;
+    border: 3px solid green;
+    padding: 15px;
+    margin: 10px;
+}    
+div.remark{
+	background-color: #FFFC33;     
+    border: 3px solid green;
+    padding: 15px;
+    margin: 10px;
+}  
+table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+</style>
+    
+
+<title>Lab16ISS</title></head>
+    
+<body>
+
+<div class="body"> 
+
+<h1>Analisi dei requisiti</h1> 
+ 
+<h2>Struttura</h2>
+
+  	<center><table style="width:98%">
+ 
+	<tbody>
+	<tr><td style="width:40%"><h2>Attore</h2> </td><td><h2>Contesto</h2></td>	
+	<tr><td style="width:40%">mindrobot </td><td>ctxRobot</td>
+	</tr><tr><td style="width:40%">basicrobot </td><td>ctxRobot</td>
+	</tr><tr><td style="width:40%">sonarhandler </td><td>ctxRobot</td>
+	</tr><tr><td style="width:40%">onerotateforward </td><td>ctxRobot</td>
+	</tr><tr><td style="width:40%">onecellforward </td><td>ctxRobot</td>		
+	</tr><tr><td style="width:40%">resourcemodel </td><td>ctxResourceModel</td>
+	</tr><tr><td style="width:40%">kb </td><td>ctxResourceModel</td>
+	</tr><tr><td style="width:40%">pantry </td><td>ctxPantry</td>
+	</tr><tr><td style="width:40%">fridge </td><td>ctxFridge</td>
+	</tr><tr><td style="width:40%">dishwasher </td><td>ctxDishwasher</td>
+	</tr><tr><td style="width:40%">missionsolver </td><td>ctxExplorer</td>
+	</tr><tr><td style="width:40%">explorer </td><td>ctxExplorer</td>
+	</tr>
+ 	</tbody></table>
+	</center>
+	
+<h2>Interazione</h2>
+	 	<center><table style="width:98%">
+ 
+	<tbody>
+	<tr><td style="width:40%"><h2>Msg</h2></td>	</td><td><h2>Descrizione</h2></td>	
+	<tr><td style="width:40%">Event  envCond        : envCond( CONDTYPE ) </td><td>Eventi emessi dall'ambiente virtuale</td>
+	<tr><td style="width:40%">Event  sonarRobot     : sonar( DISTANCE ) </td><td>Sonar frontale del robot</td>
+	<tr><td style="width:40%">Event  sonar          : sonar(SONAR, DISTANCE)</td><td>Informazioni generate dal robot o dal suo ambiente</td>
+	<tr><td style="width:40%">Event  polar          : p( Distance, Angle )</td><td>Eventi recepiti dal radar</td>
+	<tr><td style="width:40%">Event  collision	  : collision(OBJECT)</td><td>Oggetto in collisione con il robot</td>
+	<tr><td style="width:40%">Dispatch onestep       : onestep(DURATION)</td><td>Richiesta al robot di spostamento di uno step</td>
+	<tr><td style="width:40%">Dispatch stepOk        : stepOk(V)</td><td>Risposta positiva al messaggio di onestep</td>
+	<tr><td style="width:40%">Dispatch stepFail      : stepFail(R,T)</td><td>Risposta negativa al messaggio di onestep</td>
+	<tr><td style="width:40%">Dispatch onerotationstep   : onerotationstep(MOVE)</td><td>Richiesta al robot per una rotazione di 90°</td>
+	<tr><td style="width:40%">Dispatch rotationOk        : rotationOk(STALL)</td><td>Risposta positiva al messaggio onerotationstep</td>
+	<tr><td style="width:40%">Dispatch robotCmd     : robotCmd( CMD )	</td><td>Richiesta di spostamento generica del root (basso livello)</td>
+	<tr><td style="width:40%">Dispatch modelChange  : modelChange( TARGET, VALUE )</td><td>Richiesta di cambiamento dello stato</td>
+	<tr><td style="width:40%">Dispatch modelUpdate  : modelUpdate( TARGET, VALUE )</td><td>Cambiamento effettivo dello stato</td>
+	<tr><td style="width:40%">Dispatch stop  : stop(V )</td><td>Richiesta di arresto al Robot</td>
+	<tr><td style="width:40%">Dispatch reactivate  : reactivate( V )</td><td>Richiesta di riattivazione al Robot</td>	
+	<tr><td style="width:40%">Dispatch modelUpdateMap  : modelUpdateMap( NAME,X,Y )</td><td>Aggiornamento conoscenza della mappa</td>
+	<tr><td style="width:40%">Dispatch modelRequest : modelRequest( TARGET,PROP)</td><td>Richiesta alla base di conoscenza</td>
+	<tr><td style="width:40%">Dispatch modelRobotResponse : modelRobotResponse( X,Y,O ) </td><td>Risposta alla richiesta di conoscenza sulla posizione del robot</td>
+	<tr><td style="width:40%">Dispatch modelMapResponse : modelMapResponse( X,Y )</td><td>Risposta alla richiesta di conoscenza sulla mappa</td>
+	<tr><td style="width:40%">Dispatch modelErrorResponse : modelErrorResponse( ERROR )</td><td>Risposta negativa alla richiesta di conoscenza</td>
+	<tr><td style="width:40%">Dispatch takeDish  : takeDish(X)</td><td>Recupero piatti dal pantry</td>
+	<tr><td style="width:40%">Dispatch takeFood  : takeFood(X,Q)</td><td>Recupero cibo dal fridge</td>
+	<tr><td style="width:40%">Dispatch putFood   : putFood(X,Q)</td><td>Reinserisce il cibo non cosumato nel frigo</td>
+	<tr><td style="width:40%">Dispatch putDish  : putDish(X)</td><td>Inserisce i piatti nella dishwasher</td>
+	<tr><td style="width:40%">Dispatch goTo  : goTo( X,Y )</td><td>Richiesta per lo stostamento del robot in posizione x,y (orientato verso sud)</td>
+	<tr><td style="width:40%">Dispatch goToOk  : goToOk( V )</td><td>Risposta positiva alla richiesta di spostamento</td>
+	<tr><td style="width:40%">Dispatch goToFail  : goToFail( V )</td><td>Risposta negativa alla richiesta di spostamento</td>
+	<tr><td style="width:40%">Dispatch addFood : addFood(X,Q) </td><td>Richiesta esecuzione macro azione di aggiunta cibo dal fridge al table</td>
+	<tr><td style="width:40%">Dispatch prepare : prepare(X)</td><td>Richiesta esecuzione macro azione di aggiunta piatti dal pantry al table e il cibo dal fridge al table</td>
+	<tr><td style="width:40%">Dispatch clear : clear(X)</td><td>Richiesta esecuzione macro azione pulizia table (inserimento cibo non cosumato in frindge e piatti nel dishwasher)</td>
+	<tr><td style="width:40%">Dispatch missionFinish : missionFinish(X)</td><td>Risposta alla richiesta di macro azione</td>
+	<tr><td style="width:40%">Dispatch doExplore : doExplore( TARGET )</td><td>Richiesta di esplorazione (bound-table)</td>
+	<tr><td style="width:40%">Dispatch endExplore : endExplore(V)</td><td>Risposta alla richiesta di esplorazione</td>
+	
+	</tr>
+ 	</tbody></table>
+	</center>
+</a></body></html>

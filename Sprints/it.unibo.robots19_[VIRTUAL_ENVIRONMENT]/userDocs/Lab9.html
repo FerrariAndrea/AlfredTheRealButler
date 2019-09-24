@@ -1,0 +1,356 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+    <!--
+<link rel="stylesheet" type="text/css" href="../css/issStyle1.css">
+<script type="text/javascript" src="../css/issStyle.js"></script>
+-->
+<style type="text/css">
+<!--
+
+body
+{
+    margin-left:  30px;
+    margin-right: 30px;
+};
+
+P
+{
+    font-family: Tahoma;
+    font-size: 10pt;
+};
+
+a, a:visited, a:active, a:link, a:hover {
+    text-decoration: underline;
+    color: #545454;
+    background-color: transparent;
+}
+
+a:hover {
+    background-color: #cccccc;
+}
+
+
+hr {
+    clear: both;
+    height: 1px;
+    color: #242424;
+    background-color: transparent;
+}
+
+h1, h2, h3 {
+    color: #242424;
+    clear: left;
+    font: 100% Tahoma, Helvetica, Arial, sans-serif;
+    margin: 10;
+    margin-right: 15px;
+    margin-bottom: 0.5em;
+    padding-top: 0.5em;
+    border-bottom: 1px solid #242424;
+}
+
+h1 {
+    font-size: 150%;
+    background-color: #b2c0ff;
+}
+
+h2 {
+    background-color: #d9fbff;
+    font-size: 110%;
+}
+
+h3 {
+	background-color: #e6ccff;
+    font-size: 80%;
+}
+h4 {
+    background-color: #99ffcc;
+    font-size: 100%;
+	width: 750px;
+}
+#i {
+    color: #ff1010;
+}
+tt{
+	font-family: "Arial";
+    font-size: 80%;
+	color: #006600;
+}
+em{
+	font-family: "Arial";
+    font-size: 80%;
+	font-weight: bold;
+	border-style:solid;
+	border-color: #ccffff;
+    color: #0033cc;
+}
+bc{
+	font-family: "Arial";
+	font-size: 80%;
+	font-weight: bold;
+    color: #990000;
+	background-color: #fcf8c7;
+}
+pre{
+	font-family: "Helvetica";
+	font-size: 70%;
+	background-color: #fcf8c7; 
+}
+ 
+m{
+	font-family: "Helvetica";
+	line-height: 100%;
+ 	font-size: 75%;
+}
+div.body{
+	width: 800px;
+    font-size: 18px;
+}    
+div.req{
+	background-color: #d9ffb3;
+    font-size: 18px;
+	width: 700px;
+    border: 3px solid green;
+    padding: 15px;
+    margin: 10px;
+}    
+
+table, th, td {
+  border: 1px solid black;
+  border-collapse: collapse;
+}
+
+  -->
+</style>
+<head>
+   
+<title>Lab9ISS</title></head>
+    
+<body>
+
+<div class="body"> 
+
+<h1>72939 - LAB9 | Interacting with a virtual robot</h1> 
+<a href="http://htmlpreview.github.com/?https://github.com/anatali/iss2019Lab/blob/master/LectureBologna1819.html" target="isslm">LabISS-lectures site</a></font> 
+
+<h2>INTRODUCTION</h2>
+Our company (<tt>Unibo</tt>) has developed  a virtual environment (named <em>WEnv</em>) that includes a virtual robot.
+<br/> 
+The virtual environment  has been mainly built by <i>Pierfrancesco Soffritti</i> using the
+<a href=" https://threejs.org/">three.js</a> JavaScript library (see
+<a href="https://github.com/PierfrancescoSoffritti/ConfigurableThreejsApp">ConfigurableThreejsApp</a> ) .
+<h3>Starting</h3>
+The reference project for this introduction is <tt>it.unibo.robots19</tt>.
+<ol>
+<li>Install <bc>Node.js</bc></tt>
+<li>Open a terminal on <bc>it.unibo.robots19\node\WEnv\server</bc> and execute <pre>npm install</tt></pre></li>
+<li>In the directory <bc>it.unibo.robots19\node\WEnv\WebGLScene</bc>  execute <pre>npm install</tt></pre></li>
+<li>In the directory  <bc>it.unibo.robots19\node\WEnv\server\src</bc>  execute <pre>node main 8999</tt></pre></li>
+<li>Open a browser on <pre>localhost:8090</pre></li>
+</ol>
+ 
+<h3>SCENE</h3>  
+The scene of the <tt>WEnv</tt> is built from a description can be easily defined by an application designer.
+
+<center><table style="width:95%">
+<tbody>	
+
+<tr>
+<td><center><img src="./wenvscene.png" alt="wenvscene" width="60%" height="60%"></center></td>
+<td><center><img src="./wenvscene1.png" alt="wenvscene1" width="60%" height="60%"></center></td>
+</tr>
+</tbody>	
+</table></center>
+	
+  
+The scene description is stroed in a configuration file (named <bc>sceneConfig.js</bc>) stored in the
+directory <tt>WebGLScene</tt>. For example the description of the scene on the right of the figure above is:
+<pre>
+const config = {
+    floor: {
+        size: { x: 25, y: 20 }
+    },
+    player: {
+        //position: { x: 0.5, y: 0.5 },		//CENTER
+        position: { x: 0.3, y: 0.2 },		//INIT
+        //position: { x: 0.8, y: 0.85 },	//END
+        speed: 0.2
+    },
+    sonars: [
+        {
+            name: "sonar2",
+            position: { x: 0.94, y: 0.88},
+            senseAxis: { x: true, y: false }
+        }
+     ],
+    movingObstacles: [
+/*      {
+            name: "movingobstacle",
+            position: { x: .64, y: .42 },
+            directionAxis: { x: true, y: true },
+            speed: 0.2,
+            range: 28
+        },
+*/
+    ],
+   staticObstacles: [ 
+        {
+            name: "obs1",
+            centerPosition: { x: 0.3, y: 0.38 }, 
+            size: { x: 0.05, y: 0.045}
+        },
+        {
+        name: "wallUp",
+			centerPosition: { x: 0.48, y: 0.98},
+			size: { x: 0.8, y: 0.01}
+        },
+        {
+            name: "wallDown",
+            centerPosition: { x: 0.45, y: 0.01},
+            size: { x: 0.85, y: 0.01}
+        },
+        {
+            name: "wallRight",
+            centerPosition: { x: 0.05, y: 0.45},
+            size: { x: 0.01, y: 0.75}
+        },
+        {
+            name: "wallLeft",
+            centerPosition: { x: 0.9, y: 0.5},
+            size: { x: 0.01, y: 0.65}
+        }
+    ]
+}
+
+export default config;
+</pre>
+
+<h3>INTERACTION</h3> 
+	
+The virtual robot accepts commands sent on a <tt>TCP</tt> connection on port <tt>8999</tt>.
+The commands are described in the file <tt>README.md</tt>.
+
+ For example:
+<pre>
+moveForward : `{ "type": "moveForward", "arg": 300 }`
+moveBackward : `{ "type": "moveBackward", "arg": 300 }`
+ 
+turnRight : `{ "type": "turnRight", "arg": 300 }`
+turnLeft : `{ "type": "turnLeft", "arg": 300 }`
+
+stop : `{ "type": "alarm" }`
+</pre>
+Moreover, the virtual environment <em>sends</em> to the connected client (via <tt>TCP</tt> on port <tt>8999</tt>):
+<ul>
+<li>Data emitted by the sonars included in the scene when they detect the robot </li>
+<li>Data emitted by the sonars on board of the robot, when they detect an obstacle (fixed or mobile) </li>
+</ul>
+
+<pre>
+webpage-ready : `{ "type": "webpage-ready, "arg": {} }`
+sonar-activated : `{
+	"type:" "sonar-activated",
+	"arg": { "sonarName": "sonarName", "distance": 1, "axis": "x" }
+}`
+collision : `{
+	"type": "collision",
+	"arg": { "objectName": "obstacle-1" }
+}`
+</pre>
+
+
+
+<h3>USING THE WENV ROBOT</h3>
+
+Let us report an example of a client written in Node.js that sends some command to the robot:
+<center><table style="width:95%">
+<tbody>	
+
+<tr>
+<td style="width:40%">
+<a href="../src/main/kotlin/it/unibo/robots19/basic/clientWenvTcp.kt" target="code">clientWenvTcp.kt</a>
+</td>
+<td><m><em>Client Node for interaction with WEnv</em></m></td>
+</tr>
+ 
+
+
+</tbody>	
+</table></center>
+
+
+
+
+<h2>USING WENV WITH ACTORS</h2>
+
+<center><table style="width:95%">
+<tbody>	
+ 
+<tr>
+<td style="width:40%">
+<a href="../src/main/kotlin/it/unibo/robots19/basic/RobotCmds.kt" target="code">RobotCmds.kt</a>
+</td>
+<td><m><em>Robot command messages</em></m></td>
+</tr>
+
+<tr>
+<td style="width:40%">
+<a href="../src/main/kotlin/it/unibo/robots19/basic/BasicRobotExecutor.kt" target="code">BasicRobotExecutor.kt</a>
+</td> 
+<td><m><em>Actor that executes commands</em> implemented by
+<a href="../src/main/kotlin/it/unibo/robots19/basic/RobotCmds.kt" target="code">RobotCmds.kt</a></m></td>
+</tr>
+
+<tr>
+<td style="width:40%">
+<a href="../executorDescr.pl" target="code">executorDescr.pl</a>
+</td>
+<td><m><em>Description of a qak system </em> managed with 
+<a href="../sysRules.pl" target="code">sysRules.pl</a>. A main is:
+<a href="../src/main/kotlin/it/unibo/robots19/experiment/MainExecutor.kt" target="code">MainExecutor.kt</a>
+</m></td>
+</tr>
+
+
+</tbody>	
+</table></center>
+
+<h3>Interacting with the BasicRobotExecutor </h3>
+ 
+<center><table style="width:95%">
+<tbody>	
+
+<tr>
+<td style="width:40%">
+<a href="../src/main/kotlin/it/unibo/robots19/basic/ClientToRobotExecutor.js" target="code">ClientToRobotExecutor.js</a>
+</td>
+<td><m><em>Client Node  </em> for the 
+<a href="../src/main/kotlin/it/unibo/robots19/basic/BasicRobotExecutor.kt" target="code">BasicRobotExecutor.kt</a>
+ 
+ 
+</m></td>
+</tr>
+
+</tbody>	
+</table></center>
+
+
+<div class="req">
+</div>	    
+ 	
+	
+	<h3>RESOURCES</h3>
+
+    <a href="http://137.204.107.10/iss2018/it.unibo.issMaterial/issdocs/Material/2016-02-26-raspbian-jessie-iss.img.zip" 
+								target="lecture">2016-02-26-raspbian-jessie-iss.img.zip</a> (<tt>WARNING: 1GB</tt>)<br/>
+    <a href="../CARD/guida_rpi.pdf" target="lecture">guida_rpi.pdf</a>,<br/>
+    <a href="../CARD/rpi_sd.pdf" target="lecture">rpi_sd.pdf</a>,<br/>
+    <a href="../CARD/istruzioni-aggiornate-raspi-linux.pdf" target="lecture">istruzioni-aggiornate-raspi-linux.pdf (Giacomo Venturini)</a> 
+	ed <a href="../CARD/esempio-procedura.html" target="lecture">esempio-procedura.html</a> ,<br/>
+
+
+</div>  
+<div style="background-color:rgba(86, 56, 253, 0.9); width:100%;text-align:center;font-size:small;color:white">
+By AN Unibo-DISI    
+</div> 
+</body>
+</html>
