@@ -15,6 +15,7 @@ import it.unibo.kactor.MsgUtil
 import it.unibo.blsFramework.kotlin.fsm.forward
 import org.eclipse.paho.client.mqttv3.MqttMessage
 import org.junit.BeforeClass
+import it.unibo.tester.Tester
 
 
 class Sprint0Test {
@@ -23,7 +24,7 @@ class Sprint0Test {
 	companion object {
 		//----------------------var
 		var testName = "SprintTest"
-		var actor : ActorBasic?=null
+		var actor : Tester?= null
 		init {}
 
 //-------------------------------------------------------UTILS for test
@@ -41,46 +42,29 @@ class Sprint0Test {
 			println("Start test as Maitre")
 			delay(250)
 			GlobalScope.launch{
-				it.unibo.ctxMaitre.main()
-				
+				srcTest.main()					
 			}
-			delay(500)
+			delay(2000)
 			GlobalScope.launch{
-				actor=sysUtil.getActor("maitre")
-				println(actor!!.name)
-				
+				println("PROVA!!!!")
+				actor=sysUtil.getActor("tester") as Tester
+				println("name-->"+actor!!.name)
 			}
-		
-			
 		}
 
 	}
 
 
 
-	
-	@Test
-	fun fridgeTest(){
-		println("----->fridgeTest")
-		GlobalScope.launch{
-			println(actor!!.name)
-		}
-		 
-		
-	}
 
 	@Test
 	fun fluxTest(){
 		println("----->fluxTest")
-		GlobalScope.launch{
-			println(actor!!.name)
-		}
-		var event :String = ""
-		assertTrue("Flux0","w"==event)
-		
-		
+		println("2----->"+actor!!.getFlux())
 	}
+	
 
+	
 
 
 }

@@ -48,6 +48,7 @@ class Resourcemodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 								println("resourcemodel->applicazione modifica: $Target , $Value (esempio spostamento robot)")
 								val ForTest = "resourcesModelUpdate[$Value]"
 								emit("modelContent", "content($ForTest)" ) 
+								forward("modelChange", "modelChange($Target,$Value)" ,"maitre" ) 
 								forward("modelChange", "modelChange($Target,$Value)" ,"mindrobot" ) 
 						}
 					}

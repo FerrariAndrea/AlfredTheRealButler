@@ -27,6 +27,7 @@ Context ctxMaitre ip[host="localhosta" port=8035] -mqtt // forse non  "localhost
 Context ctxResourceModel ip[host="localhostb" port=8036] -mqtt 
 
 
+ExternalQActor tester context ctxRobot//FOR TEST
 
 QActor maitre context ctxMaitre{
 	State s0 initial{
@@ -125,6 +126,7 @@ QActor resourcemodel context ctxResourceModel{
 			println("resourcemodel->applicazione modifica: $Target , $Value (esempio spostamento robot)")
 			["val ForTest = \"resourcesModelUpdate[$Value]\""]
 			emit modelContent : content($ForTest)//FOR TEST
+			forward maitre -m  modelChange :  modelChange($Target , $Value )
 			forward mindrobot -m  modelChange :  modelChange($Target , $Value )
 		}		
 	}
