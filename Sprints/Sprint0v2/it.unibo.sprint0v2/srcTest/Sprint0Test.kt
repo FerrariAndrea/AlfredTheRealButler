@@ -61,20 +61,25 @@ class Sprint0Test {
 	
 	@Test
 	fun fridgeTest(){
-		println("-----")
-		
-		println("-----")
+		println("----->fridgeTest")
 		GlobalScope.launch{
 			println(actor!!.name)
-			var message: MqttMessage=MqttMessage()
-			actor!!.messageArrived("content",message)
-			println(message.toString())
 		}
 		 
 		
 	}
 
-	
+	@Test
+	fun fluxTest(){
+		println("----->fluxTest")
+		GlobalScope.launch{
+			println(actor!!.name)
+		}
+		var event :String = ""
+		assertTrue("Flux0","w"==event)
+		
+		
+	}
 
 
 
