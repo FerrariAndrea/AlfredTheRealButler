@@ -33,8 +33,8 @@ class Basicrobot ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 						                        currentMsg.msgContent()) ) { //set msgArgList
 								
 												var Mossa = payloadArg(0)
-								val ForTest = "basicrobot[$Mossa]"
-								emit("modelContent", "content($ForTest)" ) 
+								val ForTest = "basicrobot"
+								forward("test", "test($ForTest)" ,"tester" ) 
 								println("move-->$Mossa")
 						}
 					}

@@ -25,6 +25,7 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				}	 
 				state("cmd1") { //this:State
 					action { //it:State
+						println("Maitre: Send w")
 						forward("modelChange", "modelChange(robot,w)" ,"resourcemodel" ) 
 					}
 				}	 

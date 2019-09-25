@@ -35,8 +35,8 @@ class Resourcemodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 								
 												var Target=payloadArg(0)
 												var Value=payloadArg(1)
-								val ForTest = "resourcesModelUpdate[$Value]"
-								emit("modelContent", "content($ForTest)" ) 
+								val ForTest = "ResourcesModelUpdate"
+								forward("test", "test($ForTest)" ,"tester" ) 
 								println("resourcemodel->richiesta salvataggio modifica a kb(persistenza): $Target , $Value")
 								forward("kbModelUpdate", "kbModelUpdate($Target,$Value)" ,"kb" ) 
 								println("resourcemodel->Propagazione modifica (esempio tramite coap): $Target , $Value")
@@ -52,8 +52,8 @@ class Resourcemodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 												var Target=payloadArg(0)
 												var Value=payloadArg(1)
 								println("resourcemodel->applicazione modifica: $Target , $Value (esempio spostamento robot)")
-								val ForTest = "resourcesModelChange[$Value]"
-								emit("modelContent", "content($ForTest)" ) 
+								val ForTest = "ResourcesModelChange"
+								forward("test", "test($ForTest)" ,"tester" ) 
 								forward("modelChanged", "modelChanged($Target,$Value)" ,"mindrobot" ) 
 						}
 					}

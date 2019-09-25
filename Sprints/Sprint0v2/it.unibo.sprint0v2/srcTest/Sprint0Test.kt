@@ -55,16 +55,16 @@ class Sprint0Test {
 
 
 	fun waitNextFlux():String{
-		
 		while(actor!!.isReady()==0){
 			delay(50)
 		}
-		return actor!!.getFlux()!!
+		val temp = actor!!.getFlux()!!
+		return temp
 	}
 
 	@Test
 	fun fluxTest(){
-		
+		println("Start flux test")
 		assertTrue("Check Actor tester.",(actor!!.name=="tester") )
 		assertTrue("Check msg flux 1",waitNextFlux().startsWith("resourcesModelChange",true))
 		assertTrue("Check msg flux 1",waitNextFlux().startsWith("mindrobot",true))

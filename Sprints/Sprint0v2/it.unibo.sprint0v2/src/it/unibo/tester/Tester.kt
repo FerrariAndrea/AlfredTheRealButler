@@ -13,6 +13,7 @@ class Tester ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 	override fun getInitialState() : String{
 		return "s0"
 	}
+		
 	var messageRisp: String = ""
 	var ready:Int= 0
 	
@@ -31,19 +32,23 @@ class Tester ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 					action { //it:State
 						println("Start tester")
 					}
-					 transition(edgeName="t05",targetState="handleTester",cond=whenEvent("modelContent"))
+					 transition(edgeName="t00",targetState="handler",cond=whenDispatch("test"))
 				}	 
-				state("handleTester") { //this:State
+				state("handler") { //this:State
 					action { //it:State
-						if( checkMsgContent( Term.createTerm("content(VALUE)"), Term.createTerm("content(VALUE)"), 
+						if( checkMsgContent( Term.createTerm("test(VALUE)"), Term.createTerm("test(VALUE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-							println("CATTURATO")
 							messageRisp=payloadArg(0)
 							ready=1
+							while(ready==1){
+								delay(50)
+							}
 						}
 					}
-					 transition(edgeName="t06",targetState="handleTester",cond=whenEvent("modelContent"))
+					 transition(edgeName="t01",targetState="handler",cond=whenDispatch("test"))
 				}	 
 			}
 		}
 }
+
+

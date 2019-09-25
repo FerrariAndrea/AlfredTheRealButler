@@ -29,8 +29,8 @@ class Kb ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scope){
 								
 												var Target=payloadArg(0)
 												var Value=payloadArg(1)
-								val ForTest = "KB[$Value]"
-								emit("modelContent", "content($ForTest)" ) 
+								val ForTest = "KB"
+								forward("test", "test($ForTest)" ,"tester" ) 
 								println("KB->modello cambiato: $Target , $Value")
 						}
 					}

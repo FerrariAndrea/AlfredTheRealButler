@@ -35,8 +35,8 @@ class Mindrobot ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, s
 												
 												var Val0 = payloadArg(0)
 												var Val1 = payloadArg(1)
-								val ForTest = "mindrobot[$Val1]"
-								emit("modelContent", "content($ForTest)" ) 
+								val ForTest = "mindrobot"
+								forward("test", "test($ForTest)" ,"tester" ) 
 								forward("robotCmd", "robotCmd($Val1)" ,"basicrobot" ) 
 								println("robotCmd->smistato")
 								forward("modelUpdate", "modelUpdate($Val0,$Val1)" ,"resourcemodel" ) 
