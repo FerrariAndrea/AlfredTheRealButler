@@ -63,17 +63,18 @@ class Sprint0Test {
 	}
 
 	@Test
-	fun fluxTest(){
+	fun actorTest(){
+		println("Start actor test")
+		assertTrue("Check Actor tester.",(actor!!.name=="tester") )	
+	}
+	@Test
+	fun fluxTsest(){
 		println("Start flux test")
-		assertTrue("Check Actor tester.",(actor!!.name=="tester") )
 		assertTrue("Check msg flux 1",waitNextFlux().startsWith("resourcesModelChange",true))
-		assertTrue("Check msg flux 1",waitNextFlux().startsWith("mindrobot",true))
-		assertTrue("Check msg flux 1",waitNextFlux().startsWith("basicrobot",true))
-		assertTrue("Check msg flux 1",waitNextFlux().startsWith("resourcesModelUpdate",true))
-		assertTrue("Check msg flux 1",waitNextFlux().startsWith("KB",true))
-	
-		
-	
+		assertTrue("Check msg flux 2",waitNextFlux().startsWith("mindrobot",true))
+		assertTrue("Check msg flux 3",waitNextFlux().startsWith("basicrobot",true))
+		assertTrue("Check msg flux 4",waitNextFlux().startsWith("resourcesModelUpdate",true))
+		assertTrue("Check msg flux 5",waitNextFlux().startsWith("KB",true))
 	}
 	
 
