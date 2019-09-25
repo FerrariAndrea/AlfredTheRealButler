@@ -19,7 +19,6 @@ class Fridge ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				state("s0") { //this:State
 					action { //it:State
 						println("Start fridge")
-						emit("modelContent", "content(StartFridge)" ) 
 					}
 				}	 
 			}

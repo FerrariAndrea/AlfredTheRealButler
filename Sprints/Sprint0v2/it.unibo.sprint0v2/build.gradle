@@ -88,9 +88,12 @@ compileTestKotlin {
 
 sourceSets {
     main.java.srcDirs += 'src'
-    //main.java.srcDirs += 'resources'
+    main.java.srcDirs += 'resources'
+    main.java.srcDirs += 'srcTest'
 }
+
 /*
+mainClassName = 'it.unibo.Sprint0TestKt'
 mainClassName = 'it.unibo.TODOKt'
 
 jar {

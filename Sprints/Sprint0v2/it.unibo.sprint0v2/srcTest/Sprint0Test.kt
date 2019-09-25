@@ -39,28 +39,41 @@ class Sprint0Test {
 		//start all
 		@BeforeClass @JvmStatic
 		fun systemSetUp() {
-			println("Start test as Maitre")
+			println("Start test, starting ctxs")
 			delay(250)
 			GlobalScope.launch{
 				srcTest.main()					
 			}
 			delay(2000)
+			println("Getting Tester actor")
 			GlobalScope.launch{
-				println("PROVA!!!!")
 				actor=sysUtil.getActor("tester") as Tester
-				println("name-->"+actor!!.name)
 			}
 		}
 
 	}
 
 
-
+	fun waitNextFlux():String{
+		
+		while(actor!!.isReady()==0){
+			delay(50)
+		}
+		return actor!!.getFlux()!!
+	}
 
 	@Test
 	fun fluxTest(){
-		println("----->fluxTest")
-		println("2----->"+actor!!.getFlux())
+		
+		assertTrue("Check Actor tester.",(actor!!.name=="tester") )
+		assertTrue("Check msg flux 1",waitNextFlux().startsWith("resourcesModelChange",true))
+		assertTrue("Check msg flux 1",waitNextFlux().startsWith("mindrobot",true))
+		assertTrue("Check msg flux 1",waitNextFlux().startsWith("basicrobot",true))
+		assertTrue("Check msg flux 1",waitNextFlux().startsWith("resourcesModelUpdate",true))
+		assertTrue("Check msg flux 1",waitNextFlux().startsWith("KB",true))
+	
+		
+	
 	}
 	
 

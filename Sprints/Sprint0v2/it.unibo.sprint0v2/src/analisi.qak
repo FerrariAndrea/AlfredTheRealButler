@@ -23,8 +23,8 @@ Dispatch stopAppl      : stopAppl( CMD )
 Dispatch startAppl     : startAppl( CMD )
 
 Context ctxRobot ip[host="localhost" port=8038] -mqtt
-Context ctxMaitre ip[host="localhosta" port=8035] -mqtt // forse non  "localhost" ma "otherresourcelocalhost"
-Context ctxResourceModel ip[host="localhostb" port=8036] -mqtt 
+Context ctxMaitre ip[host="localhost" port=8035] -mqtt // forse non  "localhost" ma "otherresourcelocalhost"
+Context ctxResourceModel ip[host="localhost" port=8036] -mqtt 
 
 
 ExternalQActor tester context ctxRobot//FOR TEST
@@ -32,7 +32,7 @@ ExternalQActor tester context ctxRobot//FOR TEST
 QActor maitre context ctxMaitre{
 	State s0 initial{
 		println("Start maitre")	
-		delay 500	
+		delay 4000	
 	}Goto cmd1
 	
 	State cmd1{
@@ -45,7 +45,9 @@ QActor basicrobot context ctxRobot{
 	
 	State s0 initial {
 		println("Start basicrobot")		
-	}Transition t0  whenMsg   robotCmd  -> handleRobotCmd
+	}Goto waitCmd
+	
+	State waitCmd{}Transition t0  whenMsg   robotCmd  -> handleRobotCmd
 	
 	State handleRobotCmd{ //does not handle alarms 
 		//printCurrentMessage 
@@ -58,15 +60,17 @@ QActor basicrobot context ctxRobot{
 			println("move-->$Mossa")
 		}	
  	}  
-	Goto s0 
+	Goto waitCmd
+	
+	
 }
 
 QActor mindrobot context ctxRobot{
 	["var Curmove = \"\""]
 	State s0 initial {
 		println("Start mindrobot")		
-	}Transition t0  whenMsg   modelChanged  -> handleRobotCmd
-	
+	}Goto wait
+	State wait{}Transition t0  whenMsg   modelChanged  -> handleRobotCmd
 	State handleRobotCmd{ //does not handle alarms 
 		//printCurrentMessage 
 		onMsg(  modelChanged:  modelChanged( TARGET, VALUE ) ) { //MOVE = w | a | s | d | h
@@ -83,15 +87,14 @@ QActor mindrobot context ctxRobot{
 			forward resourcemodel -m  modelUpdate :  modelUpdate($Val0,$Val1) 
 		}	
  	}  
-	Goto s0 
+	Goto wait 
 }
 
 
 
 QActor fridge context ctxRobot{
 	State s0 initial {
-		println("Start fridge")
-		emit modelContent : content(StartFridge)//FOR TEST		
+		println("Start fridge")	
 	}
 }
 
@@ -100,7 +103,13 @@ QActor fridge context ctxRobot{
 QActor resourcemodel context ctxResourceModel{
 	State s0 initial {
 		println("Start resourcemodel")		
-	}Transition t0  whenMsg   modelUpdate  -> handleUpdate
+		
+		
+	}Goto wait
+	
+	
+	
+	State wait{}Transition t0  whenMsg   modelUpdate  -> handleUpdate
 	 				 whenMsg   modelChange  -> handleChange 
 	 				 
 	State handleUpdate  {
@@ -115,7 +124,7 @@ QActor resourcemodel context ctxResourceModel{
 			forward kb -m  kbModelUpdate :  kbModelUpdate($Target , $Value )
 			println("resourcemodel->Propagazione modifica (esempio tramite coap): $Target , $Value") 
 		}		
-	}
+	}Goto wait
 	
 	State handleChange  {
 		onMsg(  modelChange:  modelChange( TARGET, VALUE ) ) { 
@@ -124,12 +133,11 @@ QActor resourcemodel context ctxResourceModel{
 				var Value=payloadArg(1)
 			"]
 			println("resourcemodel->applicazione modifica: $Target , $Value (esempio spostamento robot)")
-			["val ForTest = \"resourcesModelUpdate[$Value]\""]
+			["val ForTest = \"resourcesModelChange[$Value]\""]
 			emit modelContent : content($ForTest)//FOR TEST
-			forward maitre -m  modelChange :  modelChange($Target , $Value )
 			forward mindrobot -m  modelChanged :  modelChanged($Target , $Value )
 		}		
-	}
+	}Goto wait
 	
 }
 QActor kb context ctxResourceModel{

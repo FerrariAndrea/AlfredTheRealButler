@@ -20,6 +20,11 @@ class Basicrobot ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 					action { //it:State
 						println("Start basicrobot")
 					}
+					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
+				}	 
+				state("waitCmd") { //this:State
+					action { //it:State
+					}
 					 transition(edgeName="t00",targetState="handleRobotCmd",cond=whenDispatch("robotCmd"))
 				}	 
 				state("handleRobotCmd") { //this:State
@@ -33,7 +38,7 @@ class Basicrobot ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, 
 								println("move-->$Mossa")
 						}
 					}
-					 transition( edgeName="goto",targetState="s0", cond=doswitch() )
+					 transition( edgeName="goto",targetState="waitCmd", cond=doswitch() )
 				}	 
 			}
 		}

@@ -91,7 +91,7 @@ sourceSets {
     //main.java.srcDirs += 'resources'
 }
 /*
-mainClassName = 'it.unibo.TODOKt'
+mainClassName = 'it.unibo.Sprint0TestKt'
 
 jar {
     println("executing jar")

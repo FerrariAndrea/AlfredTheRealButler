@@ -20,6 +20,11 @@ class Resourcemodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 					action { //it:State
 						println("Start resourcemodel")
 					}
+					 transition( edgeName="goto",targetState="wait", cond=doswitch() )
+				}	 
+				state("wait") { //this:State
+					action { //it:State
+					}
 					 transition(edgeName="t02",targetState="handleUpdate",cond=whenDispatch("modelUpdate"))
 					transition(edgeName="t03",targetState="handleChange",cond=whenDispatch("modelChange"))
 				}	 
@@ -37,6 +42,7 @@ class Resourcemodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 								println("resourcemodel->Propagazione modifica (esempio tramite coap): $Target , $Value")
 						}
 					}
+					 transition( edgeName="goto",targetState="wait", cond=doswitch() )
 				}	 
 				state("handleChange") { //this:State
 					action { //it:State
@@ -46,12 +52,12 @@ class Resourcemodel ( name: String, scope: CoroutineScope ) : ActorBasicFsm( nam
 												var Target=payloadArg(0)
 												var Value=payloadArg(1)
 								println("resourcemodel->applicazione modifica: $Target , $Value (esempio spostamento robot)")
-								val ForTest = "resourcesModelUpdate[$Value]"
+								val ForTest = "resourcesModelChange[$Value]"
 								emit("modelContent", "content($ForTest)" ) 
-								forward("modelChange", "modelChange($Target,$Value)" ,"maitre" ) 
-								forward("modelChange", "modelChange($Target,$Value)" ,"mindrobot" ) 
+								forward("modelChanged", "modelChanged($Target,$Value)" ,"mindrobot" ) 
 						}
 					}
+					 transition( edgeName="goto",targetState="wait", cond=doswitch() )
 				}	 
 			}
 		}

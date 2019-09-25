@@ -19,7 +19,7 @@ class Maitre ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 				state("s0") { //this:State
 					action { //it:State
 						println("Start maitre")
-						delay(500) 
+						delay(4000) 
 					}
 					 transition( edgeName="goto",targetState="cmd1", cond=doswitch() )
 				}	 

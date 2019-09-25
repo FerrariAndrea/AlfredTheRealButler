@@ -37,7 +37,7 @@ class Tester ( name: String, scope: CoroutineScope ) : ActorBasicFsm( name, scop
 					action { //it:State
 						if( checkMsgContent( Term.createTerm("content(VALUE)"), Term.createTerm("content(VALUE)"), 
 						                        currentMsg.msgContent()) ) { //set msgArgList
-								
+							println("CATTURATO")
 							messageRisp=payloadArg(0)
 							ready=1
 						}
